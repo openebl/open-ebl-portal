@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+a {
+  color: #004DE3;
+  text-decoration: none;
+}

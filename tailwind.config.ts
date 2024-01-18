@@ -23,11 +23,18 @@ const config = {
         sans: ["var(--font-sans)", ...fontFamily.sans],
       },
       colors: {
-        primary: '#18335e',
-        secondary: '#009bd2',
+        primary: '#0A35A2',
+        secondary1: '#004DE3',
+        secondary2: '#F86919',
         background: '#F7F9FB',
         header: '#0A35A2',
         'header-text': '#FFF',
+        main: '#18335E',
+        light: '#607497',
+        disabled: '#99AED2',
+        hint: '#C9CFDA',
+        link: '#004DE3',
+        warning: '#E42525'
       },
       keyframes: {
         "accordion-down": {
