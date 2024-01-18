@@ -1,18 +1,38 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getServerAuthSession } from "@/server/auth";
 import { type Session } from "next-auth";
 import Image from "next/image";
+import Link from "next/link";
 
-const Avatar = ({ session }: { session: Session | null }) => {
+const AvatarButton = ({ session }: { session: Session | null }) => {
   if (!session) return null;
 
-  return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white bg-opacity-10 text-[.8125rem] font-semibold">
-      TH
+  const nameInitial = session?.user.name?.[0] ?? '';
 
-      {/* <Link href={session ? "/api/auth/signout" : "/api/auth/signin"} >
-          {session ? "Sign out" : "Sign in"}
-        </Link> */}
-    </div>
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <Avatar>
+          <AvatarImage />
+          <AvatarFallback>{nameInitial}</AvatarFallback>
+        </Avatar>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="font-header">
+        <DropdownMenuLabel>{session.user.email}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <Link href="/api/auth/signout">Sign out</Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
@@ -21,18 +41,16 @@ const Menu = ({ session }: { session: Session | null }) => {
 
   return (
     <div className="flex h-[3.875rem] items-center border-b-4 border-[#059CF1]">
-    <div className="text-[13px] font-semibold leading-[18px]">
-      eB/L
+      <div className="text-[13px] font-semibold leading-[18px]">eB/L</div>
     </div>
-  </div>
-);
+  );
 };
 
 const OuterFrame = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerAuthSession();
 
   return (
-    <main className="relative mx-auto h-full min-h-svh w-[1280px] bg-background font-header">
+    <main className="relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header">
       <div className="flex h-16 w-full items-center justify-between bg-header text-header-text">
         <div className="mx-[3.125rem] flex items-center justify-start">
           <Image
@@ -47,7 +65,7 @@ const OuterFrame = async ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
         <div className="mx-[3.125rem] h-9 w-9">
-          <Avatar session={session} />
+          <AvatarButton session={session} />
         </div>
       </div>
 
