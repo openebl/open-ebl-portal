@@ -20,6 +20,7 @@ const config = {
     extend: {
       fontFamily: {
         header: ['var(--font-inter)'],
+        content: ['var(--font-inter)'],
         sans: ["var(--font-sans)", ...fontFamily.sans],
       },
       colors: {
@@ -27,6 +28,8 @@ const config = {
         secondary1: '#004DE3',
         secondary2: '#F86919',
         background: '#F7F9FB',
+        'border-dark': '#738DBC',
+        'border-light': '#DFE4E9',
         header: '#0A35A2',
         'header-text': '#FFF',
         main: '#18335E',
