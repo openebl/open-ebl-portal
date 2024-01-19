@@ -1,5 +1,7 @@
 import EditIcon from "@/app/icons/edit-icon";
+import GoalFlagIcon from "@/app/icons/goal-flag-icon";
 import MailIcon from "@/app/icons/mail-icon";
+import PrinterIcon from "@/app/icons/printer-icon";
 import { cn } from "@/lib/utils";
 
 const Stamp = ({
@@ -28,6 +30,18 @@ const DraftStamp = () => (
 const InProgessStamp = () => (
   <Stamp className="bg-[#DEE8FF] text-main">
     <MailIcon />
+  </Stamp>
+);
+
+const CompletedStamp = () => (
+  <Stamp className="bg-[#D1F2D2] text-[#039912]">
+    <GoalFlagIcon />
+  </Stamp>
+);
+
+const PrintedStamp = () => (
+  <Stamp className="bg-[#FFE1E1] text-[#E42525]">
+    <PrinterIcon />
   </Stamp>
 );
 
@@ -63,8 +77,10 @@ const FourPBadge = ({ title }: { title: string }) => (
 const TableRow = ({ row }: { row: string }) => {
   return (
     <div className="border-b-bolder-light flex w-full items-center justify-center border-b border-solid text-main">
-      <DraftStamp />
+      {/* <DraftStamp /> */}
       {/* <InProgessStamp /> */}
+      {/* <CompletedStamp /> */}
+      <PrintedStamp />
       <div className="flex w-full flex-col items-stretch py-5 pr-8">
         <span className="flex w-full items-center justify-between gap-5">
           <div className="text-sm font-bold leading-5">{row}</div>
