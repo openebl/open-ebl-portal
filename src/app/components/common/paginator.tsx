@@ -1,5 +1,6 @@
 "use client";
 
+import EllipsisIcon from "@/app/icons/ellipsis-icon";
 import LeftArrowIcon from "@/app/icons/left-arrow-icon";
 import RightArrowIcon from "@/app/icons/right-arrow-icon";
 import { cn } from "@/lib/utils";
@@ -15,8 +16,10 @@ const PagePrev = ({
   return (
     <div
       className={cn(
-        "flex select-none text-border-dark",
-        isActive ? "cursor-pointer" : "cursor-not-allowed",
+        "mr-5 flex select-none",
+        isActive
+          ? "cursor-pointer text-secondary1"
+          : "cursor-not-allowed text-border-dark",
       )}
       onClick={() => isActive && onClick(currentPage - 1)}
     >
@@ -41,8 +44,10 @@ const PageNext = ({
   return (
     <div
       className={cn(
-        "flex select-none text-border-dark",
-        isActive ? "cursor-pointer" : "cursor-not-allowed",
+        "ml-5 flex select-none",
+        isActive
+          ? "cursor-pointer text-secondary1"
+          : "cursor-not-allowed text-border-dark",
       )}
       onClick={() => isActive && onClick(currentPage + 1)}
     >
@@ -54,7 +59,7 @@ const PageNext = ({
   );
 };
 
-const PageItem = ({
+const PageNumber = ({
   page,
   currentPage,
   onClick,
@@ -81,36 +86,146 @@ const PageItem = ({
   );
 };
 
+const PageItem = ({
+  page,
+  totalPages,
+  currentPage,
+  onClick,
+}: {
+  page: number | string;
+  totalPages: number;
+  currentPage: number;
+  onClick: (page: number) => void;
+}) => {
+  if (page === "previous") {
+    return <PagePrev currentPage={currentPage} onClick={onClick} />;
+  }
+  if (page === "next") {
+    return (
+      <PageNext
+        totalPages={totalPages}
+        currentPage={currentPage}
+        onClick={onClick}
+      />
+    );
+  }
+  if (page === "start-ellipsis" || page === "end-ellipsis") {
+    return <EllipsisIcon className="h-4 w-4 cursor-default text-border-dark" />;
+  }
+  if (typeof page === "number") {
+    return (
+      <PageNumber page={page} currentPage={currentPage} onClick={onClick} />
+    );
+  }
+  return null;
+};
+
+const pagenationItems = ({
+  totalPages,
+  currentPage,
+}: {
+  totalPages: number;
+  currentPage: number;
+}) => {
+  const boundaryCount = 1;
+  const siblingCount = 1;
+
+  const range = (start: number, end: number) => {
+    const length = end - start + 1;
+    return Array.from({ length }, (_, i) => start + i);
+  };
+
+  const startPages = range(1, Math.min(boundaryCount, totalPages));
+  const endPages = range(
+    Math.max(totalPages - boundaryCount + 1, boundaryCount + 1),
+    totalPages,
+  );
+
+  const siblingsStart = Math.max(
+    Math.min(
+      // Natural start
+      currentPage - siblingCount,
+      // Lower boundary when page is high
+      totalPages - boundaryCount - siblingCount * 2 - 1,
+    ),
+    // Greater than startPages
+    boundaryCount + 2,
+  );
+
+  const siblingsEnd = Math.min(
+    Math.max(
+      // Natural end
+      currentPage + siblingCount,
+      // Upper boundary when page is low
+      boundaryCount + siblingCount * 2 + 2,
+    ),
+    // Less than endPages
+    endPages.length > 0 ? (endPages[0] ?? 0) - 2 : totalPages - 1,
+  );
+
+  // Basic list of items to render
+  // e.g. itemList = ['first', 'previous', 1, 'ellipsis', 4, 5, 6, 'ellipsis', 10, 'next', 'last']
+  return [
+    // ...(showFirstButton ? ['first'] : []),
+    "previous",
+    ...startPages,
+
+    // Start ellipsis
+    // eslint-disable-next-line no-nested-ternary
+    ...(siblingsStart > boundaryCount + 2
+      ? ["start-ellipsis"]
+      : boundaryCount + 1 < totalPages - boundaryCount
+        ? [boundaryCount + 1]
+        : []),
+
+    // Sibling pages
+    ...range(siblingsStart, siblingsEnd),
+
+    // End ellipsis
+    // eslint-disable-next-line no-nested-ternary
+    ...(siblingsEnd < totalPages - boundaryCount - 1
+      ? ["end-ellipsis"]
+      : totalPages - boundaryCount > boundaryCount
+        ? [totalPages - boundaryCount]
+        : []),
+
+    ...endPages,
+    "next",
+    // ...(showLastButton ? ['last'] : []),
+  ];
+};
+
 const Paginator = ({
   total,
-  totalPages,
+  perPage,
   currentPage,
   onPageChanged,
 }: {
   total: number;
-  totalPages: number;
+  perPage: number;
   currentPage: number;
   onPageChanged: (page: number) => void;
 }) => {
-  if (totalPages === 0) return null;
+  if (total <= perPage) return null;
+
+  const totalPages = Math.ceil(total / perPage);
 
   return (
     <div className="border-bolder-light flex items-center justify-center rounded-[58px] border border-solid bg-white px-5 py-[11px] shadow-xl">
-      <div className="my-auto grow self-center whitespace-nowrap text-xs font-semibold leading-5 text-main mr-5">
-        {total} to {totalPages} of {total} entries
+      <div className="my-auto grow self-center whitespace-nowrap text-xs font-semibold leading-5 text-main">
+        {(currentPage-1) * perPage + 1} to {currentPage * perPage} of {total} entries
       </div>
-      <PagePrev currentPage={currentPage} onClick={onPageChanged} />
       <div className="mx-5 flex items-center justify-start gap-1.5">
-        {[1, 2, 3, 4, 5].map((page) => (
+        {pagenationItems({ totalPages, currentPage }).map((page) => (
           <PageItem
             key={page}
             page={page}
+            totalPages={totalPages}
             currentPage={currentPage}
             onClick={onPageChanged}
           />
         ))}
       </div>
-      <PageNext totalPages={totalPages} currentPage={currentPage} onClick={onPageChanged} />
     </div>
   );
 };
