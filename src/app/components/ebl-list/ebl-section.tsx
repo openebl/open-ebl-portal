@@ -1,5 +1,7 @@
 import EmptyFolderIcon from "@/app/icons/empty-folder-icon";
 import { cn } from "@/lib/utils";
+import { type EBlType } from "@/types/ebl";
+import PaginatorSection from "./paginator-section";
 import TableRow from "./table-row";
 
 const FilterButton = ({
@@ -54,8 +56,7 @@ const EmptyList = () => (
   </div>
 );
 
-
-const EblTable = ({ list }: { list: string[] }) => {
+const EblTable = ({ list }: { list: EBlType[] }) => {
   if (list.length === 0) return <EmptyList />;
 
   return (
@@ -67,13 +68,16 @@ const EblTable = ({ list }: { list: string[] }) => {
   );
 };
 
-const EblSection = () => {
+const EblSection = ({ list }: { list: EBlType[] }) => {
   return (
-    <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">
-      <div className="flex w-full items-center justify-start border-b-[1px] border-border-light bg-transparent py-4">
-        <FilterList />
+    <div className="flex w-full flex-col items-start justify-start gap-4">
+      <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">
+        <div className="flex w-full items-center justify-start border-b-[1px] border-border-light bg-transparent py-4">
+          <FilterList />
+        </div>
+        <EblTable list={list} />
       </div>
-      <EblTable list={["BL5039271"]} />
+      <PaginatorSection />
     </div>
   );
 };

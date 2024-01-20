@@ -1,6 +1,5 @@
 import "@/styles/globals.css";
 
-import { inter } from './fonts';
 import { cookies } from "next/headers";
 
 import { TRPCReactProvider } from "@/trpc/react";
@@ -18,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable}`}>
+      <body>
         <TRPCReactProvider cookies={cookies().toString()}>
           {children}
         </TRPCReactProvider>

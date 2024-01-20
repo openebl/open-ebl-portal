@@ -3,6 +3,7 @@ import GoalFlagIcon from "@/app/icons/goal-flag-icon";
 import MailIcon from "@/app/icons/mail-icon";
 import PrinterIcon from "@/app/icons/printer-icon";
 import { cn } from "@/lib/utils";
+import { Status, type EBlType } from "@/types/ebl";
 
 const Stamp = ({
   children,
@@ -74,16 +75,18 @@ const FourPBadge = ({ title }: { title: string }) => (
   />
 );
 
-const TableRow = ({ row }: { row: string }) => {
+const TableRow = ({ row }: { row: EBlType }) => {
   return (
     <div className="border-b-bolder-light flex w-full items-center justify-center border-b border-solid text-main">
-      {/* <DraftStamp /> */}
-      {/* <InProgessStamp /> */}
-      {/* <CompletedStamp /> */}
-      <PrintedStamp />
+
+      { row.status === Status.Draft && <DraftStamp /> }
+      { row.status === Status.InProgress && <InProgessStamp /> }
+      { row.status === Status.Completed && <CompletedStamp /> }
+      { row.status === Status.Printed && <PrintedStamp /> }
+
       <div className="flex w-full flex-col items-stretch py-5 pr-8">
         <span className="flex w-full items-center justify-between gap-5">
-          <div className="text-sm font-bold leading-5">{row}</div>
+          <div className="text-sm font-bold leading-5">{row.number}</div>
           <div className="flex items-center justify-between gap-0.5">
             <div className="flex h-2.5 w-[70px] shrink-0 flex-col rounded-md bg-[#E0EBF6]" />
             <div className="flex h-2.5 w-[70px] shrink-0 flex-col bg-[#E0EBF6]" />

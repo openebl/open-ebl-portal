@@ -1,20 +1,16 @@
-import Link from "next/link";
 
-import { getServerAuthSession } from "@/server/auth";
-import { api } from "@/trpc/server";
-import OuterFrame from "@/app/components/outer-frame";
-import PlatformList from "@/app/components/ebl-list/platform-list";
-import { Button } from "@/components/ui/button";
 import MainSection from "@/app/components/ebl-list/main-section";
+import OuterFrame from "@/app/components/outer-frame";
+import { api } from "@/trpc/server";
 
 export default async function Home() {
   // const hello = await api.post.hello.query({ text: "from tRPC" });
   // const session = await getServerAuthSession();
+  const eBls = await api.ebl.all.query();
 
   return (
     <OuterFrame>
-      <MainSection />
-      <Button className="text-sm font-semibold ring-offset-white"> Hello </Button>
+      <MainSection list={eBls} />
     </OuterFrame>
   );
 }

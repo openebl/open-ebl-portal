@@ -1,6 +1,6 @@
-import { postRouter } from "@/server/api/routers/post";
 import { createTRPCRouter } from "@/server/api/trpc";
 import { platformRouter } from "./routers/platform";
+import { eBlRouter } from "./routers/ebl";
 
 /**
  * This is the primary router for your server.
@@ -8,8 +8,8 @@ import { platformRouter } from "./routers/platform";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
   platform: platformRouter,
+  ebl: eBlRouter,
 });
 
 // export type definition of API

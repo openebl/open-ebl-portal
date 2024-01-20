@@ -1,3 +1,4 @@
+import { inter } from "@/app/fonts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -7,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { getServerAuthSession } from "@/server/auth";
 import { type Session } from "next-auth";
 import Image from "next/image";
@@ -50,7 +52,7 @@ const OuterFrame = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerAuthSession();
 
   return (
-    <main className="relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header">
+    <main className={cn("relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header", inter.variable) }>
       <div className="flex h-16 w-full items-center justify-between bg-header text-header-text">
         <div className="mx-[3.125rem] flex items-center justify-start">
           <Image
