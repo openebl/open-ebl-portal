@@ -1,10 +1,10 @@
 import SearchBox from "@/app/components/common/searchbox";
 import AddIcon from "@/app/icons/add-icon";
 import { Button } from "@/components/ui/button";
-import { type EBlType } from "@/types/ebl";
+import { type EBlListType } from "@/types/ebl";
 import EblSection from "./ebl-section";
 
-const MainSection = ({ list }: { list: EBlType[] }) => {
+const MainSection = ({ list }: { list: EBlListType }) => {
   return (
     <div className="px-12 py-10 font-content">
       <div className="text-2xl font-bold leading-9 text-main">eB/L</div>

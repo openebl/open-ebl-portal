@@ -7,13 +7,16 @@ enum Status {
   Completed = "completed",
 }
 
-const EBl = z.object({
+const EBlSchema = z.object({
   number: z.string(),
   status: z.nativeEnum(Status),
   lastUpdated: z.string().datetime(),
 });
 
-type EBlType = z.infer<typeof EBl>;
+const EBlListSchema = z.array(EBlSchema);
 
-export { EBl, Status };
-export type { EBlType };
+type EBlType = z.infer<typeof EBlSchema>;
+type EBlListType = z.infer<typeof EBlListSchema>;
+
+export { EBlSchema, EBlListSchema, Status };
+export type { EBlType, EBlListType };
