@@ -1,6 +1,7 @@
 import SendIcon from "@/app/icons/send-icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type TrackerPosition = "first" | "middle" | "last";
@@ -12,6 +13,7 @@ const TrackerPositionClipPath = {
     "polygon(0% 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%, 12px 50%)",
   last: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 12px 50%)",
 };
+
 const ProgressTracker = ({
   title,
   name,
@@ -25,9 +27,10 @@ const ProgressTracker = ({
 }) => {
   position;
   return (
-    <div
+    <Tooltip>
+  <div
       className={cn(
-        "flex min-w-0 flex-auto flex-col items-start justify-center bg-[#004DE3] py-[1.0625rem] pl-[1.875rem] pr-8",
+        "flex min-w-0 max-w-[26%] flex-auto flex-col items-start justify-center bg-[#004DE3] py-[1.0625rem] pl-[1.875rem] pr-8",
         className,
         position === "first" ? "pl-[1.875rem]" : "-ml-[10px] pl-9",
       )}
@@ -38,10 +41,16 @@ const ProgressTracker = ({
       <div className="whitespace-nowrap text-xs font-semibold leading-[1.125rem] text-[#86A1BC]">
         {title}
       </div>
+      <TooltipTrigger asChild>
       <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg font-bold leading-7 text-white">
         {name}
       </div>
+      </TooltipTrigger>
     </div>
+    <TooltipContent>
+      <p>{name}</p>
+    </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -50,7 +59,7 @@ const ProgressTrackerBar = () => {
     <div className="flex w-full max-w-full justify-evenly">
       <ProgressTracker
         title="Issuing Agent"
-        name="ABC Freight Forwarder Forwarder Forwarder"
+        name="ABC Freight Forwarder Forwarder Forwarder Forwarder Forwarder"
         className="bg-[#004DE3]"
         position="first"
       />
@@ -112,6 +121,7 @@ const ProgressStatus = () => {
 
 const ShippingProgress = () => {
   return (
+    <TooltipProvider>
     <section className="border-bolder-light flex w-full flex-col items-start gap-[1.875rem] rounded-lg border border-solid bg-white py-[1.875rem] shadow-lg">
       <header className="whitespace-nowrap px-[1.875rem] text-[1.375rem] font-semibold leading-8 text-main">
         Progress
@@ -132,6 +142,7 @@ const ShippingProgress = () => {
         </Button>
       </div>
     </section>
+    </TooltipProvider>
   );
 };
 

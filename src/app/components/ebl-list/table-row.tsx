@@ -5,6 +5,7 @@ import PrinterIcon from "@/app/icons/printer-icon";
 import { cn } from "@/lib/utils";
 import { Status, type EBlType } from "@/types/ebl";
 import { FourPBadge, HBLBadge, NonNegotiableBadge } from "@/app/components/common/ebl-badges";
+import Link from "next/link";
 
 const Stamp = ({
   children,
@@ -50,7 +51,8 @@ const PrintedStamp = () => (
 
 const TableRow = ({ row }: { row: EBlType }) => {
   return (
-    <div className="border-b-bolder-light flex w-full items-center justify-center border-b border-solid text-main">
+    <Link href={`/ebls/${row.number}`}>
+    <div className="border-b-bolder-light flex w-full items-center justify-center border-b border-solid text-main hover:bg-border-light hover:bg-opacity-20">
 
       { row.status === Status.Draft && <DraftStamp /> }
       { row.status === Status.InProgress && <InProgessStamp /> }
@@ -81,6 +83,7 @@ const TableRow = ({ row }: { row: EBlType }) => {
         </span>
       </div>
     </div>
+    </Link>
   );
 };
 
