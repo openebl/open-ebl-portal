@@ -48,9 +48,7 @@ const Menu = ({ session }: { session: Session | null }) => {
   );
 };
 
-const OuterFrame = async ({ children }: { children: React.ReactNode }) => {
-  const session = await getServerAuthSession();
-
+const OuterFrame = async ({ session, children }: { session: Session | null, children: React.ReactNode }) => {
   return (
     <main className={cn("relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header", inter.variable) }>
       <div className="flex h-16 w-full items-center justify-between bg-header text-header-text">

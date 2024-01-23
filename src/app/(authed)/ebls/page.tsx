@@ -1,6 +1,5 @@
 
 import MainSection from "@/app/components/ebl-list/main-section";
-import OuterFrame from "@/app/components/outer-frame";
 import { api } from "@/trpc/server";
 
 export default async function Home() {
@@ -9,8 +8,6 @@ export default async function Home() {
   const eBls = await api.ebl.all.query();
 
   return (
-    <OuterFrame>
-      <MainSection list={eBls} />
-    </OuterFrame>
+    <MainSection list={eBls} />
   );
 }

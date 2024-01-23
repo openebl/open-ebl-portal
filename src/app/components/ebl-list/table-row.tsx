@@ -4,6 +4,7 @@ import MailIcon from "@/app/icons/mail-icon";
 import PrinterIcon from "@/app/icons/printer-icon";
 import { cn } from "@/lib/utils";
 import { Status, type EBlType } from "@/types/ebl";
+import { FourPBadge, HBLBadge, NonNegotiableBadge } from "@/app/components/common/ebl-badges";
 
 const Stamp = ({
   children,
@@ -46,34 +47,6 @@ const PrintedStamp = () => (
   </Stamp>
 );
 
-const Badge = ({ title, className }: { title: string; className: string }) => (
-  <div
-    className={cn(
-      "flex h-6 items-center justify-center whitespace-nowrap rounded-2xl px-2.5 pt-[1px]",
-      className,
-    )}
-  >
-    {title}
-  </div>
-);
-
-const HBLBadge = () => (
-  <Badge title="HBL" className="bg-[#039912] font-semibold text-white" />
-);
-
-const NonNegotiableBadge = () => (
-  <Badge
-    title="NON-NEGOTIABLE"
-    className="bg-[#7A1084] font-semibold text-white"
-  />
-);
-
-const FourPBadge = ({ title }: { title: string }) => (
-  <Badge
-    title={title}
-    className="border border-solid border-border-dark bg-white font-normal text-main"
-  />
-);
 
 const TableRow = ({ row }: { row: EBlType }) => {
   return (
@@ -95,7 +68,7 @@ const TableRow = ({ row }: { row: EBlType }) => {
           </div>
         </span>
         <span className="mt-[5px] flex w-full items-center justify-between gap-5">
-          <div className="flex gap-2 pr-2 text-[.625rem] leading-4">
+          <div className="flex gap-2 pr-2">
             <HBLBadge />
             <NonNegotiableBadge />
             <FourPBadge title="POL: Shanghai" />
