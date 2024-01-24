@@ -6,3 +6,21 @@ a {
   color: #004DE3;
   text-decoration: none;
 }
+
+@keyframes jumping-animation {
+  0% {
+    box-shadow: 20px -10px, 40px 10px, 60px 0px;
+  }
+  25% {
+    box-shadow: 20px 0px, 40px  0px, 60px 10px;
+  }
+  50% {
+    box-shadow: 20px 10px, 40px -10px, 60px 0px;
+  }
+  75% {
+    box-shadow: 20px 0px, 40px 0px, 60px -10px;
+  }
+  100% {
+    box-shadow: 20px -10px, 40px 10px, 60px 0px;
+  }
+}
