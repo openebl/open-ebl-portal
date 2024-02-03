@@ -40,6 +40,7 @@ const PreviewPanel = ({ images }: { images: string[] }) => {
             <Input
               className="m-0 h-[1.875rem] w-[1.875rem] rounded-none border-none bg-black text-[0.8125rem] font-semibold leading-[1.125rem]"
               value={1}
+              onChange={() => {0}}
             />
             <p>/</p>
             <p>3</p>
@@ -56,6 +57,7 @@ const PreviewPanel = ({ images }: { images: string[] }) => {
             <Input
               className="m-0 h-[1.875rem] w-[3.75rem] rounded-none border-none bg-black text-[0.8125rem] font-semibold leading-[1.125rem]"
               value={zoomLevel}
+              onChange={() => {0}}
             />
             <Button
               variant="flat"

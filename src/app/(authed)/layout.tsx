@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { TRPCReactProvider } from "@/trpc/react";
 import OuterFrame from "@/app/components/outer-frame";
 import { getServerAuthSession } from "@/server/auth";
+import { inter } from "@/app/fonts";
 
 export const metadata = {
   title: "BlueX eBL Portal",
@@ -20,8 +21,10 @@ const RootLayout = async ({
   const session = await getServerAuthSession();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning={true}>
       <body>
+        <style dangerouslySetInnerHTML={{__html:inter.style}}
+        ></style>
         <TRPCReactProvider cookies={cookies().toString()}>
           <OuterFrame session={session}>{children}</OuterFrame>
         </TRPCReactProvider>

@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { getServerAuthSession } from "@/server/auth";
 import { type Session } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
