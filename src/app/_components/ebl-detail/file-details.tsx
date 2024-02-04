@@ -2,9 +2,9 @@ import React from "react";
 import Image from "next/image";
 import { HBLBadge, NonNegotiableBadge } from "../common/ebl-badges";
 import { Button } from "@/components/ui/button";
-import PdfIcon from "@/app/icons/pdf-icon";
-import LocationIcon from "@/app/icons/location-icon";
-import CalendarIcon from "@/app/icons/calendar-icon";
+import PdfIcon from "@/app/_icons/pdf-icon";
+import LocationIcon from "@/app/_icons/location-icon";
+import CalendarIcon from "@/app/_icons/calendar-icon";
 
 const FileDetailsLine = ({
   title,

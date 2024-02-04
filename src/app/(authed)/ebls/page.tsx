@@ -1,5 +1,5 @@
 
-import MainSection from "@/app/components/ebl-list/main-section";
+import MainSection from "@/app/_components/ebl-list/main-section";
 import { api } from "@/trpc/server";
 
 export default async function Home() {

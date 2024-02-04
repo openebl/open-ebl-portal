@@ -1,4 +1,4 @@
-import SendIcon from "@/app/icons/send-icon";
+import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";

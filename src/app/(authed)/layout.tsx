@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 import { cookies } from "next/headers";
 
 import { TRPCReactProvider } from "@/trpc/react";
-import OuterFrame from "@/app/components/outer-frame";
+import OuterFrame from "@/app/_components/outer-frame";
 import { getServerAuthSession } from "@/server/auth";
 import { inter } from "@/app/fonts";
 

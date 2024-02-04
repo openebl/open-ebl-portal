@@ -1,6 +1,6 @@
-import ErrorPage from "@/app/components/ebl-detail/error-page";
-import MainSection from "@/app/components/ebl-detail/main-section";
-import LeftArrowIcon from "@/app/icons/left-arrow-icon";
+import ErrorPage from "@/app/_components/ebl-detail/error-page";
+import MainSection from "@/app/_components/ebl-detail/main-section";
+import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
 import { tryCatchAsync } from "@/lib/tryblock";
 import { api } from "@/trpc/server";
 import { TRPCClientError } from "@trpc/client";

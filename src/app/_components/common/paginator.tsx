@@ -1,8 +1,8 @@
 "use client";
 
-import EllipsisIcon from "@/app/icons/ellipsis-icon";
-import LeftArrowIcon from "@/app/icons/left-arrow-icon";
-import RightArrowIcon from "@/app/icons/right-arrow-icon";
+import EllipsisIcon from "@/app/_icons/ellipsis-icon";
+import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
+import RightArrowIcon from "@/app/_icons/right-arrow-icon";
 import { cn } from "@/lib/utils";
 
 const PagePrev = ({

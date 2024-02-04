@@ -1,10 +1,10 @@
-import EditIcon from "@/app/icons/edit-icon";
-import GoalFlagIcon from "@/app/icons/goal-flag-icon";
-import MailIcon from "@/app/icons/mail-icon";
-import PrinterIcon from "@/app/icons/printer-icon";
+import EditIcon from "@/app/_icons/edit-icon";
+import GoalFlagIcon from "@/app/_icons/goal-flag-icon";
+import MailIcon from "@/app/_icons/mail-icon";
+import PrinterIcon from "@/app/_icons/printer-icon";
 import { cn } from "@/lib/utils";
 import { Status, type EBlType } from "@/types/ebl";
-import { FourPBadge, HBLBadge, NonNegotiableBadge } from "@/app/components/common/ebl-badges";
+import { FourPBadge, HBLBadge, NonNegotiableBadge } from "@/app/_components/common/ebl-badges";
 import Link from "next/link";
 
 const Stamp = ({

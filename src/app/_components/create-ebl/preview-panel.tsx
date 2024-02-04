@@ -2,12 +2,12 @@
 
 import { Input } from "@/components/ui/input";
 
-import FitScreenIcon from "@/app/icons/fit-screen-icon";
-import MinusIcon from "@/app/icons/minus-icon";
-import PlusIcon from "@/app/icons/plus-icon";
+import FitScreenIcon from "@/app/_icons/fit-screen-icon";
+import MinusIcon from "@/app/_icons/minus-icon";
+import PlusIcon from "@/app/_icons/plus-icon";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import DownloadIcon from "@/app/icons/download-icon";
+import DownloadIcon from "@/app/_icons/download-icon";
 import Image from "next/image";
 
 const PreviewPanel = ({ images }: { images: string[] }) => {

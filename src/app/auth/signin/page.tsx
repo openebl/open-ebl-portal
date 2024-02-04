@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 // import GoogleIcon from "@/images/logo/google.svg";
 import { authOptions } from "@/server/auth";
-import SigninWith from "@/app/components/signin-with";
+import SigninWith from "@/app/_components/signin-with";
 
 export default async function SignIn() {
   const session = await getServerSession(authOptions);

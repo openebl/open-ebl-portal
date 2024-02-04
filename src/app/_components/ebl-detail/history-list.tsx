@@ -1,4 +1,4 @@
-import ConnectDotIcon from "@/app/icons/connect-dot-icon";
+import ConnectDotIcon from "@/app/_icons/connect-dot-icon";
 import { cn } from "@/lib/utils";
 
 type HistoryItemType = {

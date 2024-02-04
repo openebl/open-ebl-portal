@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
 
-const UploadPanel = () => {
+const UploadView = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [chartFile, setChartFile] = useState<File>();
 
@@ -38,4 +38,4 @@ const UploadPanel = () => {
   );
 };
 
-export default UploadPanel;
+export default UploadView;

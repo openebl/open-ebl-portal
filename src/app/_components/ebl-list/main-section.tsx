@@ -1,5 +1,5 @@
-import SearchBox from "@/app/components/common/searchbox";
-import AddIcon from "@/app/icons/add-icon";
+import SearchBox from "@/app/_components/common/searchbox";
+import AddIcon from "@/app/_icons/add-icon";
 import { Button } from "@/components/ui/button";
 import { type EBlListType } from "@/types/ebl";
 import EblSection from "./ebl-section";

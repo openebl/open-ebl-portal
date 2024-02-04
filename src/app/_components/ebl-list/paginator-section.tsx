@@ -1,6 +1,6 @@
 "use client";
 
-import Paginator from "@/app/components/common/paginator";
+import Paginator from "@/app/_components/common/paginator";
 import { useState } from "react";
 
 const PaginatorSection = () => {

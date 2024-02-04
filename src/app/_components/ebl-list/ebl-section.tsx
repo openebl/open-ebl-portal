@@ -1,4 +1,4 @@
-import EmptyFolderIcon from "@/app/icons/empty-folder-icon";
+import EmptyFolderIcon from "@/app/_icons/empty-folder-icon";
 import { cn } from "@/lib/utils";
 import { type EBlType } from "@/types/ebl";
 import PaginatorSection from "./paginator-section";
