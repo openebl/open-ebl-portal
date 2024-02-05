@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  type EBlType,
-  EBlDraftFormSchema,
-  type EBlDraftFormType,
-} from "@/types/ebl";
-import {
-  type Control,
-  type FieldValues,
-  useForm,
-  type FieldPath,
-} from "react-hook-form";
-import { type z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import CalendarIcon from "@/app/_icons/calendar-icon";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -22,7 +12,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -30,20 +24,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { consignees, shippers } from "@/lib/parties";
 import { ports } from "@/lib/ports";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import CalendarIcon from "@/app/_icons/calendar-icon";
-import { Calendar } from "@/components/ui/calendar";
-import { inter } from "@/app/fonts";
+import { EBlDraftFormSchema, type EBlDraftFormType } from "@/types/ebl";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import React from "react";
-import { consignees, shippers } from "@/lib/parties";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  useForm,
+  type Control,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form";
+import { type z } from "zod";
 
 const BFormItem = ({
   label,
@@ -153,10 +147,7 @@ const DateField = <
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent
-              className={cn("w-auto p-0 font-content", inter.variable)}
-              align="start"
-            >
+            <PopoverContent className="w-auto p-0 font-content" align="start">
               <Calendar
                 mode="single"
                 selected={field.value}
@@ -269,7 +260,7 @@ const DetailPanel = ({ ebl }: { ebl: EBlDraftFormType }) => {
             type="button"
             onClick={async () => {
               const r = await form.trigger(undefined, { shouldFocus: true });
-              console.log(form.getValues(), r)
+              console.log(form.getValues(), r);
             }}
           >
             Draft

@@ -7,6 +7,7 @@ const config = {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
+    "./stories/**/*.{js,ts,jsx,tsx}",
   ],
   prefix: "",
   theme: {
@@ -19,8 +20,8 @@ const config = {
     },
     extend: {
       fontFamily: {
-        header: ['var(--font-inter)'],
-        content: ['var(--font-inter)'],
+        header: ['Inter'], //['var(--font-inter)'],
+        content: ['Inter'], //['var(--font-inter)'],
         sans: ["var(--font-sans)", ...fontFamily.sans],
       },
       colors: {

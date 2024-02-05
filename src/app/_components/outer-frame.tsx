@@ -1,4 +1,3 @@
-import { inter } from "@/app/fonts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -8,7 +7,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import { type Session } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,7 +14,7 @@ import Link from "next/link";
 const AvatarButton = ({ session }: { session: Session | null }) => {
   if (!session) return null;
 
-  const nameInitial = session?.user.name?.[0] ?? '';
+  const nameInitial = session?.user.name?.[0] ?? "";
 
   return (
     <DropdownMenu>
@@ -47,9 +45,15 @@ const Menu = ({ session }: { session: Session | null }) => {
   );
 };
 
-const OuterFrame = async ({ session, children }: { session: Session | null, children: React.ReactNode }) => {
+const OuterFrame = async ({
+  session,
+  children,
+}: {
+  session: Session | null;
+  children: React.ReactNode;
+}) => {
   return (
-    <main className={cn("relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header", inter.variable) }>
+    <main className="relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header">
       <div className="flex h-16 w-full items-center justify-between bg-header text-header-text">
         <div className="mx-[3.125rem] flex items-center justify-start">
           <Image
