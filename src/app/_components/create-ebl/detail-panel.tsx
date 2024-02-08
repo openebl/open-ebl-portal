@@ -1,170 +1,19 @@
 "use client";
 
-import CalendarIcon from "@/app/_icons/calendar-icon";
+import ComboboxField from "@/app/_components/common/form/combo-form-field";
+import DateFormField from "@/app/_components/common/form/date-form-field";
+import { HFormItem } from "@/app/_components/common/form/h-form";
+import SelectFormField from "@/app/_components/common/form/select-form-field";
+import usePortsFilter from "@/app/_hooks/ports-filter";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { consignees, shippers } from "@/lib/parties";
-import { ports } from "@/lib/ports";
 import { EBlDraftFormSchema, type EBlDraftFormType } from "@/types/ebl";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import React from "react";
-import {
-  useForm,
-  type Control,
-  type FieldPath,
-  type FieldValues,
-} from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { type z } from "zod";
-
-const BFormItem = ({
-  label,
-  required,
-  children,
-}: {
-  label: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) => (
-  <FormItem className="flex items-start justify-between space-y-0">
-    <FormLabel className="w-[8.75rem] flex-none bg-transparent text-[0.8125rem] font-semibold leading-10 text-light">
-      {label}
-      {required && <span className="ml-1 text-[#E42525]">*</span>}
-    </FormLabel>
-    <div className="flex flex-col">
-      <FormControl>{children}</FormControl>
-      <FormMessage className="mx-2" />
-    </div>
-  </FormItem>
-);
-
-type SelectFieldItem = {
-  name: string;
-  value: string;
-};
-
-const SelectField = <
-  TFieldValues extends FieldValues,
-  TName extends FieldPath<TFieldValues>,
->({
-  label,
-  required,
-  control,
-  name,
-  items,
-}: {
-  label: string;
-  required?: boolean;
-  control: Control<TFieldValues>;
-  name: TName;
-  items: SelectFieldItem[];
-}) => {
-  return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <BFormItem label={label} required={required}>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <SelectTrigger className="w-[21.25rem]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="font-content">
-              {items.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </BFormItem>
-      )}
-    />
-  );
-};
-
-const DateField = <
-  TFieldValues extends FieldValues,
-  TName extends FieldPath<TFieldValues>,
->({
-  label,
-  required,
-  control,
-  name,
-}: {
-  label: string;
-  required?: boolean;
-  control: Control<TFieldValues>;
-  name: TName;
-}) => {
-  const [pickerOpen, setPickerOpen] = React.useState(false);
-
-  return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <BFormItem label={label} required={required}>
-          <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant={"outline"}
-                  className="flex h-10 w-[21.25rem] rounded-lg border border-border-dark bg-background px-0 py-2 pl-3 text-[0.8125rem] font-normal leading-[1.125rem] text-main
-                ring-offset-border-light hover:bg-background hover:text-main focus-visible:outline-none focus-visible:ring-2
-                focus-visible:ring-[#3C7EFF] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-[#F1F0F0]"
-                >
-                  {field.value ? (
-                    format(field.value, "MM/dd/yyyy")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                  <div className="ml-auto flex h-10 w-10 items-center justify-center border-l border-border-dark">
-                    <CalendarIcon className="opacity-50" />
-                  </div>
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 font-content" align="start">
-              <Calendar
-                mode="single"
-                selected={field.value}
-                onSelect={(val) => {
-                  field.onChange(val);
-                  setPickerOpen(false);
-                }}
-                disabled={(date) => date < new Date()}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </BFormItem>
-      )}
-    />
-  );
-};
 
 const DetailPanel = ({ ebl }: { ebl: EBlDraftFormType }) => {
   const blTypes = [{ name: "HBL Non-negotiable", value: "hbl-non-negotiable" }];
@@ -175,6 +24,8 @@ const DetailPanel = ({ ebl }: { ebl: EBlDraftFormType }) => {
       ...ebl,
     },
   });
+
+  const { getPort, filterPorts } = usePortsFilter();
 
   function onSubmit(values: z.infer<typeof EBlDraftFormSchema>) {
     // Do something with the form values.
@@ -194,47 +45,49 @@ const DetailPanel = ({ ebl }: { ebl: EBlDraftFormType }) => {
             control={form.control}
             name="blNumber"
             render={({ field }) => (
-              <BFormItem label="B/L No." required={true}>
+              <HFormItem label="B/L No." required={true}>
                 <Input className="h-10 w-[21.25rem] shadow-inner" {...field} />
-              </BFormItem>
+              </HFormItem>
             )}
           />
 
-          <SelectField
+          <SelectFormField
             control={form.control}
             label="B/L Type"
             required={true}
             name="blType"
             items={blTypes}
           />
-          <SelectField
+          <ComboboxField
             control={form.control}
             label="POL"
             required={true}
             name="pol"
-            items={ports}
+            getItem={getPort}
+            filterItems={filterPorts}
           />
-          <SelectField
+          <ComboboxField
             control={form.control}
             label="POD"
             required={true}
             name="pod"
-            items={ports}
+            getItem={getPort}
+            filterItems={filterPorts}
           />
-          <DateField
+          <DateFormField
             control={form.control}
             label="ETA"
             required={true}
             name="eta"
           />
-          <SelectField
+          <SelectFormField
             control={form.control}
             label="Shipper"
             required={true}
             name="shipper"
             items={shippers}
           />
-          <SelectField
+          <SelectFormField
             control={form.control}
             label="Consignee"
             required={true}
@@ -246,13 +99,13 @@ const DetailPanel = ({ ebl }: { ebl: EBlDraftFormType }) => {
             control={form.control}
             name="notes"
             render={({ field }) => (
-              <BFormItem label="Notes" required={false}>
+              <HFormItem label="Notes" required={false}>
                 <Textarea
                   placeholder=""
                   className="h-[10.625rem] w-[21.25rem] resize-none font-normal"
                   {...field}
                 />
-              </BFormItem>
+              </HFormItem>
             )}
           />
 
