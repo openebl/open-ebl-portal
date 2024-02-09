@@ -1,26 +1,17 @@
 "use client";
 
-import { type EBlDraftFormType } from "@/types/ebl";
+import { type EBlDraftFormSchema } from "@/types/ebl";
+import { type UseFormReturn } from "react-hook-form";
+import { type z } from "zod";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
-import { useState } from "react";
 
-const DraftView = () => {
-  const [ebl] = useState<EBlDraftFormType>({
-    blNumber:"",
-    blType: "hbl-non-negotiable",
-    pol: "THBKK",
-    pod: "USLAX",
-    eta: new Date(),
-    shipper: "Foxconn",
-    consignee: "Samsung",
-    notes: "",
-  });
+const DraftView = ({form}:{form: UseFormReturn<z.infer<typeof EBlDraftFormSchema>>}) => {
 
   return (
     <div className="flex h-[48.125rem] items-stretch">
       <PreviewPanel images={[]} />
-      <DetailPanel ebl={ebl} />
+      <DetailPanel form={form} />
     </div>
   );
 };

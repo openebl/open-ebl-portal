@@ -1,32 +1,22 @@
-import { ports } from '@/lib/ports';
-import { useState, useEffect } from 'react';
 import { api } from "@/trpc/react";
 
-
-const useShippersFilter = () => {
-
-  // const [loading, setLoading] = useState<Port[]>([]);
-
-  // useEffect(() => {
-  //   const filtered = ports.filter(port => port.name.includes(filterBy));
-  //   setFilteredPorts(filtered);
-  // }, [ports, filterBy]);
-
-  const getPort = async (value: string) => {
-    // const { data: platforms, isLoading, isError } = api.shipper.list.useQuery();
-
-    const current = ports.find((p) => p.value === value);
-    return current ? { label: current.name, value: current.value } : undefined;
-  };
-
-  const filterPorts = async (keyword: string) => {
-    if (keyword === "") return [];
-    return ports
-      .filter((p) => p.name.toLowerCase().includes(keyword.toLowerCase()))
-      .map((p) => ({ label: p.name, value: p.value }));
-  };
-
-  return { getPort, filterPorts };
+export const useFilterShippers = (keyword: string) => {
+  const {
+    data,
+    isLoading: loading,
+    isError,
+  } = api.shipper.list.useQuery({ keyword }, { staleTime: 1000 * 60 * 10 });
+  const items = data ? data.map((p) => ({ label: p.label, value: p.id })) : [];
+  return { items, loading, isError };
 };
 
-export default useShippersFilter;
+export const useGetShipper = (id: string) => {
+  const { data: shipper, isLoading: loading } = api.shipper.get.useQuery(
+    { id },
+    { staleTime: 1000 * 60 * 10 },
+  );
+  return {
+    item: shipper ? { label: shipper.label, value: id } : null,
+    loading,
+  };
+};

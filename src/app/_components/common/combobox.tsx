@@ -89,7 +89,7 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "flex items-center justify-between rounded-lg border border-border-dark bg-background py-2 pl-3 pr-0 text-[0.8125rem] font-normal leading-[1.125rem] text-main shadow-inner ring-offset-white focus:outline-none focus:ring-2 focus:ring-secondary1 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
+            "flex items-center justify-between rounded-lg border border-border-dark bg-background py-2 pl-3 pr-0 text-[0.8125rem] font-normal leading-[1.125rem] text-main shadow-inner ring-offset-white hover:text-main focus:outline-none focus:ring-2 focus:ring-secondary1 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
             className,
           )}
         >
@@ -113,7 +113,12 @@ export function Combobox({
             onValueChange={handleOnSearchChange}
           />
           {loading ? (
-            <CommandItem key="loading" className="flex items-center justify-center">Loading...</CommandItem>
+            <CommandItem
+              key="loading"
+              className="flex items-center justify-center"
+            >
+              Loading...
+            </CommandItem>
           ) : (
             buildScrollableContent(
               noResultsMsg,

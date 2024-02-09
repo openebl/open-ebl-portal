@@ -1,13 +1,13 @@
 "use client";
 
 import { FormField } from "@/components/ui/form";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   type Control,
   type FieldPath,
   type FieldValues,
 } from "react-hook-form";
-import { prop, sortBy, uniqBy } from "remeda";
+import { prop, uniqBy } from "remeda";
 import { Combobox, type ComboBoxItemType } from "../combobox";
 import { hFormItemBuilder } from "./h-form";
 import type { TFormItemBuilder } from "./types";
@@ -24,9 +24,15 @@ type ComboboxFieldProps<
   searchPlaceholder?: string;
   noResultsMsg?: string;
   formItemBuilder?: TFormItemBuilder;
-  // useFilterItems?: (keyword: string) => { items: ComboBoxItemType[]; loading: boolean, isError: boolean};
-  getItem: (value: string) => Promise<ComboBoxItemType | undefined>;
-  filterItems: (keyword: string) => Promise<ComboBoxItemType[]>;
+  useFilterItems: (keyword: string) => {
+    items: ComboBoxItemType[];
+    loading: boolean;
+    isError: boolean;
+  };
+  useGetItem: (value: string) => {
+    item: ComboBoxItemType | null;
+    loading: boolean;
+  };
 };
 
 const ComboboxField = <
@@ -39,43 +45,20 @@ const ComboboxField = <
   name,
   placeholder = "Select",
   searchPlaceholder = "Type in Keyword",
-  noResultsMsg="No results found",
+  noResultsMsg = "No results found",
   formItemBuilder = hFormItemBuilder,
-  getItem,
-  filterItems,
+  useFilterItems,
+  useGetItem,
 }: ComboboxFieldProps<TFieldValues, TName>) => {
   const TFormItem = formItemBuilder();
   const [currentValue, setCurrentValue] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<ComboBoxItemType[]>([]);
   const [keyword, setKeyword] = useState("");
-
-  React.useEffect(() => {
-    const doFetch = async () => {
-      // Do nothing if both keyword and currentValue are empty
-      if (!keyword && !currentValue) return;
-
-      console.log("fetching", keyword, currentValue);
-      setLoading(true);
-
-      // Fetch the current item based on currentValue. build a blank array if getItems returns undefined
-      const currentItems = [
-        currentValue && (await getItem(currentValue)),
-      ].filter(Boolean) as ComboBoxItemType[];
-
-      const filtered = await filterItems(keyword);
-
-      // Merge the fetched items and current item, remove duplicates, sort them by label, and update the items
-      setItems(
-        sortBy(
-          uniqBy([...filtered, ...currentItems], prop("value")),
-          prop("label"),
-        ),
-      );
-      setLoading(false);
-    };
-    doFetch().catch(console.error);
-  }, [currentValue, filterItems, getItem, keyword]);
+  const { items, loading, isError } = useFilterItems(keyword);
+  const { item } = useGetItem(currentValue);
+  const renderItems = uniqBy(
+    [...(item ? [item] : []), ...items],
+    prop("value"),
+  );
 
   return (
     <FormField
@@ -87,7 +70,7 @@ const ComboboxField = <
             className="h-10 w-[21.25rem]"
             value={field.value}
             onSelect={field.onChange}
-            items={items}
+            items={renderItems}
             loading={loading}
             placeholder={placeholder}
             searchPlaceholder={searchPlaceholder}

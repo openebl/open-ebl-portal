@@ -1,28 +1,19 @@
-import { ports } from '@/lib/ports';
-import { useState, useEffect } from 'react';
+import { api } from "@/trpc/react";
 
-
-const usePortsFilter = () => {
-  // const [filteredPorts, setFilteredPorts] = useState<Port[]>([]);
-
-  // useEffect(() => {
-  //   const filtered = ports.filter(port => port.name.includes(filterBy));
-  //   setFilteredPorts(filtered);
-  // }, [ports, filterBy]);
-
-  const getPort = async (value: string) => {
-    const current = ports.find((p) => p.value === value);
-    return current ? { label: current.name, value: current.value } : undefined;
-  };
-
-  const filterPorts = async (keyword: string) => {
-    if (keyword === "") return [];
-    return ports
-      .filter((p) => p.name.toLowerCase().includes(keyword.toLowerCase()))
-      .map((p) => ({ label: p.name, value: p.value }));
-  };
-
-  return { getPort, filterPorts };
+export const useFilterPorts = (keyword: string) => {
+  const {
+    data,
+    isLoading: loading,
+    isError,
+  } = api.port.list.useQuery({ keyword }, { staleTime: 1000 * 60 * 10 });
+  const items = data ? data.map((p) => ({ label: p.label, value: p.id })) : [];
+  return { items, loading, isError };
 };
 
-export default usePortsFilter;
+export const useGetPort = (id: string) => {
+  const { data: port, isLoading: loading } = api.port.get.useQuery(
+    { id },
+    { staleTime: 1000 * 60 * 10 },
+  );
+  return { item: port ? { label: port.label, value: id } : null, loading };
+};

@@ -4,28 +4,18 @@ import ComboboxField from "@/app/_components/common/form/combo-form-field";
 import DateFormField from "@/app/_components/common/form/date-form-field";
 import { HFormItem } from "@/app/_components/common/form/h-form";
 import SelectFormField from "@/app/_components/common/form/select-form-field";
-import usePortsFilter from "@/app/_hooks/ports-filter";
-import { Button } from "@/components/ui/button";
+import { useFilterConsignees, useGetConsignee } from "@/app/_hooks/consignee-filter";
+import { useFilterPorts, useGetPort } from "@/app/_hooks/ports-filter";
+import { useFilterShippers, useGetShipper } from "@/app/_hooks/shippers-filter";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { consignees, shippers } from "@/lib/parties";
-import { EBlDraftFormSchema, type EBlDraftFormType } from "@/types/ebl";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { type EBlDraftFormSchema } from "@/types/ebl";
+import { type UseFormReturn } from "react-hook-form";
 import { type z } from "zod";
 
-const DetailPanel = ({ ebl }: { ebl: EBlDraftFormType }) => {
+const DetailPanel = ({ form }: { form: UseFormReturn<z.infer<typeof EBlDraftFormSchema>> }) => {
   const blTypes = [{ name: "HBL Non-negotiable", value: "hbl-non-negotiable" }];
-
-  const form = useForm<z.infer<typeof EBlDraftFormSchema>>({
-    resolver: zodResolver(EBlDraftFormSchema),
-    defaultValues: {
-      ...ebl,
-    },
-  });
-
-  const { getPort, filterPorts } = usePortsFilter();
 
   function onSubmit(values: z.infer<typeof EBlDraftFormSchema>) {
     // Do something with the form values.
@@ -63,16 +53,16 @@ const DetailPanel = ({ ebl }: { ebl: EBlDraftFormType }) => {
             label="POL"
             required={true}
             name="pol"
-            getItem={getPort}
-            filterItems={filterPorts}
+            useFilterItems={useFilterPorts}
+            useGetItem={useGetPort}
           />
           <ComboboxField
             control={form.control}
             label="POD"
             required={true}
             name="pod"
-            getItem={getPort}
-            filterItems={filterPorts}
+            useFilterItems={useFilterPorts}
+            useGetItem={useGetPort}
           />
           <DateFormField
             control={form.control}
@@ -80,19 +70,21 @@ const DetailPanel = ({ ebl }: { ebl: EBlDraftFormType }) => {
             required={true}
             name="eta"
           />
-          <SelectFormField
+          <ComboboxField
             control={form.control}
             label="Shipper"
             required={true}
             name="shipper"
-            items={shippers}
+            useFilterItems={useFilterShippers}
+            useGetItem={useGetShipper}
           />
-          <SelectFormField
+          <ComboboxField
             control={form.control}
             label="Consignee"
             required={true}
             name="consignee"
-            items={consignees}
+            useFilterItems={useFilterConsignees}
+            useGetItem={useGetConsignee}
           />
 
           <FormField
@@ -108,17 +100,6 @@ const DetailPanel = ({ ebl }: { ebl: EBlDraftFormType }) => {
               </HFormItem>
             )}
           />
-
-          <Button
-            type="button"
-            onClick={async () => {
-              const r = await form.trigger(undefined, { shouldFocus: true });
-              console.log(form.getValues(), r);
-            }}
-          >
-            Draft
-          </Button>
-          <Button type="button">Submit</Button>
         </form>
       </Form>
     </div>
