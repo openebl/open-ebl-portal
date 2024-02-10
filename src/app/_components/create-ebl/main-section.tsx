@@ -1,45 +1,56 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import UploadView from "./upload-view";
-import ProcessingView from "./processing-view";
-import DraftView from "./draft-view";
 import SendIcon from "@/app/_icons/send-icon";
-import { useForm } from "react-hook-form";
-import { EBlDraftFormSchema, type EBlDraftFormType } from "@/types/ebl";
+import { Button } from "@/components/ui/button";
+import { EBlSchema, type EBlType } from "@/types/ebl";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type z } from "zod";
+import { add } from "date-fns";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import DraftView from "./draft-view";
+import ProcessingView from "./processing-view";
+import UploadView from "./upload-view";
+import { api } from "@/trpc/react";
 
 const MainSection = () => {
+  const saveDraft = api.ebl.saveDraft.useMutation({
+    onSuccess: () => {
+      console.log("Draft saved");
+    },
+    onError: (error) => {
+      console.error(error);
+    }
+  });
+
   let status = "new";
   status = "draft";
 
-  const submitClicked = () => {
-    return;
+  const submitClicked = async () => {
+    const r = await form.trigger(undefined, { shouldFocus: true });
+    if (!r) return;
   };
 
-  const [ebl] = useState<EBlDraftFormType>({
+  const [ebl] = useState<EBlType>({
     blNumber: "",
     blType: "hbl-non-negotiable",
     pol: "THBKK",
     pod: "USLAX",
-    eta: new Date(),
+    eta: add(new Date(), {days: 7}),
     shipper: "foxconn",
     consignee: "samsung",
     notes: "",
   });
 
-  const form = useForm<z.infer<typeof EBlDraftFormSchema>>({
-    resolver: zodResolver(EBlDraftFormSchema),
+  const form = useForm<EBlType>({
+    resolver: zodResolver(EBlSchema),
     defaultValues: {
       ...ebl,
     },
   });
 
   const handleSaveDraft = async () => {
-    const r = await form.trigger(undefined, { shouldFocus: true });
-    console.log(form.getValues(), r);
+    console.log(form.getValues());
+    saveDraft.mutate(form.getValues());
   };
 
   return (

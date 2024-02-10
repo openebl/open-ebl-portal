@@ -5,6 +5,8 @@ import { TRPCError } from "@trpc/server";
 import { readFile } from "fs/promises";
 import { z } from "zod";
 
+type SaveDraftInput = Record<string, unknown>;
+
 export const eBlRouter = createTRPCRouter({
   all: protectedProcedure
     // .input(z.object({ text: z.string() }))
@@ -35,11 +37,24 @@ export const eBlRouter = createTRPCRouter({
         throw new InternalServerError(`Invalid EBL list: ${parsed.error.message}`)
       }
 
-      const ebl = parsed.data.find((ebl) => ebl.number === input);
+      const ebl = parsed.data.find((ebl) => ebl.blNumber === input);
       if (!ebl) {
         throw new NotFoundError();
       }
 
       return ebl;
     }),
+
+  saveDraft: protectedProcedure
+    .input(z.object({}).passthrough())
+    .mutation(async ({ ctx, input }) => {
+      console.log(input);
+      return {};
+      // return ctx.db.platform.create({
+      //   data: {
+      //     name: input,
+      //   },
+      // });
+    }),
+
   });

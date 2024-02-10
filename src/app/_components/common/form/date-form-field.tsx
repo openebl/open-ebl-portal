@@ -71,7 +71,7 @@ const DateFormField = <
                   field.onChange(val);
                   setPickerOpen(false);
                 }}
-                disabled={(date) => date < new Date()}
+                // disabled={(date) => date < new Date()}
                 initialFocus
               />
             </PopoverContent>
