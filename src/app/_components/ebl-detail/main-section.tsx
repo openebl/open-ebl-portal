@@ -6,6 +6,7 @@ import ShippingProgress from "./shipping-progress";
 const MainSection = ({ ebl }: { ebl: EBlDraftType }) => {
   const history = [
     {
+      id: ebl.id,
       actor: "Issuing Agent",
       actedBy: "John Wu",
       actedAt: "Jan 14, 2024 at 09:21 AM",

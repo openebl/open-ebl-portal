@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 const UploadView = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [chartFile, setChartFile] = useState<File>();
+  console.log(chartFile);
 
   const onFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target?.files?.[0]) {

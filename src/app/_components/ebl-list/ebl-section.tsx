@@ -1,6 +1,6 @@
 import EmptyFolderIcon from "@/app/_icons/empty-folder-icon";
 import { cn } from "@/lib/utils";
-import { type EBlDraftType, type EBlType } from "@/types/ebl";
+import { type EBlDraftType } from "@/types/ebl";
 import PaginatorSection from "./paginator-section";
 import TableRow from "./table-row";
 
