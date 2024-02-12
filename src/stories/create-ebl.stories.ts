@@ -1,4 +1,5 @@
-import MainSection from '@/app/_components/create-ebl/main-section';
+import MainSection from '@/app/_components/edit-ebl/main-section';
+import { defaultEBl } from '@/types/ebl';
 import type { Meta, StoryObj } from '@storybook/react';
 
 const meta = {
@@ -17,5 +18,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Main: Story = {
   args: {
+    ebl: defaultEBl
   },
 };

@@ -2,17 +2,15 @@
 
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
-import { EBlSchema, type EBlType } from "@/types/ebl";
+import { api } from "@/trpc/react";
+import { EBlSchema, type EBlDraftFormType } from "@/types/ebl";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { add } from "date-fns";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import DraftView from "./draft-view";
 import ProcessingView from "./processing-view";
 import UploadView from "./upload-view";
-import { api } from "@/trpc/react";
 
-const MainSection = () => {
+const MainSection = ({ebl}: {ebl:EBlDraftFormType}) => {
   const saveDraft = api.ebl.saveDraft.useMutation({
     onSuccess: () => {
       console.log("Draft saved");
@@ -30,18 +28,7 @@ const MainSection = () => {
     if (!r) return;
   };
 
-  const [ebl] = useState<EBlType>({
-    blNumber: "",
-    blType: "hbl-non-negotiable",
-    pol: "THBKK",
-    pod: "USLAX",
-    eta: add(new Date(), {days: 7}),
-    shipper: "foxconn",
-    consignee: "samsung",
-    notes: "",
-  });
-
-  const form = useForm<EBlType>({
+  const form = useForm<EBlDraftFormType>({
     resolver: zodResolver(EBlSchema),
     defaultValues: {
       ...ebl,
@@ -50,7 +37,10 @@ const MainSection = () => {
 
   const handleSaveDraft = async () => {
     console.log(form.getValues());
-    saveDraft.mutate(form.getValues());
+    saveDraft.mutate({
+      ...form.getValues(),
+      id: ebl.id,
+    });
   };
 
   return (

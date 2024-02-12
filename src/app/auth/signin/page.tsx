@@ -1,10 +1,9 @@
 import { getServerSession } from "next-auth/next";
-import { getProviders, signIn } from "next-auth/react";
+import { getProviders } from "next-auth/react";
 import { redirect } from "next/navigation";
 
-// import GoogleIcon from "@/images/logo/google.svg";
-import { authOptions } from "@/server/auth";
 import SigninWith from "@/app/_components/signin-with";
+import { authOptions } from "@/server/auth";
 
 export default async function SignIn() {
   const session = await getServerSession(authOptions);

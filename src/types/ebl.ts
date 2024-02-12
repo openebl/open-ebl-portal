@@ -1,15 +1,17 @@
-import { sub } from "date-fns";
+import { add, format, sub } from "date-fns";
 import { z } from "zod";
 
 enum Status {
-  Draft = "draft",
-  InProgress = "inProgress",
-  Printed = "printed",
-  Completed = "completed",
+  Draft = "DRAFT",
+  Processing = "PROCESSING",
+  Printed = "PRINTED",
+  Completed = "COMPLETED",
 }
 
 const EBlSchema = z.object({
+  id: z.string().min(1).max(48),
   blNumber: z.string().min(1).max(50),
+  status: z.enum(Object.values(Status) as [Status, ...Status[]]),
   blType: z.union([
     z.literal('hbl-negotiable'),
     z.literal('hbl-non-negotiable')
@@ -19,16 +21,50 @@ const EBlSchema = z.object({
   eta: z.date().min(sub(new Date, {days: 7})), // yesterday
   shipper: z.string().min(1).max(250),
   consignee: z.string().min(1).max(250),
-  // releaseAgent: z.string().min(1).max(250),
+  releaseAgent: z.string().min(1).max(250),
   notes: z.string().max(1500),
 });
 
 const EBlListSchema = z.array(EBlSchema);
 
+const EBlDraftFormSchema = EBlSchema.extend({
+  id: z.string(),
+  blNumber: z.string(),
+  status: z.enum(Object.values(Status) as [Status, ...Status[]]).optional(),
+  blType: z.union([
+    z.literal('hbl-negotiable'),
+    z.literal('hbl-non-negotiable')
+  ]).optional(),
+  pol: z.string().optional(),
+  pod: z.string().optional(),
+  eta: z.date().optional(),
+  shipper: z.string().optional(),
+  consignee: z.string().optional(),
+  releaseAgent: z.string().optional(),
+  notes: z.string().optional(),
+})
 
 type EBlType = z.infer<typeof EBlSchema>;
 type EBlListType = z.infer<typeof EBlListSchema>;
+type EBlDraftFormType = z.infer<typeof EBlDraftFormSchema>;
 
-export { EBlListSchema, EBlSchema, Status };
-export type { EBlListType, EBlType };
+const defaultEBl: EBlDraftFormType = {
+  id: 'new',
+  blNumber: "",
+  status: Status.Draft,
+  blType: "hbl-non-negotiable",
+  pol: "THBKK",
+  pod: "USLAX",
+  eta: add(new Date(), {days: 7}),
+  shipper: "foxconn",
+  consignee: "samsung",
+  notes: "",
+}
+
+const eBlIdGenerator = () => (
+  `${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.random().toString(36).slice(2, 8)}`
+)
+
+export { EBlListSchema, EBlSchema, EBlDraftFormSchema, Status, defaultEBl, eBlIdGenerator };
+export type { EBlListType, EBlType, EBlDraftFormType };
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { type ClientSafeProvider, signIn } from "next-auth/react";
-// import GoogleIcon from '@/images/logo/google.svg';
 
 export default function SigninWith({
   provider,

@@ -1,6 +1,6 @@
 import EmptyFolderIcon from "@/app/_icons/empty-folder-icon";
 import { cn } from "@/lib/utils";
-import { type EBlType } from "@/types/ebl";
+import { type EBlDraftFormType, type EBlType } from "@/types/ebl";
 import PaginatorSection from "./paginator-section";
 import TableRow from "./table-row";
 
@@ -56,7 +56,7 @@ const EmptyList = () => (
   </div>
 );
 
-const EblTable = ({ list }: { list: EBlType[] }) => {
+const EblTable = ({ list }: { list: EBlDraftFormType[] }) => {
   if (list.length === 0) return <EmptyList />;
 
   return (

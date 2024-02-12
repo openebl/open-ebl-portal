@@ -30,8 +30,8 @@ const EmptyFolderIcon = ({ className }: { className?: string }) => (
         y2="79.05"
         gradientUnits="userSpaceOnUse"
       >
-        <stop stop-color="#F0F0F0" />
-        <stop offset="1" stop-color="#FBFBFB" />
+        <stop stopColor="#F0F0F0" />
+        <stop offset="1" stopColor="#FBFBFB" />
       </linearGradient>
     </defs>
   </svg>
