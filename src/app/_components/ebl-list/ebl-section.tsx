@@ -1,6 +1,6 @@
 import EmptyFolderIcon from "@/app/_icons/empty-folder-icon";
 import { cn } from "@/lib/utils";
-import { type EBlDraftFormType, type EBlType } from "@/types/ebl";
+import { type EBlDraftType, type EBlType } from "@/types/ebl";
 import PaginatorSection from "./paginator-section";
 import TableRow from "./table-row";
 
@@ -56,7 +56,7 @@ const EmptyList = () => (
   </div>
 );
 
-const EblTable = ({ list }: { list: EBlDraftFormType[] }) => {
+const EblTable = ({ list }: { list: EBlDraftType[] }) => {
   if (list.length === 0) return <EmptyList />;
 
   return (
@@ -68,7 +68,7 @@ const EblTable = ({ list }: { list: EBlDraftFormType[] }) => {
   );
 };
 
-const EblSection = ({ list }: { list: EBlType[] }) => {
+const EblSection = ({ list }: { list: EBlDraftType[] }) => {
   return (
     <div className="flex w-full flex-col items-start justify-start gap-4">
       <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">

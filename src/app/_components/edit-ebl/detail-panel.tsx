@@ -10,13 +10,13 @@ import { useFilterShippers, useGetShipper } from "@/app/_hooks/shippers-filter";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { type EBlDraftFormType } from "@/types/ebl";
+import { type EBlDraftType } from "@/types/ebl";
 import { type UseFormReturn } from "react-hook-form";
 
-const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftFormType> }) => {
+const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftType> }) => {
   const blTypes = [{ name: "HBL Non-negotiable", value: "hbl-non-negotiable" }];
 
-  function onSubmit(values: EBlDraftFormType) {
+  function onSubmit(values: EBlDraftType) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values);

@@ -8,7 +8,7 @@ import GoalFlagIcon from "@/app/_icons/goal-flag-icon";
 import MailIcon from "@/app/_icons/mail-icon";
 import PrinterIcon from "@/app/_icons/printer-icon";
 import { cn } from "@/lib/utils";
-import { type EBlDraftFormType, Status } from "@/types/ebl";
+import { type EBlDraftType, Status } from "@/types/ebl";
 import Link from "next/link";
 
 const Stamp = ({
@@ -52,7 +52,7 @@ const PrintedStamp = () => (
   </Stamp>
 );
 
-const TableRow = ({ row }: { row: EBlDraftFormType }) => {
+const TableRow = ({ row }: { row: EBlDraftType }) => {
   const detailLink = row.status === Status.Draft ? `/ebls/${row.id}/edit` : `/ebls/${row.id}`;
   return (
     <Link href={detailLink}>

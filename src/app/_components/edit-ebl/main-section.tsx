@@ -3,14 +3,14 @@
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
-import { EBlSchema, type EBlDraftFormType } from "@/types/ebl";
+import { EBlSchema, type EBlDraftType } from "@/types/ebl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import DraftView from "./draft-view";
 import ProcessingView from "./processing-view";
 import UploadView from "./upload-view";
 
-const MainSection = ({ebl}: {ebl:EBlDraftFormType}) => {
+const MainSection = ({ebl}: {ebl:EBlDraftType}) => {
   const saveDraft = api.ebl.saveDraft.useMutation({
     onSuccess: () => {
       console.log("Draft saved");
@@ -28,7 +28,7 @@ const MainSection = ({ebl}: {ebl:EBlDraftFormType}) => {
     if (!r) return;
   };
 
-  const form = useForm<EBlDraftFormType>({
+  const form = useForm<EBlDraftType>({
     resolver: zodResolver(EBlSchema),
     defaultValues: {
       ...ebl,

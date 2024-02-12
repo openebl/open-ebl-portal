@@ -1,5 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { EBlDraftFormSchema, eBlIdGenerator } from "@/types/ebl";
+import { EBlDraftListSchema, EBlDraftSchema, eBlIdGenerator } from "@/types/ebl";
 import { isNil, pickBy } from "remeda";
 import { z } from "zod";
 
@@ -11,21 +11,24 @@ export const eBlRouter = createTRPCRouter({
         orderBy: { updatedAt: "desc" },
       });
 
-      return ebls;
+      return EBlDraftListSchema.parseAsync(ebls).catch((err) => {
+        console.log(err);
+        throw new Error("Invalid eBl");
+      })
     }),
 
   find: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const ebl = await ctx.db.eBl.findUnique({ where: { id: input } });
     console.log(ebl)
     const eBlWithoutNull = pickBy(ebl, (v) => !isNil(v));
-    return EBlDraftFormSchema.parseAsync(eBlWithoutNull).catch((err) => {
+    return EBlDraftSchema.parseAsync(eBlWithoutNull).catch((err) => {
       console.log(err);
       throw new Error("Invalid eBl");
     })
   }),
 
   saveDraft: protectedProcedure
-    .input(EBlDraftFormSchema)
+    .input(EBlDraftSchema)
     .mutation(async ({ ctx, input }) => {
       console.log(input);
       if (input.id === "new") {

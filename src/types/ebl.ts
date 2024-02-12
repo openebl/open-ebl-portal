@@ -25,9 +25,7 @@ const EBlSchema = z.object({
   notes: z.string().max(1500),
 });
 
-const EBlListSchema = z.array(EBlSchema);
-
-const EBlDraftFormSchema = EBlSchema.extend({
+const EBlDraftSchema = z.object({
   id: z.string(),
   blNumber: z.string(),
   status: z.enum(Object.values(Status) as [Status, ...Status[]]).optional(),
@@ -44,11 +42,13 @@ const EBlDraftFormSchema = EBlSchema.extend({
   notes: z.string().optional(),
 })
 
-type EBlType = z.infer<typeof EBlSchema>;
-type EBlListType = z.infer<typeof EBlListSchema>;
-type EBlDraftFormType = z.infer<typeof EBlDraftFormSchema>;
+const EBlDraftListSchema = z.array(EBlDraftSchema);
 
-const defaultEBl: EBlDraftFormType = {
+type EBlType = z.infer<typeof EBlSchema>;
+type EBlDraftType = z.infer<typeof EBlDraftSchema>;
+type EBlDraftListType = z.infer<typeof EBlDraftListSchema>;
+
+const defaultEBl: EBlDraftType = {
   id: 'new',
   blNumber: "",
   status: Status.Draft,
@@ -65,6 +65,6 @@ const eBlIdGenerator = () => (
   `${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.random().toString(36).slice(2, 8)}`
 )
 
-export { EBlListSchema, EBlSchema, EBlDraftFormSchema, Status, defaultEBl, eBlIdGenerator };
-export type { EBlListType, EBlType, EBlDraftFormType };
+export { EBlDraftListSchema, EBlSchema, EBlDraftSchema, Status, defaultEBl, eBlIdGenerator };
+export type { EBlDraftListType, EBlType, EBlDraftType };
 

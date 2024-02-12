@@ -1,9 +1,9 @@
-import { type EBlType } from "@/types/ebl";
+import { type EBlDraftType } from "@/types/ebl";
 import FileDetails from "./file-details";
-import ShippingProgress from "./shipping-progress";
 import HistoryList from "./history-list";
+import ShippingProgress from "./shipping-progress";
 
-const MainSection = ({ ebl }: { ebl: EBlType }) => {
+const MainSection = ({ ebl }: { ebl: EBlDraftType }) => {
   const history = [
     {
       actor: "Issuing Agent",

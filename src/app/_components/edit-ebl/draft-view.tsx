@@ -1,11 +1,11 @@
 "use client";
 
-import { type EBlDraftFormType } from "@/types/ebl";
+import { type EBlDraftType } from "@/types/ebl";
 import { type UseFormReturn } from "react-hook-form";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
 
-const DraftView = ({form}:{form: UseFormReturn<EBlDraftFormType>}) => {
+const DraftView = ({form}:{form: UseFormReturn<EBlDraftType>}) => {
 
   return (
     <div className="flex h-[48.125rem] items-stretch">
