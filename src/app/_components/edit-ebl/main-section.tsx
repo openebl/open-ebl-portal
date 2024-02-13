@@ -36,7 +36,6 @@ const MainSection = ({ebl}: {ebl:EBlDraftType}) => {
   });
 
   const handleSaveDraft = async () => {
-    console.log(form.getValues());
     saveDraft.mutate({
       ...form.getValues(),
       id: ebl.id,

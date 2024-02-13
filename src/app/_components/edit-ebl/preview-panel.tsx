@@ -14,7 +14,7 @@ const PreviewPanel = ({ images }: { images: string[] }) => {
   const [selectedDocument, setSelectedDocument] = useState(images[0]);
   const [zoomLevel, setZoomLevel] = useState(100); // Zoom level as a percentage
 
-  console.log(selectedDocument);
+  console.log('selectedDocument', selectedDocument);
 
   const handleZoomIn = () => {
     setZoomLevel(zoomLevel < 300 ? zoomLevel + 10 : zoomLevel);

@@ -12,25 +12,21 @@ export const eBlRouter = createTRPCRouter({
       });
 
       return EBlDraftListSchema.parseAsync(ebls).catch((err) => {
-        console.log(err);
-        throw new Error("Invalid eBl");
+        throw new Error(`Invalid eBl: ${err}`);
       })
     }),
 
   find: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const ebl = await ctx.db.eBl.findUnique({ where: { id: input } });
-    console.log(ebl)
     const eBlWithoutNull = pickBy(ebl, (v) => !isNil(v));
     return EBlDraftSchema.parseAsync(eBlWithoutNull).catch((err) => {
-      console.log(err);
-      throw new Error("Invalid eBl");
+      throw new Error(`Invalid eBl: ${err}`);
     })
   }),
 
   saveDraft: protectedProcedure
     .input(EBlDraftSchema)
     .mutation(async ({ ctx, input }) => {
-      console.log(input);
       if (input.id === "new") {
         const res = await ctx.db.eBl.create({
           data: {

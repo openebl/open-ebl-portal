@@ -19,7 +19,7 @@ const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftType> }) => {
   function onSubmit(values: EBlDraftType) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values);
+    console.log('submit', values);
   }
 
   return (

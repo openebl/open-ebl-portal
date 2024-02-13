@@ -8,6 +8,7 @@ WORKDIR /app
 RUN npm ci
 COPY . .
 
+# set these only for build
 ENV DATABASE_URL=postgres://localhost:5432/database
 ENV NEXTAUTH_URL="http://localhost:3000"
 ENV NEXTAUTH_SECRET="--secret--"
@@ -18,12 +19,15 @@ RUN npm run postinstall
 RUN npm run build
 
 
-FROM node:18-slim as base
+FROM node:18-slim
+
+RUN apt-get update && \
+  apt-get install -y libssl-dev dumb-init && \
+  rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 ENV NODE_ENV=production
-# COPY package*.json ./
-# RUN npm ci
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -34,8 +38,9 @@ RUN chown nextjs:nodejs .next
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-USER nextjs
+# USER nextjs
 
 EXPOSE 3000
 
