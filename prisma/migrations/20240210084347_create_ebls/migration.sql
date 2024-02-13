@@ -20,4 +20,4 @@ CREATE TABLE "EBl" (
     CONSTRAINT "EBl_pkey" PRIMARY KEY ("id")
 );
 
-CREATE INDEX idx_updated_at ON "EBl" ("updatedAt" DESC);
+CREATE INDEX idx_ebl_updated_at ON "EBl" ("updatedAt" DESC);
