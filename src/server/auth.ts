@@ -19,16 +19,18 @@ import EmailProvider from "next-auth/providers/email";
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
-      id: string;
+      id: number;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
+    platformId: number;
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    activePlatformId: number;
+    // ...other properties
+    // role: UserRole;
+  }
 }
 
 /**
@@ -44,6 +46,7 @@ export const authOptions: NextAuthOptions = {
         ...session.user,
         id: user.id,
       },
+      platformId: user.activePlatformId,
     }),
   },
   adapter: PrismaAdapter(db as PrismaClient),

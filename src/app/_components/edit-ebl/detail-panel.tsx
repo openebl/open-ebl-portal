@@ -4,7 +4,10 @@ import ComboboxField from "@/app/_components/common/form/combo-form-field";
 import DateFormField from "@/app/_components/common/form/date-form-field";
 import { HFormItem } from "@/app/_components/common/form/h-form";
 import SelectFormField from "@/app/_components/common/form/select-form-field";
-import { useFilterConsignees, useGetConsignee } from "@/app/_hooks/consignee-filter";
+import {
+  useFilterConsignees,
+  useGetConsignee,
+} from "@/app/_hooks/consignee-filter";
 import { useFilterPorts, useGetPort } from "@/app/_hooks/ports-filter";
 import { useFilterShippers, useGetShipper } from "@/app/_hooks/shippers-filter";
 import { Form, FormField } from "@/components/ui/form";
@@ -19,7 +22,7 @@ const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftType> }) => {
   function onSubmit(values: EBlDraftType) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log('submit', values);
+    console.log("submit", values);
   }
 
   return (
@@ -95,7 +98,8 @@ const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftType> }) => {
                   placeholder=""
                   className="h-[10.625rem] w-[21.25rem] resize-none font-normal"
                   {...field}
-                />
+                  value={field.value ?? ""}
+                ></Textarea>
               </HFormItem>
             )}
           />

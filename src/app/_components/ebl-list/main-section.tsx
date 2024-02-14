@@ -11,7 +11,7 @@ const MainSection = ({ list }: { list: EBlDraftListType }) => {
       <div className="text-2xl font-bold leading-9 text-main">eB/L</div>
       <div className="flex flex-row justify-between py-[1.875rem]">
         <SearchBox />
-        <Link href="/ebls/new/edit">
+        <Link href="/ebls/new">
           <Button className="bor h-11 w-[11.25rem] font-medium">
             <AddIcon className="mr-1" />
             New eB/L

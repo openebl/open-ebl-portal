@@ -6,22 +6,19 @@ import { api } from "@/trpc/react";
 import { EBlSchema, type EBlDraftType } from "@/types/ebl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import DraftView from "./draft-view";
-import ProcessingView from "./processing-view";
-import UploadView from "./upload-view";
+import DetailPanel from "./detail-panel";
+import PreviewPanel from "./preview-panel";
+import Link from "next/link";
 
-const MainSection = ({ebl}: {ebl:EBlDraftType}) => {
+const MainSection = ({ ebl }: { ebl: EBlDraftType }) => {
   const saveDraft = api.ebl.saveDraft.useMutation({
     onSuccess: () => {
       console.log("Draft saved");
     },
     onError: (error) => {
       console.error(error);
-    }
+    },
   });
-
-  let status = "new";
-  status = "draft";
 
   const submitClicked = async () => {
     const r = await form.trigger(undefined, { shouldFocus: true });
@@ -47,14 +44,17 @@ const MainSection = ({ebl}: {ebl:EBlDraftType}) => {
       <div className="text-2xl font-bold leading-9 text-main">New eB/L</div>
 
       <div className="mt-[1.875rem] flex h-[53.5rem] flex-col justify-between rounded-lg border border-solid border-border-light bg-white shadow-lg">
-        {status === "new" && <UploadView />}
-        {status === "uploading" && <div>Uploading...</div>}
-        {status === "processing" && <ProcessingView />}
-        {status === "draft" && <DraftView form={form} />}
+        <div className="flex h-[48.125rem] items-stretch">
+          <PreviewPanel images={[]} />
+          <DetailPanel form={form} />
+        </div>
+
         <div className="flex h-[5.25rem] w-full items-center justify-between border-t-[1px] border-[#D9D9D9] px-[1.875rem]">
-          <Button variant="outline" size="lg" className="w-[11.25rem]">
-            Cancel
-          </Button>
+          <Link href="/ebls">
+            <Button variant="outline" size="lg" className="w-[11.25rem]">
+              Cancel
+            </Button>
+          </Link>
           <div className="flex gap-2.5">
             <Button
               variant="outline"

@@ -27,6 +27,7 @@ export const env = createEnv({
     // GOOGLE_CLIENT_SECRET: z.string().min(1),
     EMAIL_SERVER: z.string().min(1),
     EMAIL_FROM: z.string().email(),
+    S3_BUCKET: z.string().min(1),
   },
 
   /**
@@ -51,6 +52,7 @@ export const env = createEnv({
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     EMAIL_SERVER: process.env.EMAIL_SERVER,
     EMAIL_FROM: process.env.EMAIL_FROM,
+    S3_BUCKET: process.env.S3_BUCKET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

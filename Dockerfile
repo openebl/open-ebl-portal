@@ -14,6 +14,9 @@ ENV NEXTAUTH_URL="http://localhost:3000"
 ENV NEXTAUTH_SECRET="--secret--"
 ENV GOOGLE_CLIENT_ID="--google-client-id--"
 ENV GOOGLE_CLIENT_SECRET="--google-client-secret--"
+ENV EMAIL_SERVER=smtps://smtp.example.com:465
+ENV EMAIL_FROM=noreply@example.com
+ENV S3_BUCKET=example-bucket
 
 RUN npm run postinstall
 RUN npm run build
@@ -40,6 +43,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma/seed.ts ./seed.ts
+COPY --from=builder --chown=nextjs:nodejs /app/src/daemons/doc-ai-daemon.ts ./doc-ai-daemon.ts
+COPY --from=builder --chown=nextjs:nodejs /app/launch.sh ./launch.sh
 
 # USER nextjs
 
@@ -49,4 +54,4 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["dumb-init", "node", "server.js"]
+CMD ["dumb-init", "./launch.sh"]

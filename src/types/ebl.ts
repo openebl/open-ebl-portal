@@ -32,14 +32,14 @@ const EBlDraftSchema = z.object({
   blType: z.union([
     z.literal('hbl-negotiable'),
     z.literal('hbl-non-negotiable')
-  ]).optional(),
-  pol: z.string().optional(),
-  pod: z.string().optional(),
-  eta: z.date().optional(),
-  shipper: z.string().optional(),
-  consignee: z.string().optional(),
+  ]).nullable(),
+  pol: z.string().optional().nullable(),
+  pod: z.string().optional().nullable(),
+  eta: z.date().optional().nullable(),
+  shipper: z.string().optional().nullable(),
+  consignee: z.string().optional().nullable(),
   releaseAgent: z.string().optional().nullable(),
-  notes: z.string().optional(),
+  notes: z.string().optional().nullable(),
 })
 
 const EBlDraftListSchema = z.array(EBlDraftSchema);
