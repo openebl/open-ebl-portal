@@ -1,14 +1,14 @@
+import { env } from "@/env";
+import { db } from "@/server/db";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { type PrismaClient } from "@prisma/client";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-
-import { env } from "@/env";
-import { db } from "@/server/db";
-import { type PrismaClient } from "@prisma/client";
+import EmailProvider from "next-auth/providers/email";
+// import GoogleProvider from "next-auth/providers/google";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -48,11 +48,20 @@ export const authOptions: NextAuthOptions = {
   },
   adapter: PrismaAdapter(db as PrismaClient),
   providers: [
-    GoogleProvider({
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    EmailProvider({
+      server: env.EMAIL_SERVER,
+      from: env.EMAIL_FROM,
     }),
+    // GoogleProvider({
+    //   clientId: env.GOOGLE_CLIENT_ID,
+    //   clientSecret: env.GOOGLE_CLIENT_SECRET,
+    // }),
   ],
+  theme: {
+    colorScheme: "light",
+    logo: "/bxblogo.svg", // Absolute URL to image
+    // buttonText: "" // Hex color code
+  }
 };
 
 /**

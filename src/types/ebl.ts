@@ -38,7 +38,7 @@ const EBlDraftSchema = z.object({
   eta: z.date().optional(),
   shipper: z.string().optional(),
   consignee: z.string().optional(),
-  releaseAgent: z.string().optional(),
+  releaseAgent: z.string().optional().nullable(),
   notes: z.string().optional(),
 })
 

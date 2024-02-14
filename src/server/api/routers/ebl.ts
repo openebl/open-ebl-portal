@@ -18,8 +18,7 @@ export const eBlRouter = createTRPCRouter({
 
   find: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const ebl = await ctx.db.eBl.findUnique({ where: { id: input } });
-    const eBlWithoutNull = pickBy(ebl, (v) => !isNil(v));
-    return EBlDraftSchema.parseAsync(eBlWithoutNull).catch((err) => {
+    return EBlDraftSchema.parseAsync(ebl).catch((err) => {
       throw new Error(`Invalid eBl: ${err}`);
     })
   }),
