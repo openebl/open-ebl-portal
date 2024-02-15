@@ -4,15 +4,14 @@ import {
   DatabaseService,
   type FlatTransaction,
 } from "@/server/services/database-service";
+import { eBlIdGenerator } from "@/types/ebl";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fromEnv } from "@aws-sdk/credential-providers";
+import { DocAiTaskStatus } from "@prisma/client";
 import { Effect } from "effect";
 import { type Session } from "next-auth";
 import { type NextRequest } from "next/server";
 import { validateSession } from "./session";
-import { eBlIdGenerator } from "@/types/ebl";
-import { Do } from "effect/Effect";
-import { DocAiTaskStatus } from "@prisma/client";
 
 const uploadReadableStreamToS3 = async (
   stream: ReadableStream<Uint8Array> | null,
@@ -31,7 +30,6 @@ const uploadReadableStreamToS3 = async (
   }
   const buffer = Buffer.concat(chunks);
   const s3 = new S3Client({
-    // region: "us-west-2",
     credentials: fromEnv(),
   });
 
@@ -106,7 +104,14 @@ export const processFileDocUploadReq = (req: NextRequest) =>
       const tx = yield* _(database.transaction());
 
       // insert fileDoc record
-      const fileDoc = yield* _(insertFileDoc({session, uuid, filename: req.headers.get("X-Filename"), tx}));
+      const fileDoc = yield* _(
+        insertFileDoc({
+          session,
+          uuid,
+          filename: req.headers.get("X-Filename"),
+          tx,
+        }),
+      );
 
       // insert ebl record
       yield* _(insertEbl(tx, fileDoc.id));

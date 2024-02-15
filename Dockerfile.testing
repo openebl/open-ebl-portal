@@ -1,0 +1,23 @@
+FROM node:18-slim
+
+# RUN apt-get update && \
+#   apt-get install -y libssl-dev dumb-init && \
+#   rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+# set these only for build
+ENV DATABASE_URL=postgres://localhost:5432/database
+ENV NEXTAUTH_URL="http://localhost:3000"
+ENV NEXTAUTH_SECRET="--secret--"
+ENV GOOGLE_CLIENT_ID="--google-client-id--"
+ENV GOOGLE_CLIENT_SECRET="--google-client-secret--"
+ENV EMAIL_SERVER=smtps://smtp.example.com:465
+ENV EMAIL_FROM=noreply@example.com
+ENV S3_BUCKET=example-bucket
+
+# Build next.js app
+ADD . /app
+RUN npm run postinstall

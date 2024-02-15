@@ -34,7 +34,26 @@ include:
       when: never
     - if: '$CI_PROJECT_NAMESPACE == $MASTER_REPO_NAMESPACE && $CI_COMMIT_BRANCH =~ /dev|master|main|hotfix/'
 
+.testing_template:
+  stage: test
+  image:
+    name: $AWS_ECR_REGISTRY/aws-cli-docker:latest
+    entrypoint: [""]
+  before_script:
+    - ln -fs /usr/share/zoneinfo/Asia/Taipei /etc/localtime
+    - aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR_REGISTRY
+    - docker build -t testing -f Dockerfile.testing --build-arg AWS_ECR_REGISTRY=$AWS_ECR_REGISTRY .
+    - echo "Shard $CI_NODE_INDEX/$CI_NODE_TOTAL"
+
 nodejs-scan-sast:
+  rules:
+    - !reference [ .default_rules, rules ]
+
+eslint:
+  extends: .testing_template
+  stage: test
+  script:
+    - docker run --name eslint testing npm run lint
   rules:
     - !reference [ .default_rules, rules ]
 
