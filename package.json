@@ -15,6 +15,7 @@
     "migrate-dev": "prisma migrate dev",
     "migrate": "prisma migrate deploy",
     "lint": "next lint",
+    "test:unit": "vitest run",
     "start": "next start",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
@@ -87,7 +88,8 @@
     "prettier-plugin-tailwindcss": "^0.5.7",
     "prisma": "^5.6.0",
     "tailwindcss": "^3.3.5",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
   },
   "ct3aMetadata": {
     "initVersion": "7.25.1"

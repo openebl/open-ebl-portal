@@ -1,0 +1,18 @@
+[
+  {
+    "email": "kevin@bluextrade.com",
+    "name": "Kevin Chung",
+    "managerEmails": []
+  },
+  {
+    "email": "wesley@bluextrade.com",
+    "name": "Wesley",
+    "managerEmails": ["kevin@bluextrade.com"]
+  },
+  {
+    "email": "ennio@bluextrade.com",
+    "name": "Ennio",
+    "managerEmails": ["wrong@bluextrade.com"]
+  }
+]
+
