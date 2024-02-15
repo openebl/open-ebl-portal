@@ -25,7 +25,8 @@ const AvatarButton = ({ session }: { session: Session | null }) => {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="font-header">
-        <DropdownMenuLabel>{session.user.email}</DropdownMenuLabel>
+        <DropdownMenuLabel>{session.user.name}</DropdownMenuLabel>
+        <DropdownMenuLabel>({session.user.email})</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           <Link href="/api/auth/signout">Sign out</Link>

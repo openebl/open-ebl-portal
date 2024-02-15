@@ -1,15 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
-const UploadView = () => {
+type UploadViewProps = {
+  onFileSelected: (f: File) => void;
+};
+
+const UploadView = ({ onFileSelected }: UploadViewProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [chartFile, setChartFile] = useState<File>();
-
   const onFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target?.files?.[0]) {
-      setChartFile(e.target.files[0]);
+      onFileSelected(e.target.files[0]);
     }
   };
 

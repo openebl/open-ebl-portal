@@ -1,11 +1,12 @@
-import { type EBlType } from "@/types/ebl";
+import { type EBlDraftType } from "@/types/ebl";
 import FileDetails from "./file-details";
-import ShippingProgress from "./shipping-progress";
 import HistoryList from "./history-list";
+import ShippingProgress from "./shipping-progress";
 
-const MainSection = ({ ebl }: { ebl: EBlType }) => {
+const MainSection = ({ ebl }: { ebl: EBlDraftType }) => {
   const history = [
     {
+      id: ebl.id,
       actor: "Issuing Agent",
       actedBy: "John Wu",
       actedAt: "Jan 14, 2024 at 09:21 AM",

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { type ClientSafeProvider, signIn } from "next-auth/react";
 
 export default function SigninWith({
@@ -9,9 +10,9 @@ export default function SigninWith({
 }) {
   return (
     <div key={provider.name}>
-      <button
+      <Button
         // variant={provider.id === 'google' ? 'outline' : 'default'}
-        className="w-full"
+        className="w-full px-8"
         onClick={() => {
           signIn(provider.id).catch(console.error);
         }}
@@ -20,7 +21,7 @@ export default function SigninWith({
         <GoogleIcon className="mr-2 h-5 w-5" />
       )} */}
         Sign in with {provider.name}
-      </button>
+      </Button>
     </div>
   );
 }

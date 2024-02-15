@@ -53,7 +53,7 @@ const ComboboxField = <
   const TFormItem = formItemBuilder();
   const [currentValue, setCurrentValue] = useState("");
   const [keyword, setKeyword] = useState("");
-  const { items, loading, isError } = useFilterItems(keyword);
+  const { items, loading } = useFilterItems(keyword);
   const { item } = useGetItem(currentValue);
   const renderItems = uniqBy(
     [...(item ? [item] : []), ...items],

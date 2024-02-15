@@ -4,22 +4,25 @@ import ComboboxField from "@/app/_components/common/form/combo-form-field";
 import DateFormField from "@/app/_components/common/form/date-form-field";
 import { HFormItem } from "@/app/_components/common/form/h-form";
 import SelectFormField from "@/app/_components/common/form/select-form-field";
-import { useFilterConsignees, useGetConsignee } from "@/app/_hooks/consignee-filter";
+import {
+  useFilterConsignees,
+  useGetConsignee,
+} from "@/app/_hooks/consignee-filter";
 import { useFilterPorts, useGetPort } from "@/app/_hooks/ports-filter";
 import { useFilterShippers, useGetShipper } from "@/app/_hooks/shippers-filter";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { type EBlDraftFormType } from "@/types/ebl";
+import { type EBlDraftType } from "@/types/ebl";
 import { type UseFormReturn } from "react-hook-form";
 
-const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftFormType> }) => {
+const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftType> }) => {
   const blTypes = [{ name: "HBL Non-negotiable", value: "hbl-non-negotiable" }];
 
-  function onSubmit(values: EBlDraftFormType) {
+  function onSubmit(values: EBlDraftType) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values);
+    console.log("submit", values);
   }
 
   return (
@@ -95,7 +98,8 @@ const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftFormType> }) => {
                   placeholder=""
                   className="h-[10.625rem] w-[21.25rem] resize-none font-normal"
                   {...field}
-                />
+                  value={field.value ?? ""}
+                ></Textarea>
               </HFormItem>
             )}
           />

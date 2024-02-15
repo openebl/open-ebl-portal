@@ -14,7 +14,7 @@ export const portRouter = createTRPCRouter({
 
     list: protectedProcedure
     .input(z.object({ keyword: z.string() }))
-    .query(({ ctx, input }) => {
+    .query(({ input }) => {
       // return ctx.db.port.findMany({
       //   orderBy: { createdAt: "desc" },
       // });

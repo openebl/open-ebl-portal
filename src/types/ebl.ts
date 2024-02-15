@@ -1,4 +1,4 @@
-import { add, format, sub } from "date-fns";
+import { add, sub } from "date-fns";
 import { z } from "zod";
 
 enum Status {
@@ -25,30 +25,30 @@ const EBlSchema = z.object({
   notes: z.string().max(1500),
 });
 
-const EBlListSchema = z.array(EBlSchema);
-
-const EBlDraftFormSchema = EBlSchema.extend({
+const EBlDraftSchema = z.object({
   id: z.string(),
   blNumber: z.string(),
   status: z.enum(Object.values(Status) as [Status, ...Status[]]).optional(),
   blType: z.union([
     z.literal('hbl-negotiable'),
     z.literal('hbl-non-negotiable')
-  ]).optional(),
-  pol: z.string().optional(),
-  pod: z.string().optional(),
-  eta: z.date().optional(),
-  shipper: z.string().optional(),
-  consignee: z.string().optional(),
-  releaseAgent: z.string().optional(),
-  notes: z.string().optional(),
+  ]).nullable(),
+  pol: z.string().optional().nullable(),
+  pod: z.string().optional().nullable(),
+  eta: z.date().optional().nullable(),
+  shipper: z.string().optional().nullable(),
+  consignee: z.string().optional().nullable(),
+  releaseAgent: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
 })
 
-type EBlType = z.infer<typeof EBlSchema>;
-type EBlListType = z.infer<typeof EBlListSchema>;
-type EBlDraftFormType = z.infer<typeof EBlDraftFormSchema>;
+const EBlDraftListSchema = z.array(EBlDraftSchema);
 
-const defaultEBl: EBlDraftFormType = {
+type EBlType = z.infer<typeof EBlSchema>;
+type EBlDraftType = z.infer<typeof EBlDraftSchema>;
+type EBlDraftListType = z.infer<typeof EBlDraftListSchema>;
+
+const defaultEBl: EBlDraftType = {
   id: 'new',
   blNumber: "",
   status: Status.Draft,
@@ -65,6 +65,6 @@ const eBlIdGenerator = () => (
   `${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.random().toString(36).slice(2, 8)}`
 )
 
-export { EBlListSchema, EBlSchema, EBlDraftFormSchema, Status, defaultEBl, eBlIdGenerator };
-export type { EBlListType, EBlType, EBlDraftFormType };
+export { EBlDraftListSchema, EBlDraftSchema, EBlSchema, Status, defaultEBl, eBlIdGenerator };
+export type { EBlDraftListType, EBlDraftType, EBlType };
 

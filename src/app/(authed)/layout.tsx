@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { TRPCReactProvider } from "@/trpc/react";
 import OuterFrame from "@/app/_components/outer-frame";
 import { getServerAuthSession } from "@/server/auth";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "BlueX eBL Portal",
@@ -14,7 +15,12 @@ export const metadata = {
 
 const RootLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerAuthSession();
+  if (!session) {
+    // redirect('/auth/signin');
+    redirect('/api/auth/signin');
+  }
 
+  console.log('session', session)
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body>
