@@ -1,41 +1,20 @@
+import { getLogger } from "@/lib/logger";
+import { consignees, shippers } from "@/lib/parties";
 import { DocAiTaskStatus, PrismaClient } from "@prisma/client";
-// import { add } from "date-fns";
-// import pino from "pino";
+import { add } from "date-fns";
 
-const shippers = ["Foxconn", "Quanta Computer", "Flex", "Pegatron"].map(
-  (n) => ({ name: n, value: n.toLowerCase() }),
-);
-
-const consignees = ["Samsung", "Apple", "Google", "Microsoft"].map(
-  (n) => ({ name: n, value: n.toLowerCase() }),
-);
-
-// const logger = pino({
-//   level: "debug",
-//   formatters: {
-//     level(label) {
-//       return { level: label.toUpperCase() };
-//     },
-//   },
-// });
-
-const logger = {
-  info: console.log,
-  error: console.error,
-  debug: console.debug,
-  warn: console.warn,
-};
-
+const logger = getLogger();
 const db = new PrismaClient()
 
 const docAiDaemon = async () => {
-  logger.info("initialize doc ai");
+  logger.info("Doc AI Daemon started");
 
   while (true) {
     const tasks = await db.docAiTask.findMany({
       where: { status: DocAiTaskStatus.PROCESSING },
       take: 1,
     });
+
     for (const task of tasks) {
       logger.info(`processing task ${task.id}`);
       await db.$transaction(async (tx) => {
@@ -50,7 +29,8 @@ const docAiDaemon = async () => {
               blType: "hbl-non-negotiable",
               pol: "CNYTN",
               pod: "USLAX",
-              eta: new Date(new Date().setDate(new Date().getDate() + 20)),
+              // eta: new Date(new Date().setDate(new Date().getDate() + 20)),
+              eta: add(new Date(), { days: 20 }),
               shipper:
                 shippers[Math.floor(Math.random() * shippers.length)]?.value,
               consignee:
@@ -69,4 +49,4 @@ const docAiDaemon = async () => {
   }
 };
 
-await docAiDaemon().catch(console.error);
+docAiDaemon().catch(console.error);

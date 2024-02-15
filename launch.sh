@@ -2,7 +2,7 @@
 
 node server.js &
 
-npx --yes tsx doc-ai-daemon.ts &
+dumb-init node doc-ai-daemon.cjs &
 
 # Wait for any process to exit
 wait -n

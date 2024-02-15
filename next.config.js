@@ -7,9 +7,6 @@ await import("./src/env.js");
 /** @type {import("next").NextConfig} */
 const config = {
   output: "standalone",
-  experimental: {
-    instrumentationHook: true,
-  },
 };
 
 export default config;

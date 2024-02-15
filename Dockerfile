@@ -24,6 +24,7 @@ ENV S3_BUCKET=example-bucket
 ADD . /app
 RUN npm run postinstall
 RUN npm run build
+RUN npx tsup src/daemons/doc-ai-daemon.ts
 
 # Build the production image
 FROM node:18-slim
@@ -49,6 +50,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma/seed.ts ./seed.ts
 COPY --from=builder --chown=nextjs:nodejs /app/src/daemons/doc-ai-daemon.ts ./doc-ai-daemon.ts
 COPY --from=builder --chown=nextjs:nodejs /app/launch.sh ./launch.sh
+COPY --from=builder --chown=nextjs:nodejs /app/dist/doc-ai-daemon.cjs ./doc-ai-daemon.cjs
 
 # USER nextjs
 
