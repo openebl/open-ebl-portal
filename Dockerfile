@@ -1,12 +1,14 @@
 FROM node:18-slim as base
 WORKDIR /app
 COPY package*.json ./
-EXPOSE 3000
 
 FROM base as builder
+RUN apt-get update && \
+  apt-get install -y libssl-dev dumb-init && \
+  rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 RUN npm ci
-COPY . .
 
 # set these only for build
 ENV DATABASE_URL=postgres://localhost:5432/database
@@ -18,10 +20,12 @@ ENV EMAIL_SERVER=smtps://smtp.example.com:465
 ENV EMAIL_FROM=noreply@example.com
 ENV S3_BUCKET=example-bucket
 
+# Build next.js app
+ADD . /app
 RUN npm run postinstall
 RUN npm run build
 
-
+# Build the production image
 FROM node:18-slim
 
 RUN apt-get update && \
