@@ -114,7 +114,7 @@ main()
     await prisma.$disconnect()
   })
   .catch(async (e) => {
-    console.error(e)
+    console.error('Seed error', e)
     await prisma.$disconnect()
     process.exit(1)
   })

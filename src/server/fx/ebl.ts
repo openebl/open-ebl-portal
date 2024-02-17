@@ -1,78 +1,155 @@
-import { env } from "@/env";
+import crypto from "crypto";
+import { Chunk, Effect, Option, Stream, type StreamEmit } from "effect";
+import { writeFile } from "fs/promises";
+import { type Session } from "next-auth";
+import { type NextRequest } from "next/server";
+import path from "path";
+
+import { pdf2Image } from "@/lib/pdf2image";
+import { tempFolder } from "@/lib/utils";
 import { internalServerError } from "@/server/server-errors";
 import {
   DatabaseService,
   type FlatTransaction,
 } from "@/server/services/database-service";
+import { StorageService } from "@/server/services/storage-service";
 import { eBlIdGenerator } from "@/types/ebl";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { fromEnv } from "@aws-sdk/credential-providers";
 import { DocAiTaskStatus } from "@prisma/client";
-import { Effect } from "effect";
-import { type Session } from "next-auth";
-import { type NextRequest } from "next/server";
+import { asyncFnToEffect } from "./helper";
+import { bodyToBuffer } from "./req";
 import { validateSession } from "./session";
 
-const uploadReadableStreamToS3 = async (
-  stream: ReadableStream<Uint8Array> | null,
-  uuid: string,
-) => {
-  if (!stream) {
-    throw new Error("No file provided");
-  }
+type ImagePairType = { image: Buffer; thumbnail: Buffer; page: number };
+type KeyPairType = { imageKey: string; thumbnailKey: string; page: number };
+type ImageStreamEmitter = StreamEmit.Emit<never, never, ImagePairType, void>;
 
-  const reader = stream.getReader();
-  let result = await reader.read();
-  const chunks = [];
-  while (!result.done) {
-    chunks.push(result.value);
-    result = await reader.read();
-  }
-  const buffer = Buffer.concat(chunks);
-  const s3 = new S3Client({
-    credentials: fromEnv(),
-  });
-
-  const cmd = new PutObjectCommand({
-    Bucket: env.S3_BUCKET,
-    Key: `/ebl/${uuid}`,
-    Body: buffer,
-  });
-
-  await s3.send(cmd);
-  return uuid;
-};
-
-const TryInsertDbRecord = <R>(fn: () => Promise<R>) =>
+const saveContentToTempFile = (content: Buffer) =>
   Effect.tryPromise({
-    try: fn,
+    try: async () => {
+      const folder = await tempFolder();
+      const tmpFilename = path.join(folder, "content");
+      await writeFile(tmpFilename, content);
+      return tmpFilename;
+    },
     catch: (error) => internalServerError(error),
   });
 
+const pdfFileToImageStream = (filename: string) =>
+  Stream.async((emit: ImageStreamEmitter) => {
+    pdf2Image({
+      filename,
+      onPage(image, thumbnail, page) {
+        emit(Effect.succeed(Chunk.of({ image, thumbnail, page }))).catch(
+          (err) => console.error('pdf2Image error', err),
+        );
+      },
+      onComplete() {
+        emit(Effect.fail(Option.none())).catch(
+          (err) => console.error('pdf2Image onComplete error', err),
+        );
+      },
+    }).catch((err) => console.error('pdfFileToImageStream error', err));
+  });
+
+const generateImageKeys = () =>
+  Effect.succeed({
+    imageKey: `/ebl-image/${crypto.randomUUID()}`,
+    thumbnailKey: `/ebl-thumbnail/${crypto.randomUUID()}`,
+  });
+
+const storeImageAndThumbnail = (imagePair: ImagePairType) =>
+  StorageService.pipe(
+    Effect.flatMap((storage) =>
+      generateImageKeys().pipe(
+        Effect.tap(({ imageKey }) =>
+          storage.putObject({
+            content: imagePair.image,
+            key: imageKey,
+            contentType: "image/webp",
+          }),
+        ),
+        Effect.tap(({ thumbnailKey }) =>
+          storage.putObject({
+            content: imagePair.thumbnail,
+            key: thumbnailKey,
+            contentType: "image/webp",
+          }),
+        ),
+        Effect.map((keyPair) => ({ ...keyPair, page: imagePair.page })),
+      ),
+    ),
+  );
+
+const insertImageRecords = (docFileId: bigint, keyPair: KeyPairType) =>
+  DatabaseService.pipe(
+    Effect.flatMap((db) => db.transaction()),
+    Effect.flatMap((tx) =>
+      Effect.tryPromise({
+        try: () =>
+          Promise.all([
+            tx.docImage.create({
+              data: {
+                docFileId,
+                page: 1,
+                storagekey: keyPair.imageKey,
+              },
+            }),
+            tx.docImage.create({
+              data: {
+                docFileId,
+                page: 1,
+                storagekey: keyPair.thumbnailKey,
+              },
+            }),
+          ]),
+        catch: (error) => internalServerError(error),
+      }),
+    ),
+  );
+
+const savePdfImagesToStorageAndDb = (docFileId: bigint, content: Buffer) =>
+  saveContentToTempFile(content).pipe(
+    Effect.flatMap((filename) =>
+      Stream.runCollect(
+        pdfFileToImageStream(filename).pipe(
+          Stream.mapEffect((imagePair) => storeImageAndThumbnail(imagePair)),
+          Stream.mapEffect((keyPair) => insertImageRecords(docFileId, keyPair)),
+          // Stream.tap((n) =>
+          //   Console.log(
+          //     `saved to storage: ${n.imageKey}, ${n.thumbnailKey}`,
+          //   ),
+          // ),
+          // Stream.mapEffect((imagePair) => saveImageToDatabase(imagePair, tx)),
+        ),
+      ),
+    ),
+    // Effect.flatMap((filename) => Effect.succeed(1)),
+  );
+
 const insertFileDoc = ({
   session,
-  uuid,
+  storagekey,
   filename,
   tx,
 }: {
   session: Session;
-  uuid: string;
+  storagekey: string;
   filename: string | null;
   tx: FlatTransaction;
 }) =>
-  TryInsertDbRecord(() =>
+  asyncFnToEffect(() =>
     tx.docFile.create({
       data: {
         filename,
         platformId: session.platformId,
         uploaderId: session.user.id,
-        storagekey: uuid,
+        storagekey,
       },
     }),
   );
 
 const insertEbl = (tx: FlatTransaction, docFileId: bigint) =>
-  TryInsertDbRecord(() =>
+  asyncFnToEffect(() =>
     tx.eBl.create({
       data: {
         id: eBlIdGenerator(),
@@ -83,7 +160,7 @@ const insertEbl = (tx: FlatTransaction, docFileId: bigint) =>
   );
 
 const insertDocAiTask = (tx: FlatTransaction, docFileId: bigint) =>
-  TryInsertDbRecord(() =>
+  asyncFnToEffect(() =>
     tx.docAiTask.create({
       data: {
         docFileId,
@@ -93,40 +170,49 @@ const insertDocAiTask = (tx: FlatTransaction, docFileId: bigint) =>
     }),
   );
 
-export const processFileDocUploadReq = (req: NextRequest) =>
+export const processFileDocUploadReq = (
+  req: NextRequest,
+  maybeSession: Session | null,
+) =>
   Effect.scoped(
     Effect.gen(function* (_) {
-      const uuid = crypto.randomUUID();
-
-      const session = yield* _(validateSession());
+      const storagekey = `/ebl/${crypto.randomUUID()}`;
+      const session = yield* _(validateSession(maybeSession));
 
       const database = yield* _(DatabaseService);
+      const storage = yield* _(StorageService);
       const tx = yield* _(database.transaction());
+
+      // read pdf content from request body
+      const pdfBuffer = yield* _(bodyToBuffer(req.body));
 
       // insert fileDoc record
       const fileDoc = yield* _(
         insertFileDoc({
-          session,
-          uuid,
-          filename: req.headers.get("X-Filename"),
           tx,
+          session,
+          storagekey,
+          filename: req.headers.get("X-Filename"),
         }),
       );
-
       // insert ebl record
       yield* _(insertEbl(tx, fileDoc.id));
-
-      // upload file to s3
-      yield* _(
-        Effect.tryPromise({
-          try: () => uploadReadableStreamToS3(req.body, uuid),
-          catch: (error) => internalServerError(error),
-        }),
-      );
 
       // insert ebl record
       yield* _(insertDocAiTask(tx, fileDoc.id));
 
-      return fileDoc.id.toString();
+      // upload file to s3
+      yield* _(
+        storage.putObject({
+          content: pdfBuffer,
+          key: storagekey,
+          contentType: "application/pdf",
+        }),
+      );
+
+      // read pdf page images, send to S3, and store image records to db
+      yield* _(savePdfImagesToStorageAndDb(fileDoc.id, pdfBuffer));
+
+      return fileDoc.id;
     }),
   );

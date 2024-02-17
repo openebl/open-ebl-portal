@@ -1,19 +1,23 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
+import { getServerAuthSession } from '@/server/auth';
 import { db } from '@/server/db';
 import { processFileDocUploadReq } from '@/server/fx/ebl';
 import { convertErrorToResponse } from '@/server/fx/response';
-import { liveDatabase } from '@/server/services/database-service';
+import { DatabaseService, liveDatabaseService } from '@/server/services/database-service';
+import { StorageService, s3StorageService } from '@/server/services/storage-service';
 import { Effect, pipe } from 'effect';
 
 export async function POST(req: NextRequest) {
+  const session = await getServerAuthSession();
   const runnable = pipe(
-    processFileDocUploadReq(req),
+    processFileDocUploadReq(req, session),
 
     Effect.map((result) => new NextResponse(result)),
     Effect.catchAll((error) => convertErrorToResponse(error)),
 
-    liveDatabase(db),
+    Effect.provideService(DatabaseService, liveDatabaseService(db)),
+    Effect.provideService(StorageService, s3StorageService),
   );
 
   return await Effect.runPromise(runnable);

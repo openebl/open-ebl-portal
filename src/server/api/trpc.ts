@@ -13,6 +13,7 @@ import { ZodError } from "zod";
 
 import { getServerAuthSession } from "@/server/auth";
 import { db } from "@/server/db";
+import { type StorageServiceType } from "@/server/services/storage-service";
 
 /**
  * 1. CONTEXT
@@ -26,7 +27,10 @@ import { db } from "@/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts: {
+  storageService: StorageServiceType;
+  headers: Headers;
+}) => {
   const session = await getServerAuthSession();
 
   return {

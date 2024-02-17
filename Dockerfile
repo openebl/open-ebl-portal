@@ -24,13 +24,14 @@ ENV S3_BUCKET=example-bucket
 ADD . /app
 RUN npm run postinstall
 RUN npm run build
-RUN npx tsup src/daemons/doc-ai-daemon.ts
+# RUN npx tsup src/daemons/doc-ai-daemon.ts
+RUN npx tsup img.js
 
 # Build the production image
 FROM node:18-slim
 
 RUN apt-get update && \
-  apt-get install -y libssl-dev dumb-init && \
+  apt-get install -y libssl-dev dumb-init poppler-data poppler-utils && \
   rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -50,7 +51,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma/seed.ts ./seed.ts
 COPY --from=builder --chown=nextjs:nodejs /app/src/daemons/doc-ai-daemon.ts ./doc-ai-daemon.ts
 COPY --from=builder --chown=nextjs:nodejs /app/launch.sh ./launch.sh
-COPY --from=builder --chown=nextjs:nodejs /app/dist/doc-ai-daemon.cjs ./doc-ai-daemon.cjs
+# COPY --from=builder --chown=nextjs:nodejs /app/dist/doc-ai-daemon.cjs ./doc-ai-daemon.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/dist/img.cjs ./img.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/ebl.pdf ./ebl.pdf
 
 # USER nextjs
 
