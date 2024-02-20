@@ -131,6 +131,20 @@ model DocAiTask {
   @@index([status], map: "idx_doc_ai_task_status")
 }
 
+model EblJourney {
+  id               BigInt           @id @default(autoincrement())
+  eBlId            BigInt
+  action           EblJourneyAction
+  lastStatus       EBlStatus
+  targetPlatformId BigInt?
+  sourcePlatformId BigInt?
+  userId           BigInt?
+  createdAt        DateTime         @default(now())
+
+  @@index([eBlId], map: "idx_ebl_journey_ebl_id")
+  @@index([targetPlatformId, eBlId], map: "idx_ebl_journey_target_platform_id_ebl_id")
+}
+
 enum EBlStatus {
   DRAFT
   PROCESSING
@@ -143,4 +157,14 @@ enum DocAiTaskStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+enum EblJourneyAction {
+  ISSUE
+  GRANT_SHIPPER
+  GRANT_CONSIGNEE
+  GRANT_RELEASE_AGENT
+  ENDORSE
+  AMEND
+  SURRENDER
 }
