@@ -13,6 +13,9 @@ export const useTestStorageService = () => {
       watcher[key] = { content, contentType };
       return Effect.succeedNone;
     },
+    getPresignedUrl: ({key}:{key:string}) => {
+      return Effect.succeed(`https://storage.com/${key}`)
+    }
   };
 
   return {

@@ -19,11 +19,11 @@ import EmailProvider from "next-auth/providers/email";
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
-      id: number;
+      id: bigint;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
-    platformId: number;
+    platformId: bigint;
   }
 
   interface User {

@@ -4,6 +4,7 @@ import { shipperRouter } from "./routers/shipper";
 import { portRouter } from "./routers/port";
 import { consigneeRouter } from "./routers/consignee";
 import { docAiTaskRouter } from "./routers/doc-ai-task";
+import { docImageRouter } from "./routers/doc-image";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   consignee: consigneeRouter,
   ebl: eBlRouter,
   docAiTask: docAiTaskRouter,
+  docImage: docImageRouter,
 });
 
 // export type definition of API

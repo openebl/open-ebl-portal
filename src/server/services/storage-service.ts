@@ -14,6 +14,16 @@ export type PutObjectProps = {
   contentType: string;
 };
 
+export type StorageServiceType = {
+  readonly putObject: (
+    props: PutObjectProps,
+  ) => Effect.Effect<void, InternalServerError, never>;
+  readonly getPresignedUrl: (
+    props: { key: string },
+  ) => Effect.Effect<string, InternalServerError, never>;
+};
+
+
 const putObject = ({ content, key, contentType }: PutObjectProps) =>
   Effect.tryPromise({
     try: async () => {
@@ -29,6 +39,9 @@ const putObject = ({ content, key, contentType }: PutObjectProps) =>
     catch: (err) => internalServerError(err),
   });
 
+const getPresignedUrl = ({key}: {key: string}) =>
+  Effect.succeed('presigned-url') // TODO: implement S3 prsigned url
+
 export class StorageService extends Context.Tag("StorageService")<
   StorageService,
   {
@@ -38,13 +51,7 @@ export class StorageService extends Context.Tag("StorageService")<
   }
 >() {}
 
-export type StorageServiceType = {
-  readonly putObject: (
-    props: PutObjectProps,
-  ) => Effect.Effect<void, InternalServerError, never>;
-};
-
 // export const provideS3StorageService = Effect.provideService(StorageService, {
 //   putObject: putObject,
 // });
-export const s3StorageService: StorageServiceType = { putObject };
+export const s3StorageService: StorageServiceType = { putObject, getPresignedUrl };

@@ -10,11 +10,16 @@ import { Button } from "@/components/ui/button";
 import DownloadIcon from "@/app/_icons/download-icon";
 import Image from "next/image";
 
-const PreviewPanel = ({ images }: { images: string[] }) => {
+export type PreviewImageType = {
+  imageUrl: string;
+  thumbnailUrl: string;
+};
+
+const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
   const [selectedDocument, setSelectedDocument] = useState(images[0]);
   const [zoomLevel, setZoomLevel] = useState(100); // Zoom level as a percentage
 
-  console.log('selectedDocument', selectedDocument);
+  console.log("selectedDocument", selectedDocument);
 
   const handleZoomIn = () => {
     setZoomLevel(zoomLevel < 300 ? zoomLevel + 10 : zoomLevel);
@@ -34,7 +39,7 @@ const PreviewPanel = ({ images }: { images: string[] }) => {
   };
 
   return (
-    <div className="flex h-[48.125rem] w-[38.75rem] flex-col items-stretch rounded-tl-lg bg-[#333639] flex-1">
+    <div className="flex h-[48.125rem] w-[38.75rem] flex-1 flex-col items-stretch rounded-tl-lg bg-[#333639]">
       {/* Toolbar */}
       <div className="flex h-[3.75rem] items-center justify-between border-b px-[1.875rem] text-[0.8125rem] font-semibold leading-[1.125rem]">
         <div className="flex items-center gap-10">
@@ -42,7 +47,9 @@ const PreviewPanel = ({ images }: { images: string[] }) => {
             <Input
               className="m-0 h-[1.875rem] w-[1.875rem] rounded-none border-none bg-black text-[0.8125rem] font-semibold leading-[1.125rem]"
               value={1}
-              onChange={() => {0}}
+              onChange={() => {
+                0;
+              }}
             />
             <p>/</p>
             <p>3</p>
@@ -59,7 +66,9 @@ const PreviewPanel = ({ images }: { images: string[] }) => {
             <Input
               className="m-0 h-[1.875rem] w-[3.75rem] rounded-none border-none bg-black text-[0.8125rem] font-semibold leading-[1.125rem]"
               value={zoomLevel}
-              onChange={() => {0}}
+              onChange={() => {
+                0;
+              }}
             />
             <Button
               variant="flat"
@@ -92,16 +101,21 @@ const PreviewPanel = ({ images }: { images: string[] }) => {
       {/* Main view */}
       <div className="flex flex-1">
         {/* Page Selector */}
-        <div className="flex flex-col bg-[#2D2D2D] w-[8.125rem] flex-shrink-0 p-5 gap-5">
-            {[1,2,3].map((image, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-center cursor-pointer"
-                onClick={() => handleSelectDocument(index)}
-              >
-                <Image src="/ebl-pdf-preview.jpg" width={123} height={170} alt="preview" />
-              </div>
-            ))}
+        <div className="flex w-[8.125rem] flex-shrink-0 flex-col gap-5 bg-[#2D2D2D] p-5">
+          {images.map(({imageUrl}, index) => (
+            <div
+              key={index}
+              className="flex cursor-pointer items-center justify-center"
+              onClick={() => handleSelectDocument(index)}
+            >
+              <Image
+                src={imageUrl} // "/ebl-pdf-preview.jpg"
+                width={123}
+                height={170}
+                alt="preview"
+              />
+            </div>
+          ))}
         </div>
         {/* Document preview */}
         <div className="flex-1 bg-[#333639]"></div>

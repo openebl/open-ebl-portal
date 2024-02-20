@@ -25,7 +25,6 @@ export const pdf2Image = async ({filename, onPage, onComplete}: {
       const res = await poppler.pdfToCairo(filename, undefined, options);
       const buffer = Buffer.from(res, "binary");
       const img = sharp(buffer);
-
       const pageImgBuffer = await img.webp().toBuffer();
       const pageThumbnailBuffer = await img
         .resize(180, 250, { fit: "inside" })

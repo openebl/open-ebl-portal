@@ -3,6 +3,7 @@ import { test } from 'vitest';
 
 import { spinUpTestPrisma } from '@/test/integration/helpers/test-db';
 
+export type TestDbType = ReturnType<typeof createDb>;
 export interface DBFixtures {
   db: ReturnType<typeof createDb>
 }
