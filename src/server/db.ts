@@ -42,7 +42,14 @@ const createDefaultDb = () => {
 }
 
 const createCustomDb = (opts: { datasourceUrl?: string, log?: (Prisma.LogLevel | Prisma.LogDefinition)[] }) => {
-  return new PrismaClient(opts);
+  const db = new PrismaClient({...opts, log: [{
+    emit: "event",
+    level: "query",
+  }]});
+  db.$on("query", (e) => {
+    getLogger().debug(`Query [${e.duration}ms]: ${e.query}; ${e.params}`);
+  });
+  return db;
 }
 
 export const createDb = (opts?: { datasourceUrl?: string, log?: (Prisma.LogLevel | Prisma.LogDefinition)[] }) => {

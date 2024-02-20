@@ -113,6 +113,7 @@ model DocImage {
   id         BigInt   @id @default(autoincrement())
   docFileId  BigInt
   page       Int
+  thumbnail  Boolean  @default(false)
   storagekey String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())

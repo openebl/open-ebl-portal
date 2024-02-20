@@ -20,10 +20,6 @@ export async function spinUpTestPrisma<R>(
   }
 }
 
-export async function cloneSchema2(source: string, target: string) {
-  await db.$executeRawUnsafe(`SELECT clone_schema('${source}', '${target}')`);
-}
-
 export async function cloneSchema(source: string, target: string) {
   await db.$executeRawUnsafe(`CREATE SCHEMA "${target}";`);
 

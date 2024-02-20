@@ -1,8 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
 import crypto from "crypto";
-import { mkdtemp } from "fs";
-import os from "os";
-import path from "path";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -27,15 +24,3 @@ export function randomId(len = 20): string {
     return Array.from(arr, (dec) => dec.toString(16).padStart(2, "0")).join("");
   }
 }
-
-export const tempFolder: () => Promise<string> = () => {
-  return new Promise<string>((resolve, reject) => {
-    mkdtemp(path.join(`${os.tmpdir()}${path.sep}`), (err, directory) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(directory);
-      }
-    });
-  });
-};

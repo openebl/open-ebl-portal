@@ -1,12 +1,18 @@
 import crypto from "crypto";
-import { Chunk, Effect, Option, Stream, type StreamEmit } from "effect";
+import {
+  Chunk,
+  Console,
+  Effect,
+  Option,
+  Stream,
+  type StreamEmit,
+} from "effect";
 import { writeFile } from "fs/promises";
 import { type Session } from "next-auth";
 import { type NextRequest } from "next/server";
 import path from "path";
 
 import { pdf2Image } from "@/lib/pdf2image";
-import { tempFolder } from "@/lib/utils";
 import { internalServerError } from "@/server/server-errors";
 import {
   DatabaseService,
@@ -18,6 +24,8 @@ import { DocAiTaskStatus } from "@prisma/client";
 import { asyncFnToEffect } from "./helper";
 import { bodyToBuffer } from "./req";
 import { validateSession } from "./session";
+import { tempFolder } from "@/lib/server-utils";
+import { getLogger } from "@/lib/logger";
 
 type ImagePairType = { image: Buffer; thumbnail: Buffer; page: number };
 type KeyPairType = { imageKey: string; thumbnailKey: string; page: number };
@@ -40,15 +48,15 @@ const pdfFileToImageStream = (filename: string) =>
       filename,
       onPage(image, thumbnail, page) {
         emit(Effect.succeed(Chunk.of({ image, thumbnail, page }))).catch(
-          (err) => console.error('pdf2Image error', err),
+          (err) => console.error("pdf2Image error", err),
         );
       },
       onComplete() {
-        emit(Effect.fail(Option.none())).catch(
-          (err) => console.error('pdf2Image onComplete error', err),
+        emit(Effect.fail(Option.none())).catch((err) =>
+          console.error("pdf2Image onComplete error", err),
         );
       },
-    }).catch((err) => console.error('pdfFileToImageStream error', err));
+    }).catch((err) => console.error("pdfFileToImageStream error", err));
   });
 
 const generateImageKeys = () =>
@@ -75,6 +83,9 @@ const storeImageAndThumbnail = (imagePair: ImagePairType) =>
             contentType: "image/webp",
           }),
         ),
+        Effect.tap(({ imageKey, thumbnailKey }) =>
+          Console.log(`saved to storage: ${imageKey}, ${thumbnailKey}`),
+        ),
         Effect.map((keyPair) => ({ ...keyPair, page: imagePair.page })),
       ),
     ),
@@ -85,23 +96,27 @@ const insertImageRecords = (docFileId: bigint, keyPair: KeyPairType) =>
     Effect.flatMap((db) => db.transaction()),
     Effect.flatMap((tx) =>
       Effect.tryPromise({
-        try: () =>
-          Promise.all([
+        try: async () => {
+          const imgs = await Promise.all([
             tx.docImage.create({
               data: {
                 docFileId,
-                page: 1,
+                page: keyPair.page,
                 storagekey: keyPair.imageKey,
               },
             }),
             tx.docImage.create({
               data: {
                 docFileId,
-                page: 1,
+                page: keyPair.page,
+                thumbnail: true,
                 storagekey: keyPair.thumbnailKey,
               },
             }),
-          ]),
+          ]);
+          getLogger().debug(`Page images inserted: ${imgs[0].id}, ${imgs[1].id}`);
+          return true;
+        },
         catch: (error) => internalServerError(error),
       }),
     ),
@@ -114,16 +129,9 @@ const savePdfImagesToStorageAndDb = (docFileId: bigint, content: Buffer) =>
         pdfFileToImageStream(filename).pipe(
           Stream.mapEffect((imagePair) => storeImageAndThumbnail(imagePair)),
           Stream.mapEffect((keyPair) => insertImageRecords(docFileId, keyPair)),
-          // Stream.tap((n) =>
-          //   Console.log(
-          //     `saved to storage: ${n.imageKey}, ${n.thumbnailKey}`,
-          //   ),
-          // ),
-          // Stream.mapEffect((imagePair) => saveImageToDatabase(imagePair, tx)),
         ),
       ),
     ),
-    // Effect.flatMap((filename) => Effect.succeed(1)),
   );
 
 const insertFileDoc = ({

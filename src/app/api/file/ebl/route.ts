@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const runnable = pipe(
     processFileDocUploadReq(req, session),
 
-    Effect.map((result) => new NextResponse(result)),
+    Effect.map((result) => new NextResponse(result.toString())),
     Effect.catchAll((error) => convertErrorToResponse(error)),
 
     Effect.provideService(DatabaseService, liveDatabaseService(db)),

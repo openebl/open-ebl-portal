@@ -4,7 +4,7 @@ import { type NextRequest } from "next/server";
 import { env } from "@/env";
 import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
-import { liveS3StorageService } from "@/server/services/storage-service";
+import { s3StorageService } from "@/server/services/storage-service";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -13,7 +13,7 @@ import { liveS3StorageService } from "@/server/services/storage-service";
 const createContext = async (req: NextRequest) => {
   return createTRPCContext({
     headers: req.headers,
-    storageService: liveS3StorageService,
+    storageService: s3StorageService,
   });
 };
 
