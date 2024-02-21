@@ -82,19 +82,19 @@ describe.concurrent("docImage API", () => {
           const url = await caller.docImage.getUrls({ docFileId: docFile.id });
           expect(url).toEqual([
             {
-              imageUrl: "https://storage.com/mockthu-1",
               page: 1,
-              thumbnailUrl: "https://storage.com/mockimg-1",
+              imageUrl: "https://storage.com/mockimg-1",
+              thumbnailUrl: "https://storage.com/mockthu-1",
             },
             {
-              imageUrl: "https://storage.com/mockthu-2",
+              imageUrl: "https://storage.com/mockimg-2",
               page: 2,
-              thumbnailUrl: "https://storage.com/mockimg-2",
+              thumbnailUrl: "https://storage.com/mockthu-2",
             },
             {
-              imageUrl: "https://storage.com/mockthu-3",
+              imageUrl: "https://storage.com/mockimg-3",
               page: 3,
-              thumbnailUrl: "https://storage.com/mockimg-3",
+              thumbnailUrl: "https://storage.com/mockthu-3",
             },
           ]);
         },

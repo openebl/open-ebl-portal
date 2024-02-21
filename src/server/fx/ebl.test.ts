@@ -17,11 +17,11 @@ describe.concurrent("EBl Fx", () => {
   describe("processFileDocUploadReq", () => {
     const session: Session = {
       user: {
-        id: 123,
+        id: 123n,
         name: "John Doe",
         email: "jogn.doe@example.com",
       },
-      platformId: 168,
+      platformId: 168n,
       expires: "1",
     };
     const pdfFile = readFileSync('./src/test/integration/fixtures/ebl.pdf');

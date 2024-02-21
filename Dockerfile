@@ -24,8 +24,8 @@ ENV S3_BUCKET=example-bucket
 ADD . /app
 RUN npm run postinstall
 RUN npm run build
-# RUN npx tsup src/daemons/doc-ai-daemon.ts
-RUN npx tsup img.js
+RUN npx tsup src/daemons/doc-ai-daemon.ts
+# RUN npx tsup img.js
 
 # Build the production image
 FROM node:18-slim

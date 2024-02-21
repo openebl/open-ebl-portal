@@ -1,3 +1,5 @@
+"use server";
+
 import ErrorPage from "@/app/_components/ebl-detail/error-page";
 import MainSection from "@/app/_components/ebl-detail/main-section";
 import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
@@ -9,7 +11,7 @@ import { Either } from "effect";
 import Link from "next/link";
 
 const Page = async ({ params }: { params: { uuid: string } }) => {
-  const ebl = await tryCatchAsync(async () => await api.ebl.find.query(params.uuid));
+  const ebl = await tryCatchAsync(async () => await api.ebl.getWithImages.query(params.uuid));
   const block = Either.match(ebl, {
     onLeft: (err) =>
       err instanceof TRPCClientError && err.message === "NOT_FOUND" ? (
@@ -17,7 +19,7 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
       ) : (
         <ErrorPage message={`Something went wrong: ${err.message}`} />
       ),
-    onRight: (ebl: EBlDraftType) => <MainSection ebl={ebl} />,
+    onRight: (ebl) => <MainSection ebl={ebl.ebl as EBlDraftType} />,
   });
 
   return (

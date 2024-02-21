@@ -1,9 +1,14 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { getDocImagesByDocFileId } from "@/server/fx/doc-image";
+import { DatabaseService, liveDatabaseService } from "@/server/services/database-service";
+import { StorageService } from "@/server/services/storage-service";
 import {
   EBlDraftListSchema,
   EBlDraftSchema,
   eBlIdGenerator,
 } from "@/types/ebl";
+import { type EBl } from "@prisma/client";
+import { Effect } from "effect";
 import { z } from "zod";
 
 export const eBlRouter = createTRPCRouter({
@@ -18,6 +23,30 @@ export const eBlRouter = createTRPCRouter({
         throw new Error(`Invalid eBl: ${err}`);
       });
     }),
+
+  getWithImages: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const runnable = DatabaseService.pipe(
+      Effect.flatMap((db) => db.transaction()),
+      Effect.flatMap((tx) =>
+        Effect.promise(() => {
+          return tx.eBl.findUnique({ where: { id: input } });
+        })
+      ),
+
+      Effect.flatMap((ebl: EBl | null) => (ebl ? Effect.succeed(ebl) : Effect.fail(new Error("not found")))),
+
+      Effect.flatMap((ebl) => {
+        return getDocImagesByDocFileId(ebl.docFileId!).pipe(
+          Effect.map((images) => ({ ebl, images }))
+        )
+      }),
+
+      Effect.provideService(DatabaseService, liveDatabaseService(ctx.db)),
+      Effect.provideService(StorageService, ctx.storageService),
+    );
+
+    return Effect.runPromise(Effect.scoped(runnable));
+  }),
 
   find: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const ebl = await ctx.db.eBl.findUnique({ where: { id: input } });

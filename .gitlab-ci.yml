@@ -77,7 +77,7 @@ unittest:
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: root
   script:
-    - apt-get update && apt-get install -y libssl-dev
+    - apt-get update && apt-get install -y libssl-dev poppler-data poppler-utils
     - npm run migrate
     - npm run test:unit
   rules:

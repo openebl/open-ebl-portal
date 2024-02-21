@@ -122,13 +122,12 @@ const insertImageRecords = (docFileId: bigint, keyPair: KeyPairType) =>
     ),
   );
 
-const savePdfImagesToStorageAndDb = (docFileId: bigint, content: Buffer) =>
+const savePdfImagesToStorage = (content: Buffer) =>
   saveContentToTempFile(content).pipe(
     Effect.flatMap((filename) =>
       Stream.runCollect(
         pdfFileToImageStream(filename).pipe(
           Stream.mapEffect((imagePair) => storeImageAndThumbnail(imagePair)),
-          Stream.mapEffect((keyPair) => insertImageRecords(docFileId, keyPair)),
         ),
       ),
     ),
@@ -182,45 +181,52 @@ export const processFileDocUploadReq = (
   req: NextRequest,
   maybeSession: Session | null,
 ) =>
-  Effect.scoped(
-    Effect.gen(function* (_) {
-      const storagekey = `/ebl/${crypto.randomUUID()}`;
-      const session = yield* _(validateSession(maybeSession));
+  Effect.gen(function* (_) {
+    const storagekey = `/ebl/${crypto.randomUUID()}`;
+    const session = yield* _(validateSession(maybeSession));
 
-      const database = yield* _(DatabaseService);
-      const storage = yield* _(StorageService);
-      const tx = yield* _(database.transaction());
+    const database = yield* _(DatabaseService);
+    const storage = yield* _(StorageService);
 
-      // read pdf content from request body
-      const pdfBuffer = yield* _(bodyToBuffer(req.body));
+    // read pdf content from request body
+    const pdfBuffer = yield* _(bodyToBuffer(req.body));
 
-      // insert fileDoc record
-      const fileDoc = yield* _(
-        insertFileDoc({
-          tx,
-          session,
-          storagekey,
-          filename: req.headers.get("X-Filename"),
-        }),
-      );
-      // insert ebl record
-      yield* _(insertEbl(tx, fileDoc.id));
+    // upload file to s3
+    yield* _(
+      storage.putObject({
+        content: pdfBuffer,
+        key: storagekey,
+        contentType: "application/pdf",
+      }),
+    );
 
-      // insert ebl record
-      yield* _(insertDocAiTask(tx, fileDoc.id));
+    // read pdf page images, send to S3, and return keys
+    const keyPairs = yield* _(savePdfImagesToStorage(pdfBuffer));
 
-      // upload file to s3
-      yield* _(
-        storage.putObject({
-          content: pdfBuffer,
-          key: storagekey,
-          contentType: "application/pdf",
-        }),
-      );
+    return yield* _(Effect.scoped(
+      Effect.gen(function* (_) {
+        const tx = yield* _(database.transaction());
 
-      // read pdf page images, send to S3, and store image records to db
-      yield* _(savePdfImagesToStorageAndDb(fileDoc.id, pdfBuffer));
+        // insert fileDoc record
+        const fileDoc = yield* _(
+          insertFileDoc({
+            tx,
+            session,
+            storagekey,
+            filename: req.headers.get("X-Filename"),
+          }),
+        );
 
-      return fileDoc.id;
-    }),
-  );
+        // insert ebl record
+        yield* _(insertEbl(tx, fileDoc.id));
+
+        // insert ebl record
+        yield* _(insertDocAiTask(tx, fileDoc.id));
+
+        // insert page images
+        yield* _(Effect.forEach(Chunk.toReadonlyArray(keyPairs), (keyPair) => insertImageRecords(fileDoc.id, keyPair)));
+
+        return fileDoc.id;
+      })
+    ));
+  });

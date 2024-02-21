@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import DownloadIcon from "@/app/_icons/download-icon";
 import Image from "next/image";
+import Link from "next/link";
 
 export type PreviewImageType = {
   imageUrl: string;
@@ -18,8 +19,7 @@ export type PreviewImageType = {
 const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
   const [selectedDocument, setSelectedDocument] = useState(images[0]);
   const [zoomLevel, setZoomLevel] = useState(100); // Zoom level as a percentage
-
-  console.log("selectedDocument", selectedDocument);
+  const [page, setPage] = useState(1);
 
   const handleZoomIn = () => {
     setZoomLevel(zoomLevel < 300 ? zoomLevel + 10 : zoomLevel);
@@ -31,11 +31,7 @@ const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
 
   const handleSelectDocument = (index: number) => {
     setSelectedDocument(images[index]);
-  };
-
-  // This would be replaced with an actual upload function
-  const handleUpload = () => {
-    console.log("Upload functionality to be implemented");
+    setPage(index + 1);
   };
 
   return (
@@ -46,13 +42,13 @@ const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
           <div className="flex items-center gap-2.5 text-white">
             <Input
               className="m-0 h-[1.875rem] w-[1.875rem] rounded-none border-none bg-black text-[0.8125rem] font-semibold leading-[1.125rem]"
-              value={1}
+              value={page}
               onChange={() => {
                 0;
               }}
             />
             <p>/</p>
-            <p>3</p>
+            <p>{images.length}</p>
           </div>
 
           <div className="flex items-center gap-2 text-white">
@@ -89,9 +85,11 @@ const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
         </div>
 
         <div className="flex items-center gap-7">
-          <Button variant="flat" onClick={handleUpload} className="text-white">
+        <Link href="/ebls/new">
+          <Button variant="flat" className="text-white">
             Upload New B/L
           </Button>
+          </Link>
           <Button variant="flat" className="h-[1.875rem] w-[1.875rem] p-0">
             <DownloadIcon className="text-white" />
           </Button>
@@ -109,7 +107,7 @@ const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
               onClick={() => handleSelectDocument(index)}
             >
               <Image
-                src={imageUrl} // "/ebl-pdf-preview.jpg"
+                src={imageUrl}
                 width={123}
                 height={170}
                 alt="preview"
@@ -118,7 +116,15 @@ const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
           ))}
         </div>
         {/* Document preview */}
-        <div className="flex-1 bg-[#333639]"></div>
+        <div className="flex flex-1 bg-[#333639] justify-center">
+          { selectedDocument && <Image
+            src={selectedDocument.imageUrl}
+            width={500}
+            height={680}
+            alt="preview"
+            priority
+          /> }
+        </div>
       </div>
     </div>
   );

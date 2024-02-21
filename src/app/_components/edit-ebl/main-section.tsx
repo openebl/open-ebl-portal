@@ -10,7 +10,19 @@ import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
 import Link from "next/link";
 
-const MainSection = ({ ebl }: { ebl: EBlDraftType }) => {
+type ImageType = {
+  imageUrl: string;
+  thumbnailUrl: string;
+  page: number;
+};
+
+const MainSection = ({
+  ebl,
+  images,
+}: {
+  ebl: EBlDraftType;
+  images: ImageType[];
+}) => {
   const saveDraft = api.ebl.saveDraft.useMutation({
     onSuccess: () => {
       console.log("Draft saved");
@@ -45,7 +57,7 @@ const MainSection = ({ ebl }: { ebl: EBlDraftType }) => {
 
       <div className="mt-[1.875rem] flex h-[53.5rem] flex-col justify-between rounded-lg border border-solid border-border-light bg-white shadow-lg">
         <div className="flex h-[48.125rem] items-stretch">
-          <PreviewPanel images={[]} />
+          <PreviewPanel images={images} />
           <DetailPanel form={form} />
         </div>
 
