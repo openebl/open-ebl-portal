@@ -4,6 +4,7 @@ import { test } from 'vitest';
 import { spinUpTestPrisma } from '@/test/integration/helpers/test-db';
 
 export type TestDbType = ReturnType<typeof createDb>;
+
 export interface DBFixtures {
   db: ReturnType<typeof createDb>
 }
@@ -11,6 +12,7 @@ export interface DBFixtures {
 export const testWithDb = test.extend<DBFixtures>({
   db: async ({}, use) => {
     await spinUpTestPrisma(async (testPrisma) => {
+      console.log('----------- testPrisma')
       await use(testPrisma)
     })
   },
