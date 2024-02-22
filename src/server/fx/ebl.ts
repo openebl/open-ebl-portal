@@ -91,36 +91,35 @@ const storeImageAndThumbnail = (imagePair: ImagePairType) =>
     ),
   );
 
-const insertImageRecords = (docFileId: bigint, keyPair: KeyPairType) =>
-  DatabaseService.pipe(
-    Effect.flatMap((db) => db.transaction()),
-    Effect.flatMap((tx) =>
-      Effect.tryPromise({
-        try: async () => {
-          const imgs = await Promise.all([
-            tx.docImage.create({
-              data: {
-                docFileId,
-                page: keyPair.page,
-                storagekey: keyPair.imageKey,
-              },
-            }),
-            tx.docImage.create({
-              data: {
-                docFileId,
-                page: keyPair.page,
-                thumbnail: true,
-                storagekey: keyPair.thumbnailKey,
-              },
-            }),
-          ]);
-          getLogger().debug(`Page images inserted: ${imgs[0].id}, ${imgs[1].id}`);
-          return true;
-        },
-        catch: (error) => internalServerError(error),
-      }),
-    ),
-  );
+const insertImageRecords = (
+  tx: FlatTransaction,
+  docFileId: bigint,
+  keyPair: KeyPairType,
+) =>
+  Effect.tryPromise({
+    try: async () => {
+      const imgs = await Promise.all([
+        tx.docImage.create({
+          data: {
+            docFileId,
+            page: keyPair.page,
+            storagekey: keyPair.imageKey,
+          },
+        }),
+        tx.docImage.create({
+          data: {
+            docFileId,
+            page: keyPair.page,
+            thumbnail: true,
+            storagekey: keyPair.thumbnailKey,
+          },
+        }),
+      ]);
+      getLogger().debug(`Page images inserted: ${imgs[0].id}, ${imgs[1].id}`);
+      return true;
+    },
+    catch: (error) => internalServerError(error),
+  });
 
 const savePdfImagesToStorage = (content: Buffer) =>
   saveContentToTempFile(content).pipe(
@@ -162,7 +161,7 @@ const insertEbl = (tx: FlatTransaction, docFileId: bigint) =>
         id: eBlIdGenerator(),
         docFileId,
         blNumber: "",
-        status: 'UPLOADED',
+        status: "UPLOADED",
       },
     }),
   );
@@ -204,30 +203,36 @@ export const processFileDocUploadReq = (
     // read pdf page images, send to S3, and return keys
     const keyPairs = yield* _(savePdfImagesToStorage(pdfBuffer));
 
-    return yield* _(Effect.scoped(
-      Effect.gen(function* (_) {
-        const tx = yield* _(database.transaction());
+    return yield* _(
+      Effect.scoped(
+        Effect.gen(function* (_) {
+          const tx = yield* _(database.transaction());
 
-        // insert fileDoc record
-        const fileDoc = yield* _(
-          insertFileDoc({
-            tx,
-            session,
-            storagekey,
-            filename: req.headers.get("X-Filename"),
-          }),
-        );
+          // insert fileDoc record
+          const fileDoc = yield* _(
+            insertFileDoc({
+              tx,
+              session,
+              storagekey,
+              filename: req.headers.get("X-Filename"),
+            }),
+          );
 
-        // insert ebl record
-        yield* _(insertEbl(tx, fileDoc.id));
+          // insert ebl record
+          yield* _(insertEbl(tx, fileDoc.id));
 
-        // insert ebl record
-        yield* _(insertDocAiTask(tx, fileDoc.id));
+          // insert ebl record
+          yield* _(insertDocAiTask(tx, fileDoc.id));
 
-        // insert page images
-        yield* _(Effect.forEach(Chunk.toReadonlyArray(keyPairs), (keyPair) => insertImageRecords(fileDoc.id, keyPair)));
+          // insert page images
+          yield* _(
+            Effect.forEach(Chunk.toReadonlyArray(keyPairs), (keyPair) =>
+              insertImageRecords(tx, fileDoc.id, keyPair),
+            ),
+          );
 
-        return fileDoc.id;
-      })
-    ));
+          return fileDoc.id;
+        }),
+      ),
+    );
   });

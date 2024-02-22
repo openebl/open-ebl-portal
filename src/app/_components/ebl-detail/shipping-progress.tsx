@@ -7,6 +7,9 @@ import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import TransferPanel from "./transfer-panel";
+import { type EBlRowType } from "@/types/ebl";
+import { format } from "date-fns";
+import { fromPairs } from "remeda";
 
 type TrackerPosition = "first" | "middle" | "last";
 
@@ -58,31 +61,33 @@ const ProgressTracker = ({
   );
 };
 
-const ProgressTrackerBar = () => {
+const ProgressTrackerBar = ({ ebl }: { ebl: EBlRowType }) => {
+  const active = 'bg-[#004DE3]'
+  const inactive = 'bg-[#0D447A]'
   return (
     <div className="flex w-full max-w-full justify-evenly">
       <ProgressTracker
         title="Issuing Agent"
-        name="ABC Freight Forwarder Forwarder Forwarder Forwarder Forwarder"
-        className="bg-[#004DE3]"
+        name={ebl.issuerName ?? '--'}
+        className={ebl.ownerPlatform === ebl.issuer ? active : inactive}
         position="first"
       />
       <ProgressTracker
         title="Shipper"
-        name="Foxconn Inc. Forwarder Forwarder Forwarder"
-        className="bg-[#0D447A]"
+        name={ebl.shipperName ?? '--'}
+        className={ebl.ownerPlatform === ebl.shipper ? active : inactive}
         position="middle"
       />
       <ProgressTracker
         title="Consignee"
-        name="Samsung"
-        className="bg-[#0D447A]"
+        name={ebl.consigneeName ?? '--'}
+        className={ebl.ownerPlatform === ebl.consignee ? active : inactive}
         position="middle"
       />
       <ProgressTracker
         title="Release Agent"
-        name="DEF Freight Forwarder"
-        className="bg-[#0D447A]"
+        name={ebl.releaseAgentName ?? '--'}
+        className={ebl.ownerPlatform === ebl.releaseAgent ? active : inactive}
         position="last"
       />
     </div>
@@ -106,25 +111,35 @@ const ProgressStatusItem = ({
   </div>
 );
 
-const ProgressStatus = () => {
+const ProgressStatus = ({ ebl }: { ebl: EBlRowType }) => {
+  const nameMapping = fromPairs([
+    [ebl.issuer, ebl.issuerName],
+    [ebl.shipper, ebl.shipperName],
+    [ebl.consignee, ebl.consigneeName],
+    [ebl.releaseAgent, ebl.releaseAgentName],
+  ].filter(([id]) => !!id) as [string, string][]);
+
+  const currentOwnerName = ebl.ownerPlatform ? nameMapping[ebl.ownerPlatform] : '-';
+  const nextOwnerName = ebl.nextPlatform ? nameMapping[ebl.nextPlatform] : '-';
   return (
     <div className="flex h-[3.875rem] w-full items-start justify-start gap-[3.75rem] px-[1.875rem]">
       <ProgressStatusItem title="Last Update">
-        Jan 14, 2024 at 09:23 AM
+        {ebl.eta && format(ebl.eta, "MMM dd, yyyy 'at' hh:mm a")}
       </ProgressStatusItem>
 
       <ProgressStatusItem title="Current Owner">
-        ABC Freight Forwarder{" "}
-        <span className="text-xs leading-[1.125rem] text-disabled">(You)</span>
+        {currentOwnerName}
+        {" "}
+        { 1 && <span className="text-xs leading-[1.125rem] text-disabled">(You)</span> }
       </ProgressStatusItem>
 
-      <ProgressStatusItem title="Next Owner">Foxconn Inc.</ProgressStatusItem>
+      <ProgressStatusItem title="Next Owner">{nextOwnerName}</ProgressStatusItem>
     </div>
   );
 };
 
 
-const ShippingProgress = () => {
+const ShippingProgress = ({ ebl }: { ebl: EBlRowType }) => {
   return (
     <TooltipProvider>
     <section className="border-bolder-light flex w-full flex-col items-start gap-[1.875rem] rounded-lg border border-solid bg-white py-[1.875rem] shadow-lg">
@@ -132,15 +147,15 @@ const ShippingProgress = () => {
         Progress
       </header>
 
-      <ProgressTrackerBar />
+      <ProgressTrackerBar ebl={ebl} />
 
-      <ProgressStatus />
+      <ProgressStatus ebl={ebl} />
 
       <div className="flex w-full px-[1.875rem]">
         <Textarea placeholder="Leave notes" className="h-[7.5rem]" />
       </div>
 
-      <TransferPanel />
+      <TransferPanel ebl={ebl}/>
     </section>
     </TooltipProvider>
   );

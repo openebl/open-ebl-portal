@@ -103,6 +103,7 @@ model EBl {
   updatedAt            DateTime  @default(now())
   docFileId            BigInt?
   consigneePlatform    Platform? @relation("consigneePlatform", fields: [consigneeId], references: [id])
+  docFile              DocFile?  @relation(fields: [docFileId], references: [id])
   issuerPlatform       Platform? @relation("issuerPlatform", fields: [issuerId], references: [id])
   releaseAgentPlatform Platform? @relation("releaseAgentPlatform", fields: [releaseAgentId], references: [id])
   shipperPlatform      Platform? @relation("shipperPlatform", fields: [shipperId], references: [id])
@@ -111,14 +112,16 @@ model EBl {
 }
 
 model DocFile {
-  id         BigInt   @id @default(autoincrement())
+  id         BigInt     @id @default(autoincrement())
   platformId BigInt
   uploaderId BigInt
   filename   String?
   storagekey String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
-  uploader   User     @relation(fields: [uploaderId], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now())
+  uploader   User       @relation(fields: [uploaderId], references: [id])
+  docImage   DocImage[]
+  eBl        EBl[]
 }
 
 model DocImage {
@@ -129,6 +132,7 @@ model DocImage {
   storagekey String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
+  docFile    DocFile  @relation(fields: [docFileId], references: [id])
 }
 
 model DocAiTask {
@@ -147,6 +151,7 @@ model EBlJourney {
   id               BigInt           @id @default(autoincrement())
   eBlId            String           @db.VarChar(48)
   action           EBlJourneyAction
+  note             String?
   lastStatus       EBlStatus
   targetPlatformId BigInt?
   sourcePlatformId BigInt?

@@ -22,7 +22,7 @@ const rawDocInfos = {
     },
   },
   "DEMO0002.pdf": {
-    blNumber: "DEMO0001",
+    blNumber: "DEMO0002",
     blType: "hbl-non-negotiable",
     pol: "CNSHA",
     pod: "USLAX",

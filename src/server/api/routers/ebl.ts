@@ -9,7 +9,7 @@ import {
   liveDatabaseService,
 } from "@/server/services/database-service";
 import { StorageService } from "@/server/services/storage-service";
-import { EBlRowSchemaList, EBlDraftSchema, EBlSchema } from "@/types/ebl";
+import { EBlRowSchemaList, EBlDraftSchema, EBlSchema, EBlRowSchema } from "@/types/ebl";
 import { EBlStatus, type EBl } from "@prisma/client";
 
 export const eBlRouter = createTRPCRouter({
@@ -35,7 +35,7 @@ export const eBlRouter = createTRPCRouter({
         ...input.status,
         ctx.session.platformId,
       );
-      console.log('------ebls', ebls)
+
       const result = ebls.map((ebl) => ({
         ...ebl,
         ownerPlatform: ebl.ownerPlatformId?.toString(),
@@ -56,20 +56,32 @@ export const eBlRouter = createTRPCRouter({
         Effect.flatMap((db) => db.transaction()),
         Effect.flatMap((tx) =>
           Effect.promise(() => {
-            return tx.eBl.findUnique({ where: { id: input } });
+            return tx.eBl.findUnique({ where: { id: input },include: {
+              docFile: true,
+              issuerPlatform: true,
+              shipperPlatform: true,
+              consigneePlatform: true,
+              releaseAgentPlatform: true,
+            }, });
           }),
         ),
 
-        Effect.flatMap((ebl: EBl | null) =>
+        Effect.flatMap((ebl) =>
           ebl
             ? Effect.succeed({
                 ...ebl,
+                docFilename: ebl?.docFile?.filename,
                 ownerPlatform: ebl.ownerPlatformId?.toString(),
                 nextPlatform: ebl.nextPlatformId?.toString(),
                 issuer: ebl.issuerId?.toString(),
                 shipper: ebl.shipperId?.toString(),
                 consignee: ebl.consigneeId?.toString(),
                 releaseAgent: ebl.releaseAgentId?.toString(),
+                issuerName: ebl.issuerPlatform?.name,
+                shipperName: ebl.shipperPlatform?.name,
+                consigneeName: ebl.consigneePlatform?.name,
+                releaseAgentName: ebl.releaseAgentPlatform?.name,
+                allowActions: [],
               })
             : Effect.fail(new Error("not found")),
         ),
@@ -84,7 +96,11 @@ export const eBlRouter = createTRPCRouter({
         Effect.provideService(StorageService, ctx.storageService),
       );
 
-      return Effect.runPromise(Effect.scoped(runnable));
+      const res = await Effect.runPromise(Effect.scoped(runnable));
+      return {
+        ebl: EBlRowSchema.parse(res.ebl),
+        images: res.images,
+      }
     }),
 
   find: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {

@@ -1,49 +1,60 @@
-import { type EBlRowType } from "@/types/ebl";
+import { format } from "date-fns";
+
+import type { EBlJourneyRowListType, EBlRowType } from "@/types/ebl";
 import FileDetails from "./file-details";
 import HistoryList from "./history-list";
 import ShippingProgress from "./shipping-progress";
 
-const MainSection = ({ ebl }: { ebl: EBlRowType }) => {
-  const history = [
-    {
-      id: ebl.id,
-      actor: "Issuing Agent",
-      actedBy: "John Wu",
-      actedAt: "Jan 14, 2024 at 09:21 AM",
-      action: "Uploaded eB/L to the system.",
-      target: "",
-      targetedAt: "",
-      notes: "",
-      notesAltered: false,
-    },
-    {
-      actor: "Issuing Agent",
-      actedBy: "John Wu",
-      actedAt: "Jan 14, 2024 at 10:31 AM",
-      action: "Transfer of document.",
-      target: "Shipper",
-      targetedAt: "Jan 14, 2024 at 10:32 AM",
-      notes: "The booking No. is BK5093828 for your reference.",
-      notesAltered: false,
-    },
-    {
-      actor: "Shipper",
-      actedBy: "Kevin Houston",
-      actedAt: "Jan 14, 2024 at 03:01 PM",
-      action: "Request of amendment.",
-      target: "Issuing Agent",
-      targetedAt: "Jan 14, 2024 at 03:02 PM",
-      notes:
-        "The telephone of consignee is (+1)483 4728893, please correct it. Thanks.",
-      notesAltered: true,
-    }
+const actionMapping = {
+  DRAFT: "Uploaded eB/L to the system.",
+  ISSUE: "Transfer of document",
+  GRANT_SHIPPER: null,
+  GRANT_CONSIGNEE: null,
+  GRANT_RELEASE_AGENT: null,
+  TRANSFER: "Transfer of document",
+  AMEND: "Reqeuest of amendment",
+  SURRENDER: "Reqeuest of surrender",
+  COMPLETE: "Complete",
+  PRINT: "Print eB/L",
+};
+
+const MainSection = ({
+  ebl,
+  journey,
+}: {
+  ebl: EBlRowType;
+  journey: EBlJourneyRowListType;
+}) => {
+  const targetMapping = [
+    [ebl.issuer, "Issuing Agent"],
+    [ebl.shipper, "Shipper"],
+    [ebl.consignee, "Consignee"],
+    [ebl.releaseAgent, "Release Agent"],
   ]
+    .filter(([id]) => id)
+    .reduce(
+      (acc, [id, name]) => ({ ...acc, [id!]: name! }),
+      {} as Record<string, string>,
+    );
+
+  const history = journey
+    .filter((j) => actionMapping[j.action])
+    .map((j) => ({
+      actor: targetMapping[j.sourcePlatform ?? ""] ?? "",
+      actedBy: j.user?.name ?? "",
+      actedAt: format(j.createdAt, "MMM dd, yyyy 'at' hh:mm a"),
+      action: actionMapping[j.action] ?? "",
+      target: (j.targetPlatform && targetMapping[j.targetPlatform]) ?? "",
+      targetedAt: format(j.createdAt, "MMM dd, yyyy 'at' hh:mm a"),
+      notes: j.note ?? "",
+      notesAltered: j.action === "AMEND",
+    }));
 
   return (
-    <div className="flex flex-col gap-y-5 mt-[1.875rem]">
-      <FileDetails />
-      <ShippingProgress />
-      <HistoryList history={history}/>
+    <div className="mt-[1.875rem] flex flex-col gap-y-5">
+      <FileDetails ebl={ebl} />
+      <ShippingProgress ebl={ebl} />
+      <HistoryList history={history} />
     </div>
   );
 };

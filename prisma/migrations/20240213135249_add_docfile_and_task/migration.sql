@@ -54,3 +54,9 @@ CREATE INDEX "idx_doc_ai_task_status" ON "DocAiTask"("status");
 
 -- AddForeignKey
 ALTER TABLE "DocFile" ADD CONSTRAINT "DocFile_uploaderId_fkey" FOREIGN KEY ("uploaderId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EBl" ADD CONSTRAINT "EBl_docFileId_fkey" FOREIGN KEY ("docFileId") REFERENCES "DocFile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DocImage" ADD CONSTRAINT "DocImage_docFileId_fkey" FOREIGN KEY ("docFileId") REFERENCES "DocFile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

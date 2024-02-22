@@ -6,6 +6,9 @@ import CalendarIcon from "@/app/_icons/calendar-icon";
 import LocationIcon from "@/app/_icons/location-icon";
 import PdfIcon from "@/app/_icons/pdf-icon";
 import { Button } from "@/components/ui/button";
+import { type EBlRowType } from "@/types/ebl";
+import { portName } from "@/lib/ports";
+import { format } from "date-fns";
 
 const FileDetailsLine = ({
   title,
@@ -22,12 +25,12 @@ const FileDetailsLine = ({
   </div>
 );
 
-const FileDetails = () => {
+const FileDetails = ({ ebl }: { ebl: EBlRowType }) => {
   return (
     <section className="flex flex-col items-start rounded-lg border border-solid border-[#DFE4E9] bg-white p-[1.875rem] shadow-lg">
       <div className="flex items-center gap-2.5">
         <div className="grow whitespace-nowrap text-[1.375rem] font-semibold leading-8 text-main">
-          3904-3455
+          {ebl.blNumber}
         </div>
         <HblNonNegotiableBadge />
       </div>
@@ -44,7 +47,7 @@ const FileDetails = () => {
           <div className="ml-[3.75rem] flex flex-col items-start text-[.8125rem] leading-[1.125rem]">
             <div className="flex flex-col items-start justify-start gap-[.875rem]">
               <FileDetailsLine title="File Name">
-                <div className="font-semibold text-main">BL3904-3455.pdf</div>
+                <div className="font-semibold text-main">{ebl.docFilename}</div>
               </FileDetailsLine>
 
               <FileDetailsLine title="File Type">
@@ -55,14 +58,14 @@ const FileDetails = () => {
               <FileDetailsLine title="Port of Loading">
                 <LocationIcon />
                 <div className="ml-2.5 font-semibold text-main">
-                  Panama City, Panama
+                  {portName(ebl.pol)}
                 </div>
               </FileDetailsLine>
 
               <FileDetailsLine title="Port of Discharge">
                 <LocationIcon />
                 <div className="ml-2.5 font-semibold text-main">
-                  London, United Kingdom
+                {portName(ebl.pod)}
                 </div>
               </FileDetailsLine>
 
@@ -71,7 +74,7 @@ const FileDetails = () => {
                   <CalendarIcon />
                 </div>
                 <div className="ml-2.5 font-semibold text-main">
-                  Apr 16, 2009
+                {ebl.eta && format(ebl.eta, "MMM dd, yyyy")}
                 </div>
               </FileDetailsLine>
             </div>

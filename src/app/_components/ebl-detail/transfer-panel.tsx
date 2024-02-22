@@ -3,10 +3,11 @@
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
+import { type EBlRowType } from "@/types/ebl";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-const TransferPanel = () => {
+const TransferPanel = ({ ebl }: { ebl: EBlRowType }) => {
   "use client";
   const router = useRouter();
   const saveDraft = api.ebl.saveDraft.useMutation({

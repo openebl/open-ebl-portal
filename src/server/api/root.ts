@@ -5,6 +5,7 @@ import { portRouter } from "./routers/port";
 import { consigneeRouter } from "./routers/consignee";
 import { docAiTaskRouter } from "./routers/doc-ai-task";
 import { docImageRouter } from "./routers/doc-image";
+import { eBlJourneyRouter } from "./routers/ebl-journey";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   shipper: shipperRouter,
   consignee: consigneeRouter,
   ebl: eBlRouter,
+  eBlJourney: eBlJourneyRouter,
   docAiTask: docAiTaskRouter,
   docImage: docImageRouter,
 });

@@ -3,24 +3,29 @@
 import ErrorPage from "@/app/_components/ebl-detail/error-page";
 import MainSection from "@/app/_components/ebl-detail/main-section";
 import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
+import { getLogger } from "@/lib/logger";
 import { tryCatchAsync } from "@/lib/tryblock";
 import { api } from "@/trpc/server";
-import { type EBlDraftType } from "@/types/ebl";
 import { TRPCClientError } from "@trpc/client";
 import { Either } from "effect";
 import Link from "next/link";
 
 const Page = async ({ params }: { params: { uuid: string } }) => {
-  const ebl = await tryCatchAsync(async () => await api.ebl.getWithImages.query(params.uuid));
-  const block = Either.match(ebl, {
-    onLeft: (err) =>
-      err instanceof TRPCClientError && err.message === "NOT_FOUND" ? (
-        <ErrorPage message="eB/L Not Found" />
-      ) : (
-        <ErrorPage message={`Something went wrong: ${err.message}`} />
-      ),
-    onRight: (ebl) => <MainSection ebl={ebl.ebl as EBlDraftType} />,
-  });
+  let block: JSX.Element | null = null;
+  try {
+    const ebl = await api.ebl.getWithImages.query(params.uuid);
+    const journey = await api.eBlJourney.get.query(params.uuid);
+    block = <MainSection ebl={ebl.ebl} journey={journey} />;
+
+  } catch(err) {
+    getLogger().error(err);
+
+    block = err instanceof TRPCClientError && err.message === "NOT_FOUND" ? (
+      <ErrorPage message="eB/L Not Found" />
+    ) : (
+      <ErrorPage message={`Something went wrong`} />
+    )
+  }
 
   return (
     <div className="px-12 py-10 font-content">
