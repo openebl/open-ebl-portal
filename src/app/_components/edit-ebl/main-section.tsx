@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type ImageType = {
   imageUrl: string;
@@ -27,12 +28,13 @@ const MainSection = ({
   const router = useRouter();
   const saveDraft = api.ebl.saveDraft.useMutation({
     onSuccess: () => {
-      console.log("Draft saved");
       router.push("/ebls", {scroll: true});
       router.refresh();
+      toast.success("Draft saved");
     },
     onError: (error) => {
       console.error(error);
+      toast.error("Failed to save draft: " + error.message);
     },
   });
 
