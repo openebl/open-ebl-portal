@@ -2,7 +2,7 @@ import { getLogger } from "@/lib/logger";
 import { DocAiTaskStatus, PrismaClient } from "@prisma/client";
 
 const logger = getLogger();
-const db = new PrismaClient()
+const db = new PrismaClient();
 
 const rawDocInfos = {
   "DEMO0001.pdf": {
@@ -10,32 +10,50 @@ const rawDocInfos = {
     blType: "hbl-non-negotiable",
     pol: "CNYTN",
     pod: "USLAX",
-    eta: Date.parse('2024-02-29T14:30:00'),
-    shipper: '101',
-    consignee: '102',
-    releaseAgent: '103',
+    eta: new Date(Date.parse("2024-02-29T14:30:00")),
+    shipperPlatform: {
+      connect: { id: 101n },
+    },
+    consigneePlatform: {
+      connect: { id: 102n },
+    },
+    releaseAgentPlatform: {
+      connect: { id: 103n },
+    },
   },
   "DEMO0002.pdf": {
     blNumber: "DEMO0001",
     blType: "hbl-non-negotiable",
     pol: "CNSHA",
     pod: "USLAX",
-    eta: Date.parse('2024-03-22T14:30:00'),
-    shipper: '101',
-    consignee: '102',
-    releaseAgent: '103',
+    eta: new Date(Date.parse("2024-03-22T14:30:00")),
+    shipperPlatform: {
+      connect: { id: 101n },
+    },
+    consigneePlatform: {
+      connect: { id: 102n },
+    },
+    releaseAgentPlatform: {
+      connect: { id: 103n },
+    },
   },
-  "other": {
+  other: {
     blNumber: "Others",
     blType: "hbl-non-negotiable",
     pol: "CNSHA",
     pod: "USLAX",
-    eta: Date.parse('2024-05-22T14:30:00'),
-    shipper: '101',
-    consignee: '102',
-    releaseAgent: '103',
+    eta: new Date(Date.parse("2024-05-22T14:30:00")),
+    shipperPlatform: {
+      connect: { id: 101n },
+    },
+    consigneePlatform: {
+      connect: { id: 102n },
+    },
+    releaseAgentPlatform: {
+      connect: { id: 103n },
+    },
   },
-}
+};
 const docInfos: Record<string, typeof rawDocInfos.other> = rawDocInfos;
 
 const docAiDaemon = async () => {
@@ -53,7 +71,9 @@ const docAiDaemon = async () => {
         const ebl = await tx.eBl.findFirst({
           where: { docFileId: task.docFileId },
         });
-        const docFile = await tx.docFile.findFirst({where: {id: task.docFileId}}) ;
+        const docFile = await tx.docFile.findFirst({
+          where: { id: task.docFileId },
+        });
         if (ebl && docFile) {
           await tx.eBl.update({
             where: { id: ebl.id },

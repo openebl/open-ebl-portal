@@ -12,6 +12,7 @@ import {
 } from "@/types/ebl";
 import { EBlStatus, type EBl } from "@prisma/client";
 import { Effect } from "effect";
+import { pick, pickBy } from "remeda";
 import { z } from "zod";
 
 export const eBlRouter = createTRPCRouter({
@@ -28,7 +29,7 @@ export const eBlRouter = createTRPCRouter({
       const statusCond = input.status
         .map((_n, i) => `CAST($${i + 1}::text AS "public"."EBlStatus")`)
         .join(", ");
-      const result = await ctx.db.$queryRawUnsafe<EBl[]>(
+      const ebls = await ctx.db.$queryRawUnsafe<EBl[]>(
         `SELECT * FROM "EBl" WHERE "status" IN (${statusCond}) AND "id" in (
           SELECT "eBlId" FROM "EBlJourney" WHERE "targetPlatformId" = $${input.status.length + 1}
          )
@@ -37,8 +38,14 @@ export const eBlRouter = createTRPCRouter({
         ...input.status,
         ctx.session.platformId,
       );
+      const result = ebls.map((ebl) => ({
+        ...ebl,
+        shipper: ebl.shipperId?.toString(),
+        consignee: ebl.consigneeId?.toString(),
+        releaseAgent: ebl.releaseAgentId?.toString(),
+      }));
 
-      return EBlDraftListSchema.parseAsync(result)
+      return EBlDraftListSchema.parseAsync(result);
     }),
 
   getWithImages: protectedProcedure
@@ -53,7 +60,14 @@ export const eBlRouter = createTRPCRouter({
         ),
 
         Effect.flatMap((ebl: EBl | null) =>
-          ebl ? Effect.succeed(ebl) : Effect.fail(new Error("not found")),
+          ebl
+            ? Effect.succeed({
+                ...ebl,
+                shipper: ebl.shipperId?.toString(),
+                consignee: ebl.consigneeId?.toString(),
+                releaseAgent: ebl.releaseAgentId?.toString(),
+              })
+            : Effect.fail(new Error("not found")),
         ),
 
         Effect.flatMap((ebl) => {
@@ -92,24 +106,44 @@ export const eBlRouter = createTRPCRouter({
   saveDraft: protectedProcedure
     .input(EBlDraftSchema)
     .mutation(async ({ ctx, input }) => {
-      if (input.id === "new") {
-        const res = await ctx.db.eBl.create({
-          data: {
-            ...input,
-            id: eBlIdGenerator(),
-            status: "DRAFT",
-          },
-        });
-        return res.id;
-      }
-
       const res = await ctx.db.eBl.update({
         where: { id: input.id },
         data: {
-          ...input,
+          ...(pick(input, ['blNumber', 'blType', 'pol', 'pod', 'eta', 'notes'])),
           status: "DRAFT",
-        }
+          issuerPlatform: { connect: { id: ctx.session.platformId } },
+          shipperPlatform: input.shipper
+            ? { connect: { id: BigInt(input.shipper) } }
+            : undefined,
+          consigneePlatform: input.consignee
+            ? { connect: { id: BigInt(input.consignee) } }
+            : undefined,
+          releaseAgentPlatform: input.releaseAgent
+            ? { connect: { id: BigInt(input.releaseAgent) } }
+            : undefined,
+        },
       });
-      return res.id;
+    return res.id;
     }),
+
+  // issue: protectedProcedure
+  //   .input(EBlSchema)
+  //   .mutation(async ({ ctx, input }) => {
+  //     return ctx.db.$transaction(async () => {
+  //       const ebl = await ctx.db.eBl.update({
+  //         where: { id: input.id },
+  //         data: {
+  //           ...input,
+  //           status: "PROCESSING",
+  //         },
+  //       });
+  //       const journey = await ctx.db.eBlJourney.create({
+  //         data: {
+  //           eBlId: ebl.id,
+  //           targetPlatformId: ctx.session.platformId,
+  //         },
+  //       });
+  //       return ebl.id;
+  //     })
+  // }),
 });
