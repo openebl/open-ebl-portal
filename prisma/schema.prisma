@@ -37,12 +37,13 @@ model Session {
 }
 
 model Platform {
-  id          BigInt     @id @default(autoincrement())
+  id          BigInt      @id @default(autoincrement())
   name        String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @default(now())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
   activeUsers User[]
   userRoles   UserRole[]
+  tradeRoles  TradeRole[] @relation("PlatformToTradeRole")
 }
 
 model User {
@@ -131,10 +132,10 @@ model DocAiTask {
   @@index([status], map: "idx_doc_ai_task_status")
 }
 
-model EblJourney {
+model EBlJourney {
   id               BigInt           @id @default(autoincrement())
-  eBlId            BigInt
-  action           EblJourneyAction
+  eBlId            String           @db.VarChar(48)
+  action           EBlJourneyAction
   lastStatus       EBlStatus
   targetPlatformId BigInt?
   sourcePlatformId BigInt?
@@ -145,11 +146,18 @@ model EblJourney {
   @@index([targetPlatformId, eBlId], map: "idx_ebl_journey_target_platform_id_ebl_id")
 }
 
+model TradeRole {
+  id        BigInt     @id @default(autoincrement())
+  tradeRole String     @db.VarChar(32)
+  platforms Platform[] @relation("PlatformToTradeRole")
+}
+
 enum EBlStatus {
   DRAFT
   PROCESSING
   COMPLETED
   PRINTED
+  UPLOADED
 }
 
 enum DocAiTaskStatus {
@@ -159,7 +167,7 @@ enum DocAiTaskStatus {
   FAILED
 }
 
-enum EblJourneyAction {
+enum EBlJourneyAction {
   ISSUE
   GRANT_SHIPPER
   GRANT_CONSIGNEE

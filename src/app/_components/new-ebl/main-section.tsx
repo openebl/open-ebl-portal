@@ -1,42 +1,53 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { api } from "@/trpc/react";
+import { DocAiTaskStatus } from "@prisma/client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { hashQueryKey } from "@/lib/hashkey";
+import ErrorView from "./error-view";
 import ProcessingView from "./processing-view";
 import UploadView from "./upload-view";
 import UploadingView from "./uploading-view";
-import { api } from "@/trpc/react";
-import { DocAiTaskStatus } from "@prisma/client";
-import ErrorView from "./error-view";
-import { useRouter } from "next/navigation";
-import { hashQueryKey } from "@/lib/hashkey";
 
 const MainSection = () => {
-  const router = useRouter()
+  const router = useRouter();
   const [status, setStatus] = useState("new");
   const [dockFileId, setDocFileId] = useState(0n);
   const [lastError, setLastError] = useState("");
 
-  const { data: task, error:taskError } = api.docAiTask.get.useQuery(
+  const { data: task, error: taskError } = api.docAiTask.get.useQuery(
     { docFileId: dockFileId },
-    { queryKeyHashFn: hashQueryKey, refetchInterval: 1000 * 5, staleTime:Infinity, enabled: status === "processing"},
+    {
+      queryKeyHashFn: hashQueryKey,
+      refetchInterval: 1000 * 5,
+      staleTime: Infinity,
+      enabled: status === "processing",
+    },
   );
 
-  const { data: eblId, error:eblError } = api.ebl.findByDocFileId.useQuery(dockFileId, {
-    queryKeyHashFn: hashQueryKey, enabled: status === "processing" && task?.status === DocAiTaskStatus.COMPLETED,
-  });
+  const { data: eblId, error: eblError } = api.ebl.findByDocFileId.useQuery(
+    dockFileId,
+    {
+      queryKeyHashFn: hashQueryKey,
+      enabled:
+        status === "processing" && task?.status === DocAiTaskStatus.COMPLETED,
+    },
+  );
 
   if (eblId) {
     router.push(`/ebls/${eblId}/edit`);
   }
 
   if (task?.status === DocAiTaskStatus.FAILED) {
-    setLastError(task.error ?? 'Unknown error');
+    setLastError(task.error ?? "Unknown error");
     setStatus("error");
   }
   if (taskError ?? eblError) {
-    setLastError((taskError?.message ?? eblError?.message) ?? 'Unknown error');
+    setLastError(taskError?.message ?? eblError?.message ?? "Unknown error");
     setStatus("error");
   }
 
@@ -55,12 +66,17 @@ const MainSection = () => {
 
     if (res) {
       if (res?.ok) {
-        const id = await res.text()
+        const id = await res.text();
         console.log(`File uploaded successfully. task: ${id}`);
         setDocFileId(BigInt(id));
         setStatus("processing");
       } else {
-        console.error("Failed to upload file", res.status, res.statusText, await res.text());
+        console.error(
+          "Failed to upload file",
+          res.status,
+          res.statusText,
+          await res.text(),
+        );
       }
     }
   };

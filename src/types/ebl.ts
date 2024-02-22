@@ -2,6 +2,7 @@ import { add, sub } from "date-fns";
 import { z } from "zod";
 
 enum Status {
+  Uploaded = "UPLOADED",
   Draft = "DRAFT",
   Processing = "PROCESSING",
   Printed = "PRINTED",

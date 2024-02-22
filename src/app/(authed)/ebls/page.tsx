@@ -6,7 +6,7 @@ import { api } from "@/trpc/server";
 export default async function Home() {
   // const hello = await api.post.hello.query({ text: "from tRPC" });
   // const session = await getServerAuthSession();
-  const eBls = await api.ebl.all.query();
+  const eBls = await api.ebl.list.query({});
 
   return (
     <MainSection list={eBls} />

@@ -162,6 +162,7 @@ const insertEbl = (tx: FlatTransaction, docFileId: bigint) =>
         id: eBlIdGenerator(),
         docFileId,
         blNumber: "",
+        status: 'UPLOADED',
       },
     }),
   );

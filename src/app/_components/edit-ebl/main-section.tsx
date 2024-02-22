@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { EBlSchema, type EBlDraftType } from "@/types/ebl";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type ImageType = {
   imageUrl: string;
@@ -23,9 +24,12 @@ const MainSection = ({
   ebl: EBlDraftType;
   images: ImageType[];
 }) => {
+  const router = useRouter();
   const saveDraft = api.ebl.saveDraft.useMutation({
     onSuccess: () => {
       console.log("Draft saved");
+      router.push("/ebls", {scroll: true});
+      router.refresh();
     },
     onError: (error) => {
       console.error(error);
