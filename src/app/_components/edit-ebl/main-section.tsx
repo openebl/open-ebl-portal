@@ -30,7 +30,7 @@ const MainSection = ({
     onSuccess: () => {
       router.push("/ebls", {scroll: true});
       router.refresh();
-      toast.success("Draft saved");
+      toast.success("Draft eB/L Saved");
     },
     onError: (error) => {
       console.error(error);
@@ -38,10 +38,17 @@ const MainSection = ({
     },
   });
 
-  const submitClicked = async () => {
-    const r = await form.trigger(undefined, { shouldFocus: true });
-    if (!r) return;
-  };
+  const issue = api.ebl.issue.useMutation({
+    onSuccess: () => {
+      router.push("/ebls", {scroll: true});
+      router.refresh();
+      toast.success("eB/L issued successfully");
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Failed to Issue eB/L: " + error.message);
+    },
+  });
 
   const form = useForm<EBlDraftType>({
     resolver: zodResolver(EBlSchema),
@@ -49,6 +56,19 @@ const MainSection = ({
       ...ebl,
     },
   });
+
+  const submitClicked = async () => {
+    const r = await form.trigger(undefined, { shouldFocus: true });
+    if (!r) {
+      console.error(form.formState.errors);
+      return;
+    }
+
+    issue.mutate({
+      ...EBlSchema.parse(form.getValues()),
+      id: ebl.id,
+    });
+  };
 
   const handleSaveDraft = async () => {
     saveDraft.mutate({

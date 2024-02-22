@@ -11,14 +11,10 @@ const Badge = ({ title, className }: { title: string; className: string }) => (
   </div>
 );
 
-const HBLBadge = () => (
-  <Badge title="HBL" className="bg-[#039912] font-semibold text-white" />
-);
-
-const NonNegotiableBadge = () => (
+const HblNonNegotiableBadge = () => (
   <Badge
-    title="NON-NEGOTIABLE"
-    className="bg-[#7A1084] font-semibold text-white"
+    title="HBL NON-NEGOTIABLE"
+    className="bg-[#039912] font-semibold text-white"
   />
 );
 
@@ -29,4 +25,4 @@ const FourPBadge = ({ title }: { title: string }) => (
   />
 );
 
-export { HBLBadge, NonNegotiableBadge, FourPBadge };
+export { HblNonNegotiableBadge, FourPBadge };

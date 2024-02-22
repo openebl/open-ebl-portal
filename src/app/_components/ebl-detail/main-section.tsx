@@ -1,9 +1,9 @@
-import { type EBlDraftType } from "@/types/ebl";
+import { type EBlRowType } from "@/types/ebl";
 import FileDetails from "./file-details";
 import HistoryList from "./history-list";
 import ShippingProgress from "./shipping-progress";
 
-const MainSection = ({ ebl }: { ebl: EBlDraftType }) => {
+const MainSection = ({ ebl }: { ebl: EBlRowType }) => {
   const history = [
     {
       id: ebl.id,

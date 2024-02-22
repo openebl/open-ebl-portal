@@ -1,4 +1,4 @@
-import { add, sub } from "date-fns";
+import { sub } from "date-fns";
 import { z } from "zod";
 
 enum Status {
@@ -23,7 +23,7 @@ const EBlSchema = z.object({
   shipper: z.string().min(1).max(250),
   consignee: z.string().min(1).max(250),
   releaseAgent: z.string().min(1).max(250),
-  notes: z.string().max(1500),
+  notes: z.string().max(1500).optional().nullable(),
 });
 
 const EBlDraftSchema = z.object({
@@ -43,29 +43,25 @@ const EBlDraftSchema = z.object({
   notes: z.string().optional().nullable(),
 })
 
+const EBlRowSchema = EBlDraftSchema.extend({
+  issuer: z.string().optional().nullable(),
+  ownerPlatform: z.string().optional().nullable(),
+  nextPlatform: z.string().optional().nullable(),
+  updatedAt: z.date(),
+});
+
 const EBlDraftListSchema = z.array(EBlDraftSchema);
+const EBlRowSchemaList = z.array(EBlRowSchema);
 
 type EBlType = z.infer<typeof EBlSchema>;
 type EBlDraftType = z.infer<typeof EBlDraftSchema>;
 type EBlDraftListType = z.infer<typeof EBlDraftListSchema>;
-
-const defaultEBl: EBlDraftType = {
-  id: 'new',
-  blNumber: "",
-  status: Status.Draft,
-  blType: "hbl-non-negotiable",
-  pol: "THBKK",
-  pod: "USLAX",
-  eta: add(new Date(), {days: 7}),
-  shipper: "foxconn",
-  consignee: "samsung",
-  notes: "",
-}
+type EBlRowType = z.infer<typeof EBlRowSchema>;
 
 const eBlIdGenerator = () => (
   `${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.random().toString(36).slice(2, 8)}`
 )
 
-export { EBlDraftListSchema, EBlDraftSchema, EBlSchema, Status, defaultEBl, eBlIdGenerator };
-export type { EBlDraftListType, EBlDraftType, EBlType };
+export { EBlDraftListSchema, EBlDraftSchema, EBlRowSchemaList, EBlSchema, Status, eBlIdGenerator };
+export type { EBlDraftListType, EBlDraftType, EBlRowType, EBlType };
 

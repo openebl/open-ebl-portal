@@ -1,10 +1,11 @@
-import React from "react";
 import Image from "next/image";
-import { HBLBadge, NonNegotiableBadge } from "../common/ebl-badges";
-import { Button } from "@/components/ui/button";
-import PdfIcon from "@/app/_icons/pdf-icon";
-import LocationIcon from "@/app/_icons/location-icon";
+import React from "react";
+
+import { HblNonNegotiableBadge } from "@/app/_components/common/ebl-badges";
 import CalendarIcon from "@/app/_icons/calendar-icon";
+import LocationIcon from "@/app/_icons/location-icon";
+import PdfIcon from "@/app/_icons/pdf-icon";
+import { Button } from "@/components/ui/button";
 
 const FileDetailsLine = ({
   title,
@@ -28,8 +29,7 @@ const FileDetails = () => {
         <div className="grow whitespace-nowrap text-[1.375rem] font-semibold leading-8 text-main">
           3904-3455
         </div>
-        <HBLBadge />
-        <NonNegotiableBadge />
+        <HblNonNegotiableBadge />
       </div>
       <div className="mt-[1.875rem] flex w-full items-stretch justify-between gap-5 self-stretch">
         <div className="flex w-full gap-5">

@@ -3,6 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import TransferPanel from "./transfer-panel";
 
 type TrackerPosition = "first" | "middle" | "last";
 
@@ -119,6 +123,7 @@ const ProgressStatus = () => {
   );
 };
 
+
 const ShippingProgress = () => {
   return (
     <TooltipProvider>
@@ -135,12 +140,7 @@ const ShippingProgress = () => {
         <Textarea placeholder="Leave notes" className="h-[7.5rem]" />
       </div>
 
-      <div className="flex w-full items-center justify-end px-[1.875rem]">
-        <Button className="flex h-[2.75rem] w-[12.5rem] items-center justify-start gap-2.5">
-          <SendIcon className="text-white" />
-          Transfer
-        </Button>
-      </div>
+      <TransferPanel />
     </section>
     </TooltipProvider>
   );

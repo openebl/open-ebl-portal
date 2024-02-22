@@ -1,3 +1,7 @@
+import { Effect } from "effect";
+import { pick } from "remeda";
+import { z } from "zod";
+
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getDocImagesByDocFileId } from "@/server/fx/doc-image";
 import {
@@ -5,15 +9,8 @@ import {
   liveDatabaseService,
 } from "@/server/services/database-service";
 import { StorageService } from "@/server/services/storage-service";
-import {
-  EBlDraftListSchema,
-  EBlDraftSchema,
-  eBlIdGenerator,
-} from "@/types/ebl";
+import { EBlRowSchemaList, EBlDraftSchema, EBlSchema } from "@/types/ebl";
 import { EBlStatus, type EBl } from "@prisma/client";
-import { Effect } from "effect";
-import { pick, pickBy } from "remeda";
-import { z } from "zod";
 
 export const eBlRouter = createTRPCRouter({
   list: protectedProcedure
@@ -38,14 +35,18 @@ export const eBlRouter = createTRPCRouter({
         ...input.status,
         ctx.session.platformId,
       );
+      console.log('------ebls', ebls)
       const result = ebls.map((ebl) => ({
         ...ebl,
+        ownerPlatform: ebl.ownerPlatformId?.toString(),
+        nextPlatform: ebl.nextPlatformId?.toString(),
+        issuer: ebl.issuerId?.toString(),
         shipper: ebl.shipperId?.toString(),
         consignee: ebl.consigneeId?.toString(),
         releaseAgent: ebl.releaseAgentId?.toString(),
       }));
 
-      return EBlDraftListSchema.parseAsync(result);
+      return EBlRowSchemaList.parseAsync(result);
     }),
 
   getWithImages: protectedProcedure
@@ -63,6 +64,9 @@ export const eBlRouter = createTRPCRouter({
           ebl
             ? Effect.succeed({
                 ...ebl,
+                ownerPlatform: ebl.ownerPlatformId?.toString(),
+                nextPlatform: ebl.nextPlatformId?.toString(),
+                issuer: ebl.issuerId?.toString(),
                 shipper: ebl.shipperId?.toString(),
                 consignee: ebl.consigneeId?.toString(),
                 releaseAgent: ebl.releaseAgentId?.toString(),
@@ -109,7 +113,7 @@ export const eBlRouter = createTRPCRouter({
       const res = await ctx.db.eBl.update({
         where: { id: input.id },
         data: {
-          ...(pick(input, ['blNumber', 'blType', 'pol', 'pod', 'eta', 'notes'])),
+          ...pick(input, ["blNumber", "blType", "pol", "pod", "eta", "notes"]),
           status: "DRAFT",
           issuerPlatform: { connect: { id: ctx.session.platformId } },
           shipperPlatform: input.shipper
@@ -123,27 +127,100 @@ export const eBlRouter = createTRPCRouter({
             : undefined,
         },
       });
-    return res.id;
+      return res.id;
     }),
 
-  // issue: protectedProcedure
-  //   .input(EBlSchema)
-  //   .mutation(async ({ ctx, input }) => {
-  //     return ctx.db.$transaction(async () => {
-  //       const ebl = await ctx.db.eBl.update({
-  //         where: { id: input.id },
-  //         data: {
-  //           ...input,
-  //           status: "PROCESSING",
-  //         },
-  //       });
-  //       const journey = await ctx.db.eBlJourney.create({
-  //         data: {
-  //           eBlId: ebl.id,
-  //           targetPlatformId: ctx.session.platformId,
-  //         },
-  //       });
-  //       return ebl.id;
-  //     })
-  // }),
-});
+  issue: protectedProcedure
+    .input(EBlSchema.omit({ status: true }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.$transaction(async () => {
+        const ebl = await ctx.db.eBl.update({
+          where: { id: input.id },
+          data: {
+            ...pick(input, ["blNumber", "blType", "pol", "pod", "eta", "notes"]),
+            issuerPlatform: { connect: { id: ctx.session.platformId } },
+            shipperPlatform: input.shipper
+              ? { connect: { id: BigInt(input.shipper) } }
+              : undefined,
+            consigneePlatform: input.consignee
+              ? { connect: { id: BigInt(input.consignee) } }
+              : undefined,
+            releaseAgentPlatform: input.releaseAgent
+              ? { connect: { id: BigInt(input.releaseAgent) } }
+              : undefined,
+              ownerPlatformId: BigInt(input.shipper),
+              nextPlatformId: BigInt(input.consignee),
+            status: "PROCESSING",
+          },
+        });
+        await ctx.db.eBlJourney.create({
+          data: {
+            eBlId: ebl.id,
+            action: "DRAFT",
+            lastStatus: "DRAFT",
+            targetPlatformId: ctx.session.platformId,
+            sourcePlatformId: ctx.session.platformId,
+            userId: ctx.session.user.id,
+          },
+        });
+        await ctx.db.eBlJourney.create({
+          data: {
+            eBlId: ebl.id,
+            action: "ISSUE",
+            lastStatus: "PROCESSING",
+            targetPlatformId: BigInt(input.shipper),
+            sourcePlatformId: ctx.session.platformId,
+            userId: ctx.session.user.id,
+          },
+        });
+        return ebl.id;
+      });
+    }),
+
+  transfer: protectedProcedure
+    .input(EBlSchema.omit({ status: true }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.$transaction(async () => {
+        const ebl = await ctx.db.eBl.update({
+          where: { id: input.id },
+          data: {
+            ...pick(input, ["blNumber", "blType", "pol", "pod", "eta", "notes"]),
+            issuerPlatform: { connect: { id: ctx.session.platformId } },
+            shipperPlatform: input.shipper
+              ? { connect: { id: BigInt(input.shipper) } }
+              : undefined,
+            consigneePlatform: input.consignee
+              ? { connect: { id: BigInt(input.consignee) } }
+              : undefined,
+            releaseAgentPlatform: input.releaseAgent
+              ? { connect: { id: BigInt(input.releaseAgent) } }
+              : undefined,
+              ownerPlatformId: BigInt(input.shipper),
+              nextPlatformId: BigInt(input.consignee),
+            status: "PROCESSING",
+          },
+        });
+        await ctx.db.eBlJourney.create({
+          data: {
+            eBlId: ebl.id,
+            action: "DRAFT",
+            lastStatus: "DRAFT",
+            targetPlatformId: ctx.session.platformId,
+            sourcePlatformId: ctx.session.platformId,
+            userId: ctx.session.user.id,
+          },
+        });
+        await ctx.db.eBlJourney.create({
+          data: {
+            eBlId: ebl.id,
+            action: "ISSUE",
+            lastStatus: "PROCESSING",
+            targetPlatformId: BigInt(input.shipper),
+            sourcePlatformId: ctx.session.platformId,
+            userId: ctx.session.user.id,
+          },
+        });
+        return ebl.id;
+      });
+    }),
+  });

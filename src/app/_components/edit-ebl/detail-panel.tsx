@@ -18,19 +18,11 @@ import { type UseFormReturn } from "react-hook-form";
 
 const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftType> }) => {
   const blTypes = [{ name: "HBL Non-negotiable", value: "hbl-non-negotiable" }];
-
-  function onSubmit(values: EBlDraftType) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log("submit", values);
-  }
-
   return (
     <div className="flex w-[35rem] flex-none flex-col items-stretch py-[1.875rem] pl-[3.125rem] pr-[1.875rem]">
       <p className="text-xl font-bold leading-[1.875rem]">Details</p>
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
           className="my-[1.875rem] flex flex-col gap-2.5"
         >
           <FormField
