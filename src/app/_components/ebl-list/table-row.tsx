@@ -5,7 +5,7 @@ import {
 import EditIcon from "@/app/_icons/edit-icon";
 import GoalFlagIcon from "@/app/_icons/goal-flag-icon";
 import MailIcon from "@/app/_icons/mail-icon";
-import PrinterIcon from "@/app/_icons/printer-icon";
+import PrintedIcon from "@/app/_icons/printed-icon";
 import { portName } from "@/lib/ports";
 import { cn } from "@/lib/utils";
 import { Status, type EBlRowType } from "@/types/ebl";
@@ -49,7 +49,7 @@ const CompletedStamp = () => (
 
 const PrintedStamp = () => (
   <Stamp className="bg-[#FFE1E1] text-[#E42525]">
-    <PrinterIcon />
+    <PrintedIcon />
   </Stamp>
 );
 

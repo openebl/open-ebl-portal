@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import PrinterIcon from "@/app/_icons/printer-icon";
+import ReturnIcon from "@/app/_icons/return-icon";
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +18,33 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
 import { type EBlRowType } from "@/types/ebl";
+import AmendIcon from "@/app/_icons/amend-icon";
+
+const availableActions = {
+  transfer: (
+    <>
+      <SendIcon className="text-white" />
+      Transfer
+    </>
+  ),
+  amend: (
+    <>
+      <AmendIcon className="m-[2px]" /> Request Amendment
+    </>
+  ),
+  return: (
+    <>
+      <ReturnIcon /> Return eB/L
+    </>
+  ),
+  print: (
+    <>
+      <PrinterIcon /> Print to Paper
+    </>
+  ),
+};
+
+type AvailableActions = keyof typeof availableActions;
 
 const ActionPanel = ({
   ebl,
@@ -24,6 +53,7 @@ const ActionPanel = ({
   ebl: EBlRowType;
   disabled: boolean;
 }) => {
+  const [action, setAction] = useState<AvailableActions>("transfer");
   const [note, setNote] = useState<string>("");
   const router = useRouter();
   const transfer = api.ebl.transfer.useMutation({
@@ -38,8 +68,15 @@ const ActionPanel = ({
     },
   });
   const handleClick = () => {
-    transfer.mutate({ id: ebl.id, note });
+    actionHandlers[action]();
   };
+
+  const actionHandlers = {
+    transfer: () => { transfer.mutate({ id: ebl.id, note }); },
+    amend: () => { null },
+    return: () => { null },
+    print: () => { null },
+  }
 
   return (
     <>
@@ -53,12 +90,11 @@ const ActionPanel = ({
       </div>
       <div className="flex w-full items-center justify-end px-[1.875rem]">
         <Button
-          className="flex h-[2.75rem] w-[12.5rem] select-none items-center justify-start gap-2.5 rounded-none rounded-l-md bg-[#F86919] text-white hover:bg-[#FF965C] focus-visible:ring-[#F86919]/30 active:bg-[#D24B00] disabled:border-[1px] disabled:border-[#CAD2E0] disabled:bg-[#F1F0F0] disabled:text-disabled"
+          className="flex h-[2.75rem] w-[12.5rem] select-none items-center justify-start gap-2.5 rounded-none rounded-l-md bg-[#F86919] px-[1.25rem] text-white hover:bg-[#FF965C] focus-visible:ring-[#F86919]/30 active:bg-[#D24B00] disabled:border-[1px] disabled:border-[#CAD2E0] disabled:bg-[#F1F0F0] disabled:text-disabled"
           disabled={disabled}
           onClick={handleClick}
         >
-          <SendIcon className="text-white" />
-          Transfer
+          {availableActions[action]}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -68,9 +104,18 @@ const ActionPanel = ({
             <ChevronDown />
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-[15rem] font-header" align="end">
-            <DropdownMenuItem onClick={() => console.log(123)}>
-              <Button>Another</Button>
-            </DropdownMenuItem>
+            { Object.entries(availableActions).map(([key, value]) => {
+              if (key === action) return null;
+              return (
+                <DropdownMenuItem
+                  key={key}
+                  className="h-2.75rem flex gap-x-2.5 px-[1rem]"
+                  onClick={() => setAction(key as AvailableActions)}
+                >
+                  {value}
+                </DropdownMenuItem>
+              )})
+            }
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

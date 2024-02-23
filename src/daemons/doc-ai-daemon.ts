@@ -60,32 +60,37 @@ const docAiDaemon = async () => {
   logger.info("Doc AI Daemon started");
 
   while (true) {
-    const tasks = await db.docAiTask.findMany({
-      where: { status: DocAiTaskStatus.PROCESSING },
-      take: 1,
-    });
-
-    for (const task of tasks) {
-      logger.info(`processing task ${task.id}`);
-      await db.$transaction(async (tx) => {
-        const ebl = await tx.eBl.findFirst({
-          where: { docFileId: task.docFileId },
-        });
-        const docFile = await tx.docFile.findFirst({
-          where: { id: task.docFileId },
-        });
-        if (ebl && docFile) {
-          await tx.eBl.update({
-            where: { id: ebl.id },
-            data: docInfos[docFile.filename ?? 'other'] ?? docInfos.other!
-          });
-          await tx.docAiTask.update({
-            where: { id: task.id },
-            data: { status: DocAiTaskStatus.COMPLETED },
-          });
-        }
+    try {
+      const tasks = await db.docAiTask.findMany({
+        where: { status: DocAiTaskStatus.PROCESSING },
+        take: 1,
       });
+
+      for (const task of tasks) {
+        logger.info(`processing task ${task.id}`);
+        await db.$transaction(async (tx) => {
+          const ebl = await tx.eBl.findFirst({
+            where: { docFileId: task.docFileId },
+          });
+          const docFile = await tx.docFile.findFirst({
+            where: { id: task.docFileId },
+          });
+          if (ebl && docFile) {
+            await tx.eBl.update({
+              where: { id: ebl.id },
+              data: docInfos[docFile.filename ?? "other"] ?? docInfos.other!,
+            });
+            await tx.docAiTask.update({
+              where: { id: task.id },
+              data: { status: DocAiTaskStatus.COMPLETED },
+            });
+          }
+        });
+      }
+    } catch (error) {
+      logger.error(error);
     }
+
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 };
