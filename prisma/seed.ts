@@ -267,6 +267,8 @@ async function main() {
       },
     },
   });
+
+  console.log('Seeded!');
 }
 
 main()

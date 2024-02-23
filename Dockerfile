@@ -24,8 +24,8 @@ ENV S3_BUCKET=example-bucket
 ADD . /app
 RUN npm run postinstall
 RUN npm run build
-RUN npx tsup src/daemons/doc-ai-daemon.ts
-# RUN npx tsup img.js
+RUN npx tsup prisma/seed.ts src/daemons/doc-ai-daemon.ts
+RUN ls -la  /app/dist
 
 # Build the production image
 FROM node:18-slim
@@ -45,12 +45,17 @@ RUN adduser --system --uid 1001 nextjs
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
+# install prisma for migration
+RUN npm i prisma -g
+
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/prisma/seed.ts ./seed.ts
-COPY --from=builder --chown=nextjs:nodejs /app/launch.sh ./launch.sh
-COPY --from=builder --chown=nextjs:nodejs /app/dist/doc-ai-daemon.cjs ./doc-ai-daemon.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/dist/prisma/seed.cjs ./seed.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/dist/src/daemons/doc-ai-daemon.cjs ./doc-ai-daemon.cjs
+ADD ./prisma ./prisma
+ADD ./bin/launch.sh ./launch.sh
+ADD ./bin/migrate.sh ./migrate.sh
 
 USER nextjs
 
