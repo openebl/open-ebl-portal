@@ -4,10 +4,8 @@ import ErrorPage from "@/app/_components/ebl-detail/error-page";
 import MainSection from "@/app/_components/ebl-detail/main-section";
 import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
 import { getLogger } from "@/lib/logger";
-import { tryCatchAsync } from "@/lib/tryblock";
 import { api } from "@/trpc/server";
 import { TRPCClientError } from "@trpc/client";
-import { Either } from "effect";
 import Link from "next/link";
 
 const Page = async ({ params }: { params: { uuid: string } }) => {

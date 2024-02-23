@@ -1,9 +1,12 @@
+"use server";
+
 import { format } from "date-fns";
 
 import type { EBlJourneyRowListType, EBlRowType } from "@/types/ebl";
 import FileDetails from "./file-details";
 import HistoryList from "./history-list";
 import ShippingProgress from "./shipping-progress";
+import { getServerAuthSession } from "@/server/auth";
 
 const actionMapping = {
   DRAFT: "Uploaded eB/L to the system.",
@@ -18,13 +21,14 @@ const actionMapping = {
   PRINT: "Print eB/L",
 };
 
-const MainSection = ({
+const MainSection = async ({
   ebl,
   journey,
 }: {
   ebl: EBlRowType;
   journey: EBlJourneyRowListType;
 }) => {
+  const session = await getServerAuthSession();
   const targetMapping = [
     [ebl.issuer, "Issuing Agent"],
     [ebl.shipper, "Shipper"],
@@ -53,7 +57,10 @@ const MainSection = ({
   return (
     <div className="mt-[1.875rem] flex flex-col gap-y-5">
       <FileDetails ebl={ebl} />
-      <ShippingProgress ebl={ebl} />
+      <ShippingProgress
+        ebl={ebl}
+        sessionPlatformId={session?.platformId.toString()}
+      />
       <HistoryList history={history} />
     </div>
   );

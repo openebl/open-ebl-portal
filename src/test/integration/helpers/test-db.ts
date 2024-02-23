@@ -84,20 +84,34 @@ export async function cloneSchema(source: string, target: string) {
       }
 
       // change enum from public.x to target.x
-      const enumColumns: { column_name:string, udt_name:string, defu:string }[] = await db.$queryRawUnsafe(`
+      const enumColumns: {
+        column_name: string;
+        udt_name: string;
+        defu: string;
+      }[] = await db.$queryRawUnsafe(`
         SELECT column_name, udt_name, column_default::text as defu FROM information_schema.columns
           WHERE table_schema = '${source}' AND table_name = '${tableName}'
           AND data_type = 'USER-DEFINED'`);
 
+      console.log("----- enumColumns", enumColumns);
       for (const { column_name, udt_name, defu } of enumColumns) {
-        const newDefault = defu.replace('::', `::${target}.`);
-        await db.$executeRawUnsafe(`
+        if (!defu) {
+          await db.$executeRawUnsafe(`
           ALTER TABLE ${target}."${tableName}"
           ALTER COLUMN "${column_name}" DROP DEFAULT,
           ALTER COLUMN "${column_name}"
           SET DATA TYPE ${target}."${udt_name}"
-          USING ${column_name}::text::${target}."${udt_name}",
+          USING "${column_name}"::text::${target}."${udt_name}"`);
+        } else {
+          const newDefault = defu.replace("::", `::${target}.`);
+          await db.$executeRawUnsafe(`
+          ALTER TABLE ${target}."${tableName}"
+          ALTER COLUMN "${column_name}" DROP DEFAULT,
+          ALTER COLUMN "${column_name}"
+          SET DATA TYPE ${target}."${udt_name}"
+          USING "${column_name}"::text::${target}."${udt_name}",
           ALTER COLUMN ${column_name} SET DEFAULT ${newDefault}`);
+        }
       }
     }),
   );

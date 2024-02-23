@@ -187,6 +187,7 @@ export const eBlRouter = createTRPCRouter({
             targetPlatformId: BigInt(input.shipper),
             sourcePlatformId: ctx.session.platformId,
             userId: ctx.session.user.id,
+            note: ebl.notes,
           },
         });
         return ebl.id;
@@ -194,46 +195,50 @@ export const eBlRouter = createTRPCRouter({
     }),
 
   transfer: protectedProcedure
-    .input(EBlSchema.omit({ status: true }))
+    .input(z.object({id: z.string(), note: z.string().optional()}))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.$transaction(async () => {
-        const ebl = await ctx.db.eBl.update({
+        const ebl = await ctx.db.eBl.findUnique({
+          where: { id: input.id },
+        });
+        if (!ebl) {
+          // TODO: implement a consistant error framework
+          throw new Error("eBl not found");
+        }
+
+        // check if the eBL can be trasnferred to the next platform by current p[latform]
+        if (ebl.ownerPlatformId !== ctx.session.platformId) {
+          throw new Error("eBl cannot be transferred by current platform");
+        }
+
+        const sequence = [ebl.issuerId, ebl.shipperId, ebl.consigneeId, ebl.releaseAgentId];
+        const index = sequence.indexOf(ebl.ownerPlatformId);
+        if (index === -1) {
+          throw new Error("eBl is not owned by any platform");
+        }
+        if (index === sequence.length - 1) {
+          throw new Error("eBl is completed");
+        }
+        const newStatus = index === sequence.length - 2 ? "COMPLETED" : "PROCESSING";
+
+        await ctx.db.eBl.update({
           where: { id: input.id },
           data: {
-            ...pick(input, ["blNumber", "blType", "pol", "pod", "eta", "notes"]),
-            issuerPlatform: { connect: { id: ctx.session.platformId } },
-            shipperPlatform: input.shipper
-              ? { connect: { id: BigInt(input.shipper) } }
-              : undefined,
-            consigneePlatform: input.consignee
-              ? { connect: { id: BigInt(input.consignee) } }
-              : undefined,
-            releaseAgentPlatform: input.releaseAgent
-              ? { connect: { id: BigInt(input.releaseAgent) } }
-              : undefined,
-              ownerPlatformId: BigInt(input.shipper),
-              nextPlatformId: BigInt(input.consignee),
-            status: "PROCESSING",
+            status: newStatus,
+            ownerPlatformId: sequence[index + 1],
+            nextPlatformId: index < sequence.length - 2 ? sequence[index + 2] : null,
           },
         });
+
         await ctx.db.eBlJourney.create({
           data: {
             eBlId: ebl.id,
-            action: "DRAFT",
-            lastStatus: "DRAFT",
-            targetPlatformId: ctx.session.platformId,
+            action: "TRANSFER",
+            lastStatus: newStatus,
+            targetPlatformId: sequence[index + 1],
             sourcePlatformId: ctx.session.platformId,
             userId: ctx.session.user.id,
-          },
-        });
-        await ctx.db.eBlJourney.create({
-          data: {
-            eBlId: ebl.id,
-            action: "ISSUE",
-            lastStatus: "PROCESSING",
-            targetPlatformId: BigInt(input.shipper),
-            sourcePlatformId: ctx.session.platformId,
-            userId: ctx.session.user.id,
+            note: input.note,
           },
         });
         return ebl.id;

@@ -1,15 +1,11 @@
-import SendIcon from "@/app/_icons/send-icon";
-import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { fromPairs } from "remeda";
+
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { api } from "@/trpc/react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import TransferPanel from "./transfer-panel";
 import { type EBlRowType } from "@/types/ebl";
-import { format } from "date-fns";
-import { fromPairs } from "remeda";
+import ActionPanel from "./action-panel";
 
 type TrackerPosition = "first" | "middle" | "last";
 
@@ -111,7 +107,7 @@ const ProgressStatusItem = ({
   </div>
 );
 
-const ProgressStatus = ({ ebl }: { ebl: EBlRowType }) => {
+const ProgressStatus = ({ ebl,sessionPlatformId }: { ebl: EBlRowType, sessionPlatformId: string|undefined }) => {
   const nameMapping = fromPairs([
     [ebl.issuer, ebl.issuerName],
     [ebl.shipper, ebl.shipperName],
@@ -129,17 +125,19 @@ const ProgressStatus = ({ ebl }: { ebl: EBlRowType }) => {
 
       <ProgressStatusItem title="Current Owner">
         {currentOwnerName}
-        {" "}
-        { 1 && <span className="text-xs leading-[1.125rem] text-disabled">(You)</span> }
+        { sessionPlatformId === ebl.ownerPlatform && <span className="text-xs leading-[1.125rem] text-disabled"> (You)</span> }
       </ProgressStatusItem>
 
-      <ProgressStatusItem title="Next Owner">{nextOwnerName}</ProgressStatusItem>
+      <ProgressStatusItem title="Next Owner">
+        {nextOwnerName}
+        { sessionPlatformId === ebl.nextPlatform && <span className="text-xs leading-[1.125rem] text-disabled"> (You)</span> }
+      </ProgressStatusItem>
     </div>
   );
 };
 
 
-const ShippingProgress = ({ ebl }: { ebl: EBlRowType }) => {
+const ShippingProgress = ({ ebl,sessionPlatformId }: { ebl: EBlRowType, sessionPlatformId: string|undefined }) => {
   return (
     <TooltipProvider>
     <section className="border-bolder-light flex w-full flex-col items-start gap-[1.875rem] rounded-lg border border-solid bg-white py-[1.875rem] shadow-lg">
@@ -149,13 +147,9 @@ const ShippingProgress = ({ ebl }: { ebl: EBlRowType }) => {
 
       <ProgressTrackerBar ebl={ebl} />
 
-      <ProgressStatus ebl={ebl} />
+      <ProgressStatus ebl={ebl} sessionPlatformId={sessionPlatformId}/>
 
-      <div className="flex w-full px-[1.875rem]">
-        <Textarea placeholder="Leave notes" className="h-[7.5rem]" />
-      </div>
-
-      <TransferPanel ebl={ebl}/>
+      <ActionPanel ebl={ebl} disabled={sessionPlatformId!==ebl.ownerPlatform}/>
     </section>
     </TooltipProvider>
   );
