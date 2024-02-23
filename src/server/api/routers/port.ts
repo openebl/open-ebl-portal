@@ -6,13 +6,12 @@ export const portRouter = createTRPCRouter({
   get: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(({ input }) => {
-      const port = ports
-        .find((p) => p.value === input.id)
+      const port = ports.find((p) => p.value === input.id);
 
       return port ? { label: port.name, id: port.value } : null;
     }),
 
-    list: protectedProcedure
+  list: protectedProcedure
     .input(z.object({ keyword: z.string() }))
     .query(({ input }) => {
       // return ctx.db.port.findMany({

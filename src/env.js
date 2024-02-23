@@ -26,7 +26,7 @@ export const env = createEnv({
     // GOOGLE_CLIENT_ID: z.string().min(1),
     // GOOGLE_CLIENT_SECRET: z.string().min(1),
     EMAIL_SERVER: z.string().min(1),
-    EMAIL_FROM: z.string().email(),
+    EMAIL_FROM: z.string().min(1),
     S3_BUCKET: z.string().min(1),
   },
 

@@ -19,8 +19,8 @@ import {
   type FlatTransaction,
 } from "@/server/services/database-service";
 import { StorageService } from "@/server/services/storage-service";
-import { eBlIdGenerator } from "@/types/ebl";
-import { DocAiTaskStatus } from "@prisma/client";
+import { EBlAllowAction, eBlIdGenerator } from "@/types/ebl";
+import { DocAiTaskStatus, type EBl, EBlStatus } from "@prisma/client";
 import { asyncFnToEffect } from "./helper";
 import { bodyToBuffer } from "./req";
 import { validateSession } from "./session";
@@ -236,3 +236,45 @@ export const processFileDocUploadReq = (
       ),
     );
   });
+
+const allowActionsMapping = new Map<
+  EBlStatus,
+  Record<string, EBlAllowAction[]>
+>([
+  [
+    EBlStatus.UPLOADED,
+    {
+      0: [EBlAllowAction.Issue],
+    },
+  ],
+  [
+    EBlStatus.DRAFT,
+    {
+      0: [EBlAllowAction.Issue],
+    },
+  ],
+  [
+    EBlStatus.PROCESSING,
+    {
+      1: [EBlAllowAction.Transfer, EBlAllowAction.Amend, EBlAllowAction.Return, EBlAllowAction.Print],
+      2: [EBlAllowAction.Transfer, EBlAllowAction.Amend, EBlAllowAction.Return, EBlAllowAction.Print],
+      3: [EBlAllowAction.Accomplish, EBlAllowAction.Amend, EBlAllowAction.Return, EBlAllowAction.Print],
+    },
+  ],
+]);
+
+export const eBLAllowActions = (ebl: EBl, currentPlatformId: bigint): EBlAllowAction[] => {
+  if (ebl.ownerPlatformId !== currentPlatformId) {
+    return [];
+  }
+
+  const sequence = [
+    ebl.issuerId,
+    ebl.shipperId,
+    ebl.consigneeId,
+    ebl.releaseAgentId,
+  ];
+  const current = sequence.indexOf(ebl.ownerPlatformId).toString();
+  const actions = allowActionsMapping.get(ebl.status)
+  return actions?.[current] ?? [];
+};

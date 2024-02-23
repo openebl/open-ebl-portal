@@ -11,11 +11,12 @@ enum Status {
 }
 
 enum EBlAllowAction {
-  Uploaded = "UPLOADED",
-  Draft = "DRAFT",
-  Processing = "PROCESSING",
-  Printed = "PRINTED",
-  Completed = "COMPLETED",
+  Issue = "ISSUE",
+  Transfer = "TRANSFER",
+  Amend = "AMEND",
+  Return = "RETURN",
+  Accomplish = "ACCOMPLISH",
+  Print = "PRINT",
 }
 
 const EBlSchema = z.object({
@@ -114,6 +115,7 @@ export {
   EBlJourneyRowListSchema,
   Status,
   eBlIdGenerator,
+  EBlAllowAction,
 };
 export type {
   EBlDraftListType,

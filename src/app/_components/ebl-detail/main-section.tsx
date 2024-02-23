@@ -17,7 +17,7 @@ const actionMapping = {
   TRANSFER: "Transfer of document",
   AMEND: "Reqeuest of amendment",
   SURRENDER: "Reqeuest of surrender",
-  COMPLETE: "Complete",
+  COMPLETE: "Accomplish",
   PRINT: "Print eB/L",
 };
 

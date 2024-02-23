@@ -30,6 +30,7 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
       <Link
         className="flex items-center justify-start text-xs font-semibold text-secondary1"
         href="/ebls"
+        prefetch={false}
       >
         <LeftArrowIcon className="mr-2" />
         Back
