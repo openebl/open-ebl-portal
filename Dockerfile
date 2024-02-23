@@ -49,18 +49,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma/seed.ts ./seed.ts
-COPY --from=builder --chown=nextjs:nodejs /app/src/daemons/doc-ai-daemon.ts ./doc-ai-daemon.ts
 COPY --from=builder --chown=nextjs:nodejs /app/launch.sh ./launch.sh
-# COPY --from=builder --chown=nextjs:nodejs /app/dist/doc-ai-daemon.cjs ./doc-ai-daemon.cjs
-COPY --from=builder --chown=nextjs:nodejs /app/dist/img.cjs ./img.cjs
-COPY --from=builder --chown=nextjs:nodejs /app/ebl.pdf ./ebl.pdf
+COPY --from=builder --chown=nextjs:nodejs /app/dist/doc-ai-daemon.cjs ./doc-ai-daemon.cjs
 
-# USER nextjs
+USER nextjs
 
 EXPOSE 3000
 
 ENV PORT 3000
-# set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
 CMD ["dumb-init", "./launch.sh"]
