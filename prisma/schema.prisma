@@ -107,6 +107,7 @@ model EBl {
   issuerPlatform       Platform? @relation("issuerPlatform", fields: [issuerId], references: [id])
   releaseAgentPlatform Platform? @relation("releaseAgentPlatform", fields: [releaseAgentId], references: [id])
   shipperPlatform      Platform? @relation("shipperPlatform", fields: [shipperId], references: [id])
+  journey        EBlJourney[]
 
   @@index([updatedAt(sort: Desc)], map: "idx_ebl_updated_at")
 }
@@ -157,6 +158,7 @@ model EBlJourney {
   sourcePlatformId BigInt?
   userId           BigInt?
   createdAt        DateTime         @default(now())
+  eBL              EBl              @relation(fields: [eBlId], references: [id])
 
   @@index([eBlId], map: "idx_ebl_journey_ebl_id")
   @@index([targetPlatformId, eBlId], map: "idx_ebl_journey_target_platform_id_ebl_id")

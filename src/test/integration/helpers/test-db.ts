@@ -93,7 +93,6 @@ export async function cloneSchema(source: string, target: string) {
           WHERE table_schema = '${source}' AND table_name = '${tableName}'
           AND data_type = 'USER-DEFINED'`);
 
-      console.log("----- enumColumns", enumColumns);
       for (const { column_name, udt_name, defu } of enumColumns) {
         if (!defu) {
           await db.$executeRawUnsafe(`

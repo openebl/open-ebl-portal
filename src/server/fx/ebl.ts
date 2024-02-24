@@ -20,7 +20,12 @@ import {
 } from "@/server/services/database-service";
 import { StorageService } from "@/server/services/storage-service";
 import { EBlAllowAction, eBlIdGenerator } from "@/types/ebl";
-import { DocAiTaskStatus, type EBl, EBlStatus } from "@prisma/client";
+import {
+  DocAiTaskStatus,
+  type EBl,
+  EBlStatus,
+  type Prisma,
+} from "@prisma/client";
 import { asyncFnToEffect } from "./helper";
 import { bodyToBuffer } from "./req";
 import { validateSession } from "./session";
@@ -256,14 +261,32 @@ const allowActionsMapping = new Map<
   [
     EBlStatus.PROCESSING,
     {
-      1: [EBlAllowAction.Transfer, EBlAllowAction.Amend, EBlAllowAction.Return, EBlAllowAction.Print],
-      2: [EBlAllowAction.Transfer, EBlAllowAction.Amend, EBlAllowAction.Return, EBlAllowAction.Print],
-      3: [EBlAllowAction.Accomplish, EBlAllowAction.Amend, EBlAllowAction.Return, EBlAllowAction.Print],
+      1: [
+        EBlAllowAction.Transfer,
+        EBlAllowAction.Amend,
+        EBlAllowAction.Return,
+        EBlAllowAction.Print,
+      ],
+      2: [
+        EBlAllowAction.Transfer,
+        EBlAllowAction.Amend,
+        EBlAllowAction.Return,
+        EBlAllowAction.Print,
+      ],
+      3: [
+        EBlAllowAction.Accomplish,
+        EBlAllowAction.Amend,
+        EBlAllowAction.Return,
+        EBlAllowAction.Print,
+      ],
     },
   ],
 ]);
 
-export const eBLAllowActions = (ebl: EBl, currentPlatformId: bigint): EBlAllowAction[] => {
+export const eBLAllowActions = (
+  ebl: EBl,
+  currentPlatformId: bigint,
+): EBlAllowAction[] => {
   if (ebl.ownerPlatformId !== currentPlatformId) {
     return [];
   }
@@ -275,6 +298,52 @@ export const eBLAllowActions = (ebl: EBl, currentPlatformId: bigint): EBlAllowAc
     ebl.releaseAgentId,
   ];
   const current = sequence.indexOf(ebl.ownerPlatformId).toString();
-  const actions = allowActionsMapping.get(ebl.status)
+  const actions = allowActionsMapping.get(ebl.status);
   return actions?.[current] ?? [];
+};
+
+const eBlQueryConditions: Record<
+  string,
+  (platformId: bigint) => Prisma.EBlWhereInput
+> = {
+  actionRequired: (platformId) => {
+    return {
+      status: { in: ["PROCESSING", "DRAFT"] },
+      ownerPlatformId: platformId,
+    };
+  },
+  upcoming: (platformId) => {
+    return {
+      status: "PROCESSING",
+      nextPlatformId: platformId,
+    };
+  },
+  sent: (platformId) => {
+    return {
+      journey: {
+        some: {
+          sourcePlatformId: platformId,
+          action: { in: ["ISSUE", "TRANSFER"] },
+        },
+      },
+    };
+  },
+  archive: (platformId) => {
+    return {
+      status: { in: ["COMPLETED", "PRINTED"] },
+      journey: {
+        some: { targetPlatformId: platformId },
+      },
+    };
+  },
+};
+
+export const eBlQueryCondition = (
+  filter: string | undefined,
+  currentPlatformId: bigint,
+): Prisma.EBlWhereInput => {
+  const condition =
+    eBlQueryConditions[filter ?? "actionRequired"] ??
+    eBlQueryConditions.actionRequired!;
+  return condition(currentPlatformId);
 };

@@ -4,19 +4,18 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getDocImagesByDocFileId } from "@/server/fx/doc-image";
+import { eBLAllowActions, eBlQueryCondition } from "@/server/fx/ebl";
 import {
   DatabaseService,
   liveDatabaseService,
 } from "@/server/services/database-service";
 import { StorageService } from "@/server/services/storage-service";
 import {
-  EBlRowSchemaList,
   EBlDraftSchema,
-  EBlSchema,
   EBlRowSchema,
+  EBlRowSchemaList,
+  EBlSchema,
 } from "@/types/ebl";
-import { EBlStatus, type EBl } from "@prisma/client";
-import { eBLAllowActions } from "@/server/fx/ebl";
 
 export const eBlRouter = createTRPCRouter({
   list: protectedProcedure
@@ -28,36 +27,18 @@ export const eBlRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const statusFilter =
-        input.filter === "archive"
-          ? ["COMPLETED"]
-          : ["DRAFT", "PROCESSING", "COMPLETED", "PRINTED"];
-      const statusCond = statusFilter
-        .map((_n, i) => `CAST($${i + 1}::text AS "public"."EBlStatus")`)
-        .join(", ");
-      const ebls = await ctx.db.$queryRawUnsafe<EBl[]>(
-        `SELECT * FROM "EBl" WHERE "status" IN (${statusCond}) AND "id" in (
-          SELECT "eBlId" FROM "EBlJourney" WHERE "targetPlatformId" = $${statusFilter.length + 1}
-         ) OR "status" = CAST('DRAFT'::text AS "public"."EBlStatus")
-         ORDER BY "updatedAt" DESC OFFSET $${statusFilter.length + 2} LIMIT $${statusFilter.length + 3}`,
-        ...statusFilter,
-        ctx.session.platformId,
-        input.offset,
-        input.limit,
-      );
+      const condition = eBlQueryCondition(input.filter, ctx.session.platformId);
 
-      const count = await ctx.db.$queryRawUnsafe<{ count: bigint }[]>(
-        `SELECT COUNT(*) as count FROM "EBl" WHERE "status" IN (${statusCond}) AND "id" in (
-          SELECT "eBlId" FROM "EBlJourney" WHERE "targetPlatformId" = $${statusFilter.length + 1}
-         ) OR "status" = CAST('DRAFT'::text AS "public"."EBlStatus")`,
-        ...statusFilter,
-        ctx.session.platformId,
-      );
+      const ebls = await ctx.db.eBl.findMany({
+        where: condition,
+        orderBy: { updatedAt: "desc" },
+        skip: input.offset,
+        take: input.limit,
+      });
+      const count = await ctx.db.eBl.count({ where: condition });
 
       const actionRequired = await ctx.db.eBl.count({
-        where: {
-          ownerPlatformId: ctx.session.platformId,
-        },
+        where: eBlQueryCondition("actionRequired", ctx.session.platformId),
       });
 
       const result = ebls.map((ebl) => ({
@@ -72,7 +53,7 @@ export const eBlRouter = createTRPCRouter({
 
       return {
         list: await EBlRowSchemaList.parseAsync(result),
-        total: Number(count[0]?.count ?? 0),
+        total: count,
         actionRequired,
       };
     }),
@@ -162,6 +143,7 @@ export const eBlRouter = createTRPCRouter({
         data: {
           ...pick(input, ["blNumber", "blType", "pol", "pod", "eta", "notes"]),
           status: "DRAFT",
+          ownerPlatformId: ctx.session.platformId,
           issuerPlatform: { connect: { id: ctx.session.platformId } },
           shipperPlatform: input.shipper
             ? { connect: { id: BigInt(input.shipper) } }

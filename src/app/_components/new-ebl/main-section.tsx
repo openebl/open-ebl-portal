@@ -23,7 +23,7 @@ const MainSection = () => {
     { docFileId: dockFileId },
     {
       queryKeyHashFn: hashQueryKey,
-      refetchInterval: 1500,
+      refetchInterval: 1000,
       staleTime: Infinity,
       enabled: status === "processing",
     },

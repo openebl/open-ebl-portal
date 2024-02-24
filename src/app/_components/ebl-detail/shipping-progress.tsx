@@ -1,8 +1,12 @@
 import { format } from "date-fns";
 import { fromPairs } from "remeda";
 
-import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { type EBlRowType } from "@/types/ebl";
 import ActionPanel from "./action-panel";
@@ -31,58 +35,58 @@ const ProgressTracker = ({
   position;
   return (
     <Tooltip>
-  <div
-      className={cn(
-        "flex min-w-0 max-w-[26%] flex-auto flex-col items-start justify-center bg-[#004DE3] py-[1.0625rem] pl-[1.875rem] pr-8",
-        className,
-        position === "first" ? "pl-[1.875rem]" : "-ml-[10px] pl-9",
-      )}
-      style={{
-        clipPath: TrackerPositionClipPath[position],
-      }}
-    >
-      <div className="whitespace-nowrap text-xs font-semibold leading-[1.125rem] text-[#86A1BC]">
-        {title}
+      <div
+        className={cn(
+          "flex min-w-0 max-w-[26%] flex-auto flex-col items-start justify-center bg-[#004DE3] py-[1.0625rem] pl-[1.875rem] pr-8",
+          className,
+          position === "first" ? "pl-[1.875rem]" : "-ml-[10px] pl-9",
+        )}
+        style={{
+          clipPath: TrackerPositionClipPath[position],
+        }}
+      >
+        <div className="whitespace-nowrap text-xs font-semibold leading-[1.125rem] text-[#86A1BC]">
+          {title}
+        </div>
+        <TooltipTrigger asChild>
+          <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg font-bold leading-7 text-white">
+            {name}
+          </div>
+        </TooltipTrigger>
       </div>
-      <TooltipTrigger asChild>
-      <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg font-bold leading-7 text-white">
-        {name}
-      </div>
-      </TooltipTrigger>
-    </div>
-    <TooltipContent>
-      <p>{name}</p>
-    </TooltipContent>
+      <TooltipContent>
+        <p>{name}</p>
+      </TooltipContent>
     </Tooltip>
   );
 };
 
 const ProgressTrackerBar = ({ ebl }: { ebl: EBlRowType }) => {
-  const active = 'bg-[#004DE3]'
-  const inactive = 'bg-[#0D447A]'
+  const active = "bg-[#004DE3]";
+  const inactive = "bg-[#0D447A]";
   return (
     <div className="flex w-full max-w-full justify-evenly">
       <ProgressTracker
         title="Issuing Agent"
-        name={ebl.issuerName ?? '--'}
+        name={ebl.issuerName ?? "--"}
         className={ebl.ownerPlatform === ebl.issuer ? active : inactive}
         position="first"
       />
       <ProgressTracker
         title="Shipper"
-        name={ebl.shipperName ?? '--'}
+        name={ebl.shipperName ?? "--"}
         className={ebl.ownerPlatform === ebl.shipper ? active : inactive}
         position="middle"
       />
       <ProgressTracker
         title="Consignee"
-        name={ebl.consigneeName ?? '--'}
+        name={ebl.consigneeName ?? "--"}
         className={ebl.ownerPlatform === ebl.consignee ? active : inactive}
         position="middle"
       />
       <ProgressTracker
         title="Release Agent"
-        name={ebl.releaseAgentName ?? '--'}
+        name={ebl.releaseAgentName ?? "--"}
         className={ebl.ownerPlatform === ebl.releaseAgent ? active : inactive}
         position="last"
       />
@@ -107,16 +111,26 @@ const ProgressStatusItem = ({
   </div>
 );
 
-const ProgressStatus = ({ ebl,sessionPlatformId }: { ebl: EBlRowType, sessionPlatformId: string|undefined }) => {
-  const nameMapping = fromPairs([
-    [ebl.issuer, ebl.issuerName],
-    [ebl.shipper, ebl.shipperName],
-    [ebl.consignee, ebl.consigneeName],
-    [ebl.releaseAgent, ebl.releaseAgentName],
-  ].filter(([id]) => !!id) as [string, string][]);
+const ProgressStatus = ({
+  ebl,
+  sessionPlatformId,
+}: {
+  ebl: EBlRowType;
+  sessionPlatformId: string | undefined;
+}) => {
+  const nameMapping = fromPairs(
+    [
+      [ebl.issuer, ebl.issuerName],
+      [ebl.shipper, ebl.shipperName],
+      [ebl.consignee, ebl.consigneeName],
+      [ebl.releaseAgent, ebl.releaseAgentName],
+    ].filter(([id]) => !!id) as [string, string][],
+  );
 
-  const currentOwnerName = ebl.ownerPlatform ? nameMapping[ebl.ownerPlatform] : '-';
-  const nextOwnerName = ebl.nextPlatform ? nameMapping[ebl.nextPlatform] : '-';
+  const currentOwnerName = ebl.ownerPlatform
+    ? nameMapping[ebl.ownerPlatform]
+    : "-";
+  const nextOwnerName = ebl.nextPlatform ? nameMapping[ebl.nextPlatform] : "-";
   return (
     <div className="flex h-[3.875rem] w-full items-start justify-start gap-[3.75rem] px-[1.875rem]">
       <ProgressStatusItem title="Last Update">
@@ -125,32 +139,47 @@ const ProgressStatus = ({ ebl,sessionPlatformId }: { ebl: EBlRowType, sessionPla
 
       <ProgressStatusItem title="Current Owner">
         {currentOwnerName}
-        { sessionPlatformId === ebl.ownerPlatform && <span className="text-xs leading-[1.125rem] text-disabled"> (You)</span> }
+        {sessionPlatformId === ebl.ownerPlatform && (
+          <span className="text-xs leading-[1.125rem] text-disabled">
+            {" "}
+            (You)
+          </span>
+        )}
       </ProgressStatusItem>
 
       <ProgressStatusItem title="Next Owner">
         {nextOwnerName}
-        { sessionPlatformId === ebl.nextPlatform && <span className="text-xs leading-[1.125rem] text-disabled"> (You)</span> }
+        {sessionPlatformId === ebl.nextPlatform && (
+          <span className="text-xs leading-[1.125rem] text-disabled">
+            {" "}
+            (You)
+          </span>
+        )}
       </ProgressStatusItem>
     </div>
   );
 };
 
-
-const ShippingProgress = ({ ebl,sessionPlatformId }: { ebl: EBlRowType, sessionPlatformId: string|undefined }) => {
+const ShippingProgress = ({
+  ebl,
+  sessionPlatformId,
+}: {
+  ebl: EBlRowType;
+  sessionPlatformId: string | undefined;
+}) => {
   return (
     <TooltipProvider>
-    <section className="border-bolder-light flex w-full flex-col items-start gap-[1.875rem] rounded-lg border border-solid bg-white py-[1.875rem] shadow-lg">
-      <header className="whitespace-nowrap px-[1.875rem] text-[1.375rem] font-semibold leading-8 text-main">
-        Progress
-      </header>
+      <section className="border-bolder-light flex w-full flex-col items-start gap-[1.875rem] rounded-lg border border-solid bg-white py-[1.875rem] shadow-lg">
+        <header className="whitespace-nowrap px-[1.875rem] text-[1.375rem] font-semibold leading-8 text-main">
+          Progress
+        </header>
 
-      <ProgressTrackerBar ebl={ebl} />
+        <ProgressTrackerBar ebl={ebl} />
 
-      <ProgressStatus ebl={ebl} sessionPlatformId={sessionPlatformId}/>
+        <ProgressStatus ebl={ebl} sessionPlatformId={sessionPlatformId} />
 
-      <ActionPanel ebl={ebl} disabled={sessionPlatformId!==ebl.ownerPlatform}/>
-    </section>
+        <ActionPanel ebl={ebl} />
+      </section>
     </TooltipProvider>
   );
 };

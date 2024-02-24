@@ -12,7 +12,6 @@ export interface DBFixtures {
 export const testWithDb = test.extend<DBFixtures>({
   db: async ({}, use) => {
     await spinUpTestPrisma(async (testPrisma) => {
-      console.log('----------- testPrisma')
       await use(testPrisma)
     })
   },

@@ -13,7 +13,6 @@ export const getDocImagesByDocFileId = (docFileId: bigint) =>
 
     Effect.map(groupImagesByPage),
 
-    Effect.tap((n) => console.log(n)),
     Effect.flatMap((images) =>
       StorageService.pipe(
         Effect.flatMap((storage) =>
