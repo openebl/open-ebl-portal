@@ -29,7 +29,7 @@ export const eBlRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const condition = eBlQueryCondition(input.filter, ctx.session.platformId);
 
-      const [ebls, count, actionRequired] = await Promise.all([
+      const [ebls, count, actionRequired, upcoming, sent, archive] = await Promise.all([
         ctx.db.eBl.findMany({
           where: condition,
           orderBy: { updatedAt: "desc" },
@@ -39,6 +39,15 @@ export const eBlRouter = createTRPCRouter({
         ctx.db.eBl.count({ where: condition }),
         ctx.db.eBl.count({
           where: eBlQueryCondition("actionRequired", ctx.session.platformId),
+        }),
+        ctx.db.eBl.count({
+          where: eBlQueryCondition("upcoming", ctx.session.platformId),
+        }),
+        ctx.db.eBl.count({
+          where: eBlQueryCondition("sent", ctx.session.platformId),
+        }),
+        ctx.db.eBl.count({
+          where: eBlQueryCondition("archive", ctx.session.platformId),
         }),
       ]);
 
@@ -67,6 +76,9 @@ export const eBlRouter = createTRPCRouter({
         list: await EBlRowSchemaList.parseAsync(result),
         total: count,
         actionRequired,
+        upcoming,
+        sent,
+        archive,
       };
     }),
 

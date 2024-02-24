@@ -32,10 +32,12 @@ const FilterGroupItem = ({
 
 const FilterList = ({
   filter,
-  actionRequired,
+  stats
+
 }: {
   filter?: string | null;
-  actionRequired: number;
+  stats: {actionRequired: number, upcoming: number, sent: number, archive: number};
+
 }) => {
   const currentFilter = filter ?? "actionNeeded";
   return (
@@ -49,9 +51,9 @@ const FilterList = ({
         className="rounded-none rounded-s-lg border"
       >
         Action Needed
-        {actionRequired > 0 && (
+        {stats.actionRequired > 0 && (
           <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
-            {actionRequired}
+            {stats.actionRequired}
           </span>
         )}
       </FilterGroupItem>
@@ -60,15 +62,30 @@ const FilterList = ({
         className="rounded-none border-b border-t"
       >
         Upcoming
+        {stats.upcoming > 0 && (
+          <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
+            {stats.upcoming}
+          </span>
+        )}
       </FilterGroupItem>
       <FilterGroupItem value="sent" className="borde-t rounded-none border-b">
         Sent
+        {stats.sent > 0 && (
+          <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
+            {stats.sent}
+          </span>
+        )}
       </FilterGroupItem>
       <FilterGroupItem
         value="archive"
         className="rounded-none rounded-e-lg border"
       >
         Archive
+        {stats.archive > 0 && (
+          <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
+            {stats.archive}
+          </span>
+        )}
       </FilterGroupItem>
     </ToggleGroup>
   );
@@ -92,7 +109,8 @@ const emptyMessgaes: Record<string, string[]> = {
 };
 
 const EmptyList = ({ filter }: { filter: string | null | undefined }) => {
-  const message = emptyMessgaes[filter ?? "actionNeeded"] ?? emptyMessgaes.default;
+  const message =
+    emptyMessgaes[filter ?? "actionNeeded"] ?? emptyMessgaes.default;
   return (
     <div className="flex min-h-[28rem] w-full flex-col justify-center">
       <div className="text-content flex w-full flex-col items-center justify-start text-main">
@@ -132,17 +150,20 @@ const EblTable = ({
 
 const EblSection = ({
   list,
-  actionRequired,
   filter,
+  stats,
 }: {
   list: EBlRowType[];
-  actionRequired: number;
   filter: string | null | undefined;
+  stats: {actionRequired: number, upcoming: number, sent: number, archive: number};
 }) => {
   return (
     <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">
       <div className="flex w-full items-center justify-start border-b-[1px] border-border-light bg-transparent py-4">
-        <FilterList filter={filter} actionRequired={actionRequired} />
+        <FilterList
+          filter={filter}
+          stats={stats}
+        />
       </div>
       <EblTable list={list} filter={filter} />
     </div>

@@ -14,7 +14,7 @@ const MainSection = ({
   page,
   filter,
 }: {
-  result: { list: EBlRowType[]; total: number; actionRequired: number };
+  result: { list: EBlRowType[]; total: number; actionRequired: number, upcoming: number, sent: number, archive: number};
   page: number;
   filter: string | null | undefined;
 }) => {
@@ -35,7 +35,7 @@ const MainSection = ({
         <EblSection
           filter={filter}
           list={result.list}
-          actionRequired={result.actionRequired}
+          stats={result}
         />
         <PaginatorSection
           total={result.total}
