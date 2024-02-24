@@ -15,7 +15,7 @@ const FilterButton = ({
     <button
       type="button"
       className={cn(
-        "w-[11.25rem] border border-gray-200 bg-white px-4 py-2 text-sm font-medium leading-[1.375rem] text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:text-blue-700 focus:ring-2 focus:ring-blue-700",
+        "flex justify-center items-center gap-x-2.5 w-[11.25rem] border border-gray-200 bg-white px-4 py-2 text-sm font-medium leading-[1.375rem] text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:text-blue-700 focus:ring-2 focus:ring-blue-700",
         className,
       )}
     >
@@ -24,13 +24,20 @@ const FilterButton = ({
   );
 };
 
-const FilterList = () => {
+const FilterList = ({ actionRequired }: { actionRequired: number }) => {
   return (
     <div
       className="inline-flex rounded-md px-4 font-header text-sm text-main shadow-sm"
       role="group"
     >
-      <FilterButton className="rounded-s-lg border">Action Needed</FilterButton>
+      <FilterButton className="rounded-s-lg border">
+        Action Needed
+        {actionRequired > 0 && (
+          <span className="flex text-white text-xs font-semibold h-[18px] px-2.5 py-px bg-secondary1 rounded-[10px] justify-center items-center">
+          {actionRequired}
+          </span>
+        )}
+      </FilterButton>
       <FilterButton className="border-b border-t">Upcoming</FilterButton>
       <FilterButton className="borde-t border-b">Sent</FilterButton>
       <FilterButton className="rounded-e-lg border">Archive</FilterButton>
@@ -68,16 +75,19 @@ const EblTable = ({ list }: { list: EBlRowType[] }) => {
   );
 };
 
-const EblSection = ({ list }: { list: EBlRowType[] }) => {
+const EblSection = ({
+  list,
+  actionRequired,
+}: {
+  list: EBlRowType[];
+  actionRequired: number;
+}) => {
   return (
-    <div className="flex w-full flex-col items-start justify-start gap-4">
-      <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">
-        <div className="flex w-full items-center justify-start border-b-[1px] border-border-light bg-transparent py-4">
-          <FilterList />
-        </div>
-        <EblTable list={list} />
+    <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">
+      <div className="flex w-full items-center justify-start border-b-[1px] border-border-light bg-transparent py-4">
+        <FilterList actionRequired={actionRequired} />
       </div>
-      <PaginatorSection />
+      <EblTable list={list} />
     </div>
   );
 };

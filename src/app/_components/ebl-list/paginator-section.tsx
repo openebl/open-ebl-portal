@@ -1,16 +1,26 @@
 "use client";
 
 import Paginator from "@/app/_components/common/paginator";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-const PaginatorSection = () => {
-  const [page, setPage] = useState(1);
-  return <Paginator
-    total={92}
-    perPage={10}
-    currentPage={page}
-    onPageChanged={(page) => setPage(page)}
-  />;
+const PaginatorSection = ({
+  total,
+  currentPage,
+}: {
+  total: number;
+  currentPage: number;
+}) => {
+  const router = useRouter();
+  return (
+    <Paginator
+      total={total}
+      perPage={10}
+      currentPage={currentPage}
+      onPageChanged={(page) =>
+        router.push(`/ebls?page=${page}`, { scroll: true })
+      }
+    />
+  );
 };
 
 export default PaginatorSection;

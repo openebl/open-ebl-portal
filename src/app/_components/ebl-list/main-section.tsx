@@ -1,11 +1,21 @@
+"use server";
+
+import Link from "next/link";
+
 import SearchBox from "@/app/_components/common/searchbox";
 import AddIcon from "@/app/_icons/add-icon";
 import { Button } from "@/components/ui/button";
 import { type EBlRowType } from "@/types/ebl";
-import Link from "next/link";
 import EblSection from "./ebl-section";
+import PaginatorSection from "./paginator-section";
 
-const MainSection = ({ list }: { list: EBlRowType[] }) => {
+const MainSection = ({
+  result,
+  page,
+}: {
+  result: { list: EBlRowType[]; total: number; actionRequired: number };
+  page: number;
+}) => {
   return (
     <div className="px-12 py-10 font-content">
       <div className="text-2xl font-bold leading-9 text-main">eB/L</div>
@@ -18,7 +28,11 @@ const MainSection = ({ list }: { list: EBlRowType[] }) => {
           </Button>
         </Link>
       </div>
-      <EblSection list={list} />
+
+      <div className="flex w-full flex-col items-start justify-start gap-4">
+        <EblSection list={result.list} actionRequired={result.actionRequired} />
+        <PaginatorSection total={result.total} currentPage={page} />
+      </div>
     </div>
   );
 };

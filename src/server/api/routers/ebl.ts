@@ -22,6 +22,8 @@ export const eBlRouter = createTRPCRouter({
   list: protectedProcedure
     .input(
       z.object({
+        offset: z.number().optional().default(0),
+        limit: z.number().optional().default(10),
         status: z
           .array(z.nativeEnum(EBlStatus))
           .optional()
@@ -35,12 +37,27 @@ export const eBlRouter = createTRPCRouter({
       const ebls = await ctx.db.$queryRawUnsafe<EBl[]>(
         `SELECT * FROM "EBl" WHERE "status" IN (${statusCond}) AND "id" in (
           SELECT "eBlId" FROM "EBlJourney" WHERE "targetPlatformId" = $${input.status.length + 1}
-         )
-         OR "status" = CAST('DRAFT'::text AS "public"."EBlStatus")
-         ORDER BY "updatedAt" DESC`,
+         ) OR "status" = CAST('DRAFT'::text AS "public"."EBlStatus")
+         ORDER BY "updatedAt" DESC OFFSET $${input.status.length + 2} LIMIT $${input.status.length + 3}`,
+        ...input.status,
+        ctx.session.platformId,
+        input.offset,
+        input.limit,
+      );
+
+      const count = await ctx.db.$queryRawUnsafe<{count: bigint}[]>(
+        `SELECT COUNT(*) as count FROM "EBl" WHERE "status" IN (${statusCond}) AND "id" in (
+          SELECT "eBlId" FROM "EBlJourney" WHERE "targetPlatformId" = $${input.status.length + 1}
+         ) OR "status" = CAST('DRAFT'::text AS "public"."EBlStatus")`,
         ...input.status,
         ctx.session.platformId,
       );
+
+      const actionRequired = await ctx.db.eBl.count({
+        where: {
+          ownerPlatformId: ctx.session.platformId
+        },
+      });
 
       const result = ebls.map((ebl) => ({
         ...ebl,
@@ -52,7 +69,11 @@ export const eBlRouter = createTRPCRouter({
         releaseAgent: ebl.releaseAgentId?.toString(),
       }));
 
-      return EBlRowSchemaList.parseAsync(result);
+      return {
+        list: await EBlRowSchemaList.parseAsync(result),
+        total: Number(count[0]?.count ?? 0),
+        actionRequired,
+      }
     }),
 
   getWithImages: protectedProcedure

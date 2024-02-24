@@ -213,7 +213,7 @@ const Paginator = ({
   return (
     <div className="border-bolder-light flex items-center justify-center rounded-[58px] border border-solid bg-white px-5 py-[11px] shadow-xl">
       <div className="my-auto grow self-center whitespace-nowrap text-xs font-semibold leading-5 text-main">
-        {(currentPage-1) * perPage + 1} to {currentPage * perPage} of {total} entries
+        {(currentPage-1) * perPage + 1} to {Math.min(currentPage * perPage, total)} of {total} entries
       </div>
       <div className="mx-5 flex items-center justify-start gap-1.5">
         {pagenationItems({ totalPages, currentPage }).map((page) => (

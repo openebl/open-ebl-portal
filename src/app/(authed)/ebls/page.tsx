@@ -1,14 +1,16 @@
-"use server";
-
 import MainSection from "@/app/_components/ebl-list/main-section";
 import { api } from "@/trpc/server";
 
-export default async function Page() {
-  // const hello = await api.post.hello.query({ text: "from tRPC" });
-  // const session = await getServerAuthSession();
-  const eBls = await api.ebl.list.query({});
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: Record<string, string | string[] | undefined>;
+}) {
+  const pageParam = Array.isArray(searchParams?.page)
+    ? searchParams?.page[0]
+    : searchParams?.page;
+  const currentPage = pageParam ? parseInt(pageParam) : 1;
+  const result = await api.ebl.list.query({offset : (currentPage - 1) * 10, limit: 10});
 
-  return (
-    <MainSection list={eBls} />
-  );
+  return <MainSection result={result} page={currentPage} />;
 }
