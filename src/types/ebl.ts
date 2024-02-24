@@ -61,6 +61,7 @@ const EBlRowSchema = EBlDraftSchema.extend({
   shipperName: z.string().optional().nullable(),
   consigneeName: z.string().optional().nullable(),
   releaseAgentName: z.string().optional().nullable(),
+  ownerName: z.string().optional().nullable(),
   allowActions: z
     .array(
       z.enum(

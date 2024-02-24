@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { pick } from "remeda";
+import { find, isTruthy, pick, uniq } from "remeda";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
@@ -29,18 +29,25 @@ export const eBlRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const condition = eBlQueryCondition(input.filter, ctx.session.platformId);
 
-      const ebls = await ctx.db.eBl.findMany({
-        where: condition,
-        orderBy: { updatedAt: "desc" },
-        skip: input.offset,
-        take: input.limit,
-      });
-      const count = await ctx.db.eBl.count({ where: condition });
+      const [ebls, count, actionRequired] = await Promise.all([
+        ctx.db.eBl.findMany({
+          where: condition,
+          orderBy: { updatedAt: "desc" },
+          skip: input.offset,
+          take: input.limit,
+        }),
+        ctx.db.eBl.count({ where: condition }),
+        ctx.db.eBl.count({
+          where: eBlQueryCondition("actionRequired", ctx.session.platformId),
+        }),
+      ]);
 
-      const actionRequired = await ctx.db.eBl.count({
-        where: eBlQueryCondition("actionRequired", ctx.session.platformId),
+      const ownerIds = ebls.map((ebl) => [ebl.issuerId, ebl.shipperId, ebl.consigneeId, ebl.releaseAgentId]).flat().filter(isTruthy);
+      const platforms = await ctx.db.platform.findMany({
+        where: { id: { in: uniq(ownerIds) } },
+        select: { id: true, name: true },
       });
-
+      const platformNames = new Map<bigint, string>(platforms.map((p) => [p.id, p.name]));
       const result = ebls.map((ebl) => ({
         ...ebl,
         ownerPlatform: ebl.ownerPlatformId?.toString(),
@@ -49,6 +56,11 @@ export const eBlRouter = createTRPCRouter({
         shipper: ebl.shipperId?.toString(),
         consignee: ebl.consigneeId?.toString(),
         releaseAgent: ebl.releaseAgentId?.toString(),
+        issuerName: ebl.issuerId && platformNames.get(ebl.issuerId),
+        shipperName: ebl.shipperId && platformNames.get(ebl.shipperId),
+        consigneeName: ebl.consigneeId && platformNames.get(ebl.consigneeId),
+        releaseAgentName: ebl.releaseAgentId && platformNames.get(ebl.releaseAgentId),
+        ownerName: ebl.ownerPlatformId && platformNames.get(ebl.ownerPlatformId),
       }));
 
       return {

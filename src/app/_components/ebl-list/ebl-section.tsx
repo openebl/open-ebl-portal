@@ -92,7 +92,7 @@ const emptyMessgaes: Record<string, string[]> = {
 };
 
 const EmptyList = ({ filter }: { filter: string | null | undefined }) => {
-  const message = emptyMessgaes[filter ?? "default"] ?? emptyMessgaes.default;
+  const message = emptyMessgaes[filter ?? "actionNeeded"] ?? emptyMessgaes.default;
   return (
     <div className="flex min-h-[28rem] w-full flex-col justify-center">
       <div className="text-content flex w-full flex-col items-center justify-start text-main">
@@ -124,7 +124,7 @@ const EblTable = ({
   return (
     <div className="text-content flex min-h-[28rem] w-full flex-col justify-start">
       {list.map((row, index) => (
-        <TableRow key={index} row={row} />
+        <TableRow key={index} row={row} filter={filter} />
       ))}
     </div>
   );

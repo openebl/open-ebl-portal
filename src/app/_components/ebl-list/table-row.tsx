@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { Status, type EBlRowType } from "@/types/ebl";
 import { format } from "date-fns";
 import Link from "next/link";
+import React from "react";
+import { findIndex } from "remeda";
 
 const Stamp = ({
   children,
@@ -94,7 +96,48 @@ const EBlProgressBar = ({ row }: { row: EBlRowType }) => {
   );
 };
 
-const TableRow = ({ row }: { row: EBlRowType }) => {
+const senderInfoMapping: Record<
+  string,
+  (row: EBlRowType) => React.JSX.Element | null
+> = {
+  actionNeeded: (row) => {
+    const owner = findIndex(
+      [row.issuer, row.shipper, row.consignee, row.releaseAgent],
+      (id) => id === row.ownerPlatform,
+    );
+    if (owner < 1) return null;
+    const senderName = [row.issuerName, row.shipperName, row.consigneeName][
+      owner - 1
+    ];
+    return (
+      <>
+        From
+        <span className="font-semibold">{senderName}</span>
+      </>
+    );
+  },
+  default: (row) => {
+    if (!row.ownerName) return null;
+    if (row.status === Status.Printed)
+      return (
+        <span className="text-red-500">This eB/L was printed to paper.</span>
+      );
+    return !row.ownerName ? null : (
+      <>
+        Current Owner
+        <span className="font-semibold">{row.ownerName}</span>
+      </>
+    );
+  },
+};
+
+const TableRow = ({
+  row,
+  filter,
+}: {
+  row: EBlRowType;
+  filter: string | null | undefined;
+}) => {
   const detailLink =
     row.status === Status.Draft ? `/ebls/${row.id}/edit` : `/ebls/${row.id}`;
   return (
@@ -118,6 +161,9 @@ const TableRow = ({ row }: { row: EBlRowType }) => {
               <HblNonNegotiableBadge />
               <FourPBadge title={`POL: ${portName(row.pol)}`} />
               <FourPBadge title={`POD: ${portName(row.pod)}`} />
+              <div className="flex items-center gap-x-1 text-xs font-normal">
+                { senderInfoMapping[filter ?? '']?.(row) ?? senderInfoMapping.default?.(row) }
+              </div>
             </div>
             <div className="my-auto text-right text-xs leading-5">
               <span>Last updated on </span>

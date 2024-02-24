@@ -320,6 +320,7 @@ const eBlQueryConditions: Record<
   },
   sent: (platformId) => {
     return {
+      status: { not: "COMPLETED" },
       journey: {
         some: {
           sourcePlatformId: platformId,
