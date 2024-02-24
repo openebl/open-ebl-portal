@@ -52,8 +52,6 @@ const MainSection = ({
 
   const issue = api.ebl.issue.useMutation({
     onSuccess: () => {
-      // router.push("/ebls", { scroll: true });
-      // router.refresh();
       setIssuingOpen(false);
       setIssuedOpen(true);
     },

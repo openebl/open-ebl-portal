@@ -3,9 +3,11 @@
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { isEmpty } from "remeda";
 import { toast } from "sonner";
 
 import AmendIcon from "@/app/_icons/amend-icon";
+import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
 import PrinterIcon from "@/app/_icons/printer-icon";
 import ReturnIcon from "@/app/_icons/return-icon";
 import SendIcon from "@/app/_icons/send-icon";
@@ -19,7 +21,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
 import { EBlAllowAction, type EBlRowType } from "@/types/ebl";
-import { isEmpty } from "remeda";
+import ConfirmationDialog from "../dialogs/confirmation-dialog";
+import NotificationDialog from "../dialogs/notification-dialog";
+import ProgressDialog from "../dialogs/progress-dialog";
 
 const availableActions = {
   [EBlAllowAction.Transfer]: {
@@ -56,32 +60,42 @@ const ActionPanel = ({
 }) => {
   const [action, setAction] = useState<EBlAllowAction>(ebl.allowActions?.[0] ?? EBlAllowAction.Transfer);
   const [note, setNote] = useState<string>("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [transferringOpen, setTransferringOpen] = useState(false);
+  const [transferredOpen, setTransferredOpen] = useState(false);
+
   const disabled = !ebl.allowActions || isEmpty(ebl.allowActions);
   const router = useRouter();
   const transfer = api.ebl.transfer.useMutation({
     onSuccess: () => {
-      router.push("/ebls", { scroll: true });
-      router.refresh();
-      toast.success("eB/L is transferred successfully");
+      setTransferringOpen(false);
+      setTransferredOpen(true);
     },
     onError: (error) => {
+      setTransferringOpen(false);
       console.error(error);
       toast.error("Failed to transfer eB/L: " + error.message);
     },
   });
   const accomplish = api.ebl.accomplish.useMutation({
     onSuccess: () => {
-      router.push("/ebls", { scroll: true });
-      router.refresh();
-      toast.success("eB/L is accomplished");
+      setTransferringOpen(false);
+      setTransferredOpen(true);
     },
     onError: (error) => {
+      setTransferringOpen(false);
       console.error(error);
-      toast.error("Failed to transfer eB/L: " + error.message);
+      toast.error("Failed to accomplish eB/L: " + error.message);
     },
   });
 
   const handleClick = () => {
+    setConfirmOpen(true);
+  };
+
+  const executeAction = () => {
+    setConfirmOpen(false);
+    setTransferringOpen(true);
     actionHandlers[action]();
   };
 
@@ -105,6 +119,14 @@ const ActionPanel = ({
       null;
     },
   };
+
+  const nextPlatformNameIndex = [ebl.shipper, ebl.consignee, ebl.releaseAgent].indexOf(ebl.nextPlatform)
+  const nextPlatformName = nextPlatformNameIndex < 0 ? '' : [ebl.shipperName, ebl.consigneeName, ebl.releaseAgentName][nextPlatformNameIndex]
+  const confirmMessag = action === EBlAllowAction.Transfer ? `Are you sure you want to transfer this eB/L to ${nextPlatformName}?` : 'Are you sure you want to accomplish this eB/L?'
+  const transferringMessage = !nextPlatformName ? "The eB/L is transferring...":`The eB/L is transferring to ${nextPlatformName}...`
+  const transferredMessage = !nextPlatformName ? "The eB/L has been transferred":`The eB/L has been transferred to ${nextPlatformName}.`
+  const progressMessage = action === EBlAllowAction.Transfer ? transferringMessage : "The eB/L is accomplishing..."
+  const completedMessage = action === EBlAllowAction.Transfer ? transferredMessage : "The eB/L has been accomplished."
 
   return (
     <>
@@ -151,6 +173,28 @@ const ActionPanel = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <ConfirmationDialog
+        open={confirmOpen}
+        title={confirmMessag}
+        confirmTitle="OK"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={executeAction}
+      />
+      <ProgressDialog
+        open={transferringOpen}
+        icon={<PaperPlaneIcon />}
+        message={progressMessage}
+      />
+      <NotificationDialog
+        open={transferredOpen}
+        icon={<PaperPlaneIcon />}
+        message={completedMessage}
+        onConfirm={() => {
+          router.push("/ebls", { scroll: true });
+          router.refresh();
+        }}
+      />
     </>
   );
 };

@@ -30,10 +30,10 @@ const MainSection = async ({
 }) => {
   const session = await getServerAuthSession();
   const targetMapping = [
-    [ebl.issuer, "Issuing Agent"],
-    [ebl.shipper, "Shipper"],
-    [ebl.consignee, "Consignee"],
-    [ebl.releaseAgent, "Release Agent"],
+    [ebl.issuer, ebl.issuerName],
+    [ebl.shipper, ebl.shipperName],
+    [ebl.consignee, ebl.consigneeName],
+    [ebl.releaseAgent, ebl.releaseAgentName],
   ]
     .filter(([id]) => id)
     .reduce(

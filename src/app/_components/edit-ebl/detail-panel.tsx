@@ -9,6 +9,7 @@ import {
   useGetConsignee,
 } from "@/app/_hooks/consignee-filter";
 import { useFilterPorts, useGetPort } from "@/app/_hooks/ports-filter";
+import { useFilterReleaseAgents, useGetReleaseAgent } from "@/app/_hooks/releaseAgent-filter";
 import { useFilterShippers, useGetShipper } from "@/app/_hooks/shippers-filter";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -79,6 +80,14 @@ const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftType> }) => {
             name="consignee"
             useFilterItems={useFilterConsignees}
             useGetItem={useGetConsignee}
+          />
+          <ComboboxField
+            control={form.control}
+            label="Release Agent"
+            required={true}
+            name="releaseAgent"
+            useFilterItems={useFilterReleaseAgents}
+            useGetItem={useGetReleaseAgent}
           />
 
           <FormField

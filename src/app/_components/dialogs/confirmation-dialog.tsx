@@ -20,7 +20,7 @@ const ConfirmationDialog = ({
 }: {
   open: boolean;
   title: string;
-  message: string;
+  message?: string;
   cancelTitle?: string;
   confirmTitle?: string;
   onCancel?: () => void;
