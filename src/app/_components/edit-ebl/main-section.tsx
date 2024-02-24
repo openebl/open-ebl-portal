@@ -1,16 +1,23 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import ConfirmationDialog from "@/app/_components/dialogs/confirmation-dialog";
+import ProgressDialog from "@/app/_components/dialogs/progress-dialog";
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { EBlSchema, type EBlDraftType } from "@/types/ebl";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
+import { useGetShipper } from "@/app/_hooks/shippers-filter";
+import NotificationDialog from "../dialogs/notification-dialog";
 
 type ImageType = {
   imageUrl: string;
@@ -26,9 +33,14 @@ const MainSection = ({
   images: ImageType[];
 }) => {
   const router = useRouter();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [issuingOpen, setIssuingOpen] = useState(false);
+  const [issedOpen, setIssuedOpen] = useState(false);
+  const [shipper, setShipper] = useState<string>("");
+  const getShipper = useGetShipper(shipper);
   const saveDraft = api.ebl.saveDraft.useMutation({
     onSuccess: () => {
-      router.push("/ebls", {scroll: true});
+      router.push("/ebls", { scroll: true });
       router.refresh();
       toast.success("Draft eB/L Saved");
     },
@@ -40,11 +52,13 @@ const MainSection = ({
 
   const issue = api.ebl.issue.useMutation({
     onSuccess: () => {
-      router.push("/ebls", {scroll: true});
-      router.refresh();
-      toast.success("eB/L issued successfully");
+      // router.push("/ebls", { scroll: true });
+      // router.refresh();
+      setIssuingOpen(false);
+      setIssuedOpen(true);
     },
     onError: (error) => {
+      setIssuingOpen(false);
       console.error(error);
       toast.error("Failed to Issue eB/L: " + error.message);
     },
@@ -57,6 +71,13 @@ const MainSection = ({
     },
   });
 
+  const handleSaveDraft = async () => {
+    saveDraft.mutate({
+      ...form.getValues(),
+      id: ebl.id,
+    });
+  };
+
   const submitClicked = async () => {
     const r = await form.trigger(undefined, { shouldFocus: true });
     if (!r) {
@@ -64,17 +85,14 @@ const MainSection = ({
       return;
     }
 
-    issue.mutate({
-      ...EBlSchema.parse(form.getValues()),
-      id: ebl.id,
-    });
+    setShipper(form.getValues().shipper!);
+    setConfirmOpen(true);
   };
 
-  const handleSaveDraft = async () => {
-    saveDraft.mutate({
-      ...form.getValues(),
-      id: ebl.id,
-    });
+  const issueEBl = async () => {
+    setConfirmOpen(false);
+    setIssuingOpen(true);
+    issue.mutate({ ...EBlSchema.parse(form.getValues()), id: ebl.id });
   };
 
   return (
@@ -109,6 +127,35 @@ const MainSection = ({
           </div>
         </div>
       </div>
+
+      <ConfirmationDialog
+        open={confirmOpen}
+        title="Are you sure you want to issue this eB/L?"
+        message="Please ensure that the information provided and the parties selected are accurate."
+        confirmTitle="Issue eB/L"
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={issueEBl}
+      />
+      <ProgressDialog
+        open={issuingOpen}
+        icon={<PaperPlaneIcon />}
+        message={
+          "The eB/L is issuing " +
+          (!getShipper.item ? "" : `to ${getShipper.item?.label}...`)
+        }
+      />
+      <NotificationDialog
+        open={issedOpen}
+        icon={<PaperPlaneIcon />}
+        message={
+          "The eB/L has been issued " +
+          (!getShipper.item ? "" : `to ${getShipper.item?.label}...`)
+        }
+        onConfirm={() => {
+          router.push("/ebls", { scroll: true });
+          router.refresh();
+        }}
+      />
     </div>
   );
 };

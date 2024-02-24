@@ -57,13 +57,19 @@ const OuterFrame = async ({
     <main className="relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header">
       <div className="flex h-16 w-full items-center justify-between bg-header text-header-text">
         <div className="mx-[3.125rem] flex items-center justify-start">
-          <Image
-            alt="BlueX Logo"
-            src="/bluex-logo.svg"
-            width={82}
-            height={20}
-          />
-          <div className="mx-5 text-lg font-semibold">Open eB/L</div>
+          <Link href="/">
+            <Image
+              alt="BlueX Logo"
+              src="/bluex-logo.svg"
+              width={82}
+              height={20}
+            />
+          </Link>
+          <Link href="/">
+            <div className="mx-5 text-lg font-semibold text-header-text">
+              Open eB/L
+            </div>
+          </Link>
           <div className="mx-20">
             <Menu session={session} />
           </div>
