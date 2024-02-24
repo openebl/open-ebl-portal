@@ -10,7 +10,11 @@ export default async function Page({
     ? searchParams?.page[0]
     : searchParams?.page;
   const currentPage = pageParam ? parseInt(pageParam) : 1;
-  const result = await api.ebl.list.query({offset : (currentPage - 1) * 10, limit: 10});
+  const filter = Array.isArray(searchParams?.filter)
+    ? searchParams?.filter[0]
+    : searchParams?.filter;
 
-  return <MainSection result={result} page={currentPage} />;
+  const result = await api.ebl.list.query({filter, offset : (currentPage - 1) * 10, limit: 10});
+
+  return <MainSection result={result} page={currentPage} filter={filter} />;
 }

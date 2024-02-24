@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 const PaginatorSection = ({
   total,
   currentPage,
+  filter,
 }: {
   total: number;
   currentPage: number;
+  filter: string | null | undefined;
 }) => {
   const router = useRouter();
   return (
@@ -17,7 +19,7 @@ const PaginatorSection = ({
       perPage={10}
       currentPage={currentPage}
       onPageChanged={(page) =>
-        router.push(`/ebls?page=${page}`, { scroll: true })
+        router.push(`/ebls?page=${page}&filter=${filter}`, { scroll: true })
       }
     />
   );

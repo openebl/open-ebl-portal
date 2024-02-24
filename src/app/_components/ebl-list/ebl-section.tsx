@@ -1,47 +1,76 @@
 import EmptyFolderIcon from "@/app/_icons/empty-folder-icon";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import { type EBlRowType, type EBlDraftType } from "@/types/ebl";
-import PaginatorSection from "./paginator-section";
+import { type EBlRowType } from "@/types/ebl";
 import TableRow from "./table-row";
+import Link from "next/link";
 
-const FilterButton = ({
+const FilterGroupItem = ({
   className,
   children,
+  value,
 }: {
   className?: string;
   children: React.ReactNode;
+  value: string;
 }) => {
   return (
-    <button
-      type="button"
-      className={cn(
-        "flex justify-center items-center gap-x-2.5 w-[11.25rem] border border-gray-200 bg-white px-4 py-2 text-sm font-medium leading-[1.375rem] text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:text-blue-700 focus:ring-2 focus:ring-blue-700",
-        className,
-      )}
-    >
-      {children}
-    </button>
+    <Link prefetch={false} href={`/ebls?filter=${value}`}>
+      <ToggleGroupItem
+        value={value}
+        className={cn(
+          "flex w-[11.25rem] items-center justify-center gap-x-2.5 border border-gray-200 bg-white px-4 py-2 text-sm font-medium leading-[1.375rem] text-main hover:bg-gray-100 hover:text-main focus:z-20 focus:text-main focus:ring-1 focus:ring-inset focus:ring-blue-700 focus:ring-offset-0 focus-visible:z-20 focus-visible:ring-1 focus-visible:ring-blue-700 focus-visible:ring-offset-0 data-[state=on]:text-main",
+          className,
+        )}
+      >
+        {children}
+      </ToggleGroupItem>
+    </Link>
   );
 };
 
-const FilterList = ({ actionRequired }: { actionRequired: number }) => {
+const FilterList = ({
+  filter,
+  actionRequired,
+}: {
+  filter?: string | null;
+  actionRequired: number;
+}) => {
+  console.log('-----', filter)
+  const currentFilter = filter ?? "actionNeeded";
   return (
-    <div
-      className="inline-flex rounded-md px-4 font-header text-sm text-main shadow-sm"
-      role="group"
+    <ToggleGroup
+      className="inline-flex rounded-md px-4 font-header text-sm text-main"
+      value={currentFilter}
+      type="single"
     >
-      <FilterButton className="rounded-s-lg border">
+      <FilterGroupItem
+        value="actionNeeded"
+        className="rounded-none rounded-s-lg border"
+      >
         Action Needed
         {actionRequired > 0 && (
-          <span className="flex text-white text-xs font-semibold h-[18px] px-2.5 py-px bg-secondary1 rounded-[10px] justify-center items-center">
-          {actionRequired}
+          <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
+            {actionRequired}
           </span>
         )}
-      </FilterButton>
-      <FilterButton className="border-b border-t">Upcoming</FilterButton>
-      <FilterButton className="borde-t border-b">Sent</FilterButton>
-      <FilterButton className="rounded-e-lg border">Archive</FilterButton>
-    </div>
+      </FilterGroupItem>
+      <FilterGroupItem
+        value="upcoming"
+        className="rounded-none border-b border-t"
+      >
+        Upcoming
+      </FilterGroupItem>
+      <FilterGroupItem value="sent" className="borde-t rounded-none border-b">
+        Sent
+      </FilterGroupItem>
+      <FilterGroupItem
+        value="archive"
+        className="rounded-none rounded-e-lg border"
+      >
+        Archive
+      </FilterGroupItem>
+    </ToggleGroup>
   );
 };
 
@@ -78,14 +107,16 @@ const EblTable = ({ list }: { list: EBlRowType[] }) => {
 const EblSection = ({
   list,
   actionRequired,
+  filter
 }: {
   list: EBlRowType[];
   actionRequired: number;
+  filter: string | null | undefined;
 }) => {
   return (
     <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">
       <div className="flex w-full items-center justify-start border-b-[1px] border-border-light bg-transparent py-4">
-        <FilterList actionRequired={actionRequired} />
+        <FilterList filter={filter} actionRequired={actionRequired} />
       </div>
       <EblTable list={list} />
     </div>

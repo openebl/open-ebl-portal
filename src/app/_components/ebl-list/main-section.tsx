@@ -12,9 +12,11 @@ import PaginatorSection from "./paginator-section";
 const MainSection = ({
   result,
   page,
+  filter,
 }: {
   result: { list: EBlRowType[]; total: number; actionRequired: number };
   page: number;
+  filter: string | null | undefined;
 }) => {
   return (
     <div className="px-12 py-10 font-content">
@@ -30,8 +32,16 @@ const MainSection = ({
       </div>
 
       <div className="flex w-full flex-col items-start justify-start gap-4">
-        <EblSection list={result.list} actionRequired={result.actionRequired} />
-        <PaginatorSection total={result.total} currentPage={page} />
+        <EblSection
+          filter={filter}
+          list={result.list}
+          actionRequired={result.actionRequired}
+        />
+        <PaginatorSection
+          total={result.total}
+          currentPage={page}
+          filter={filter}
+        />
       </div>
     </div>
   );

@@ -24,38 +24,39 @@ export const eBlRouter = createTRPCRouter({
       z.object({
         offset: z.number().optional().default(0),
         limit: z.number().optional().default(10),
-        status: z
-          .array(z.nativeEnum(EBlStatus))
-          .optional()
-          .default(["DRAFT", "PROCESSING", "COMPLETED", "PRINTED"]),
+        filter: z.string().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const statusCond = input.status
+      const statusFilter =
+        input.filter === "archive"
+          ? ["COMPLETED"]
+          : ["DRAFT", "PROCESSING", "COMPLETED", "PRINTED"];
+      const statusCond = statusFilter
         .map((_n, i) => `CAST($${i + 1}::text AS "public"."EBlStatus")`)
         .join(", ");
       const ebls = await ctx.db.$queryRawUnsafe<EBl[]>(
         `SELECT * FROM "EBl" WHERE "status" IN (${statusCond}) AND "id" in (
-          SELECT "eBlId" FROM "EBlJourney" WHERE "targetPlatformId" = $${input.status.length + 1}
+          SELECT "eBlId" FROM "EBlJourney" WHERE "targetPlatformId" = $${statusFilter.length + 1}
          ) OR "status" = CAST('DRAFT'::text AS "public"."EBlStatus")
-         ORDER BY "updatedAt" DESC OFFSET $${input.status.length + 2} LIMIT $${input.status.length + 3}`,
-        ...input.status,
+         ORDER BY "updatedAt" DESC OFFSET $${statusFilter.length + 2} LIMIT $${statusFilter.length + 3}`,
+        ...statusFilter,
         ctx.session.platformId,
         input.offset,
         input.limit,
       );
 
-      const count = await ctx.db.$queryRawUnsafe<{count: bigint}[]>(
+      const count = await ctx.db.$queryRawUnsafe<{ count: bigint }[]>(
         `SELECT COUNT(*) as count FROM "EBl" WHERE "status" IN (${statusCond}) AND "id" in (
-          SELECT "eBlId" FROM "EBlJourney" WHERE "targetPlatformId" = $${input.status.length + 1}
+          SELECT "eBlId" FROM "EBlJourney" WHERE "targetPlatformId" = $${statusFilter.length + 1}
          ) OR "status" = CAST('DRAFT'::text AS "public"."EBlStatus")`,
-        ...input.status,
+        ...statusFilter,
         ctx.session.platformId,
       );
 
       const actionRequired = await ctx.db.eBl.count({
         where: {
-          ownerPlatformId: ctx.session.platformId
+          ownerPlatformId: ctx.session.platformId,
         },
       });
 
@@ -73,7 +74,7 @@ export const eBlRouter = createTRPCRouter({
         list: await EBlRowSchemaList.parseAsync(result),
         total: Number(count[0]?.count ?? 0),
         actionRequired,
-      }
+      };
     }),
 
   getWithImages: protectedProcedure
@@ -369,4 +370,4 @@ export const eBlRouter = createTRPCRouter({
         return ebl.id;
       });
     }),
-  });
+});
