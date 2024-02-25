@@ -5,8 +5,8 @@ import { getLogger } from "./logger";
 
 export const pdf2Image = async ({filename, onPage, onComplete}: {
   filename: string,
-  onPage: (img: Buffer, thumbnail: Buffer, page: number) => void,
-  onComplete: () => void,
+  onPage: (img: Buffer, thumbnail: Buffer, page: number) => Promise<void>,
+  onComplete?: () => void,
 }) => {
   const logger = getLogger();
   const poppler = createPoppler();
@@ -30,14 +30,14 @@ export const pdf2Image = async ({filename, onPage, onComplete}: {
         .resize(180, 250, { fit: "inside" })
         .webp()
         .toBuffer();
-      onPage(pageImgBuffer, pageThumbnailBuffer, page);
+      await onPage(pageImgBuffer, pageThumbnailBuffer, page);
     } catch (err) {
       if (page === 1) throw err;
       break;
     }
     page += 1;
   }
-  onComplete();
+  onComplete?.();
 };
 
 const createPoppler = () => {

@@ -5,20 +5,20 @@ import MainSection from "@/app/_components/ebl-detail/main-section";
 import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
 import { getLogger } from "@/lib/logger";
 import { api } from "@/trpc/server";
-import { TRPCClientError } from "@trpc/client";
 import Link from "next/link";
 
 const Page = async ({ params }: { params: { uuid: string } }) => {
   let block: JSX.Element | null = null;
   try {
     const ebl = await api.ebl.getWithImages.query(params.uuid);
+    if (!ebl) throw new Error("NOT_FOUND");
     const journey = await api.eBlJourney.get.query(params.uuid);
     block = <MainSection ebl={ebl.ebl} journey={journey} />;
 
   } catch(err) {
     getLogger().error(err);
 
-    block = err instanceof TRPCClientError && err.message === "NOT_FOUND" ? (
+    block = err instanceof Error && err.message === "NOT_FOUND" ? (
       <ErrorPage message="eB/L Not Found" />
     ) : (
       <ErrorPage message={`Something went wrong`} />

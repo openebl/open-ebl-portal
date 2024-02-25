@@ -1,36 +1,24 @@
-import { Effect } from "effect";
-import { DatabaseService } from "@/server/services/database-service";
-import { type DocImage } from "@prisma/client";
 import { sortBy } from "remeda";
-import { StorageService } from "../services/storage-service";
 
-export const getDocImagesByDocFileId = (docFileId: bigint) =>
-  DatabaseService.pipe(
-    Effect.flatMap((db) => db.transaction()),
-    Effect.flatMap((tx) =>
-      Effect.promise(() => tx.docImage.findMany({ where: { docFileId } })),
-    ),
+import { type DatabaseType } from "@/server/db";
+import { type StorageServiceType } from "@/server/services/storage-service";
+import { type DocImage } from "@prisma/client";
 
-    Effect.map(groupImagesByPage),
-
-    Effect.flatMap((images) =>
-      StorageService.pipe(
-        Effect.flatMap((storage) =>
-          Effect.forEach(images, (image) =>
-            Effect.all({
-              page: Effect.succeed(image.page),
-              imageUrl: storage.getPresignedUrl({
-                key: image.imageKey!,
-              }),
-              thumbnailUrl: storage.getPresignedUrl({
-                key: image.thumbnailKey!,
-              }),
-            }),
-          ),
-        ),
-      ),
-    ),
-  );
+export const getDocImagesByDocFileId = async (db: DatabaseType, storage: StorageServiceType, docFileId: bigint) => {
+  const images = await db.docImage.findMany({ where: { docFileId } });
+  const n = groupImagesByPage(images).map(async (image) => {
+    const [imageUrl, thumbnailUrl] = await Promise.all([
+      storage.getPresignedUrl({key: image.imageKey!}),
+      storage.getPresignedUrl({key: image.thumbnailKey!,})
+    ]);
+    return {
+      page: image.page,
+      imageUrl,
+      thumbnailUrl
+    }
+  });
+  return Promise.all(n);
+}
 
 const groupImagesByPage = (images: DocImage[]) => {
   const result = {} as Record<

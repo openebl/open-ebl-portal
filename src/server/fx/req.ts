@@ -1,6 +1,3 @@
-import { Effect } from "effect";
-import { internalServerError } from "@/server/server-errors";
-
 const readRequestBodyToBuffer = async (
   stream: ReadableStream<Uint8Array> | null,
 ) => {
@@ -18,10 +15,5 @@ const readRequestBodyToBuffer = async (
   return Buffer.concat(chunks);
 };
 
-const bodyToBuffer = (stream: ReadableStream<Uint8Array> | null) =>
-  Effect.tryPromise({
-    try: () => readRequestBodyToBuffer(stream),
-    catch: (error) => internalServerError(error),
-  });
 
-export { bodyToBuffer };
+export { readRequestBodyToBuffer };

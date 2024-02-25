@@ -1,11 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getDocImagesByDocFileId } from "@/server/fx/doc-image";
-import {
-  DatabaseService,
-  liveDatabaseService,
-} from "@/server/services/database-service";
-import { StorageService } from "@/server/services/storage-service";
-import { Effect, pipe } from "effect";
 import { z } from "zod";
 
 export const docImageRouter = createTRPCRouter({
@@ -18,32 +12,12 @@ export const docImageRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const runnable = pipe(
-        Effect.promise(() => {
-          return ctx.db.docImage.findFirst({
-            where: { ...input },
-          });
-        }),
+      const image = await ctx.db.docImage.findFirst({
+        where: { ...input },
+      });
+      if (!image?.storagekey) return null
 
-        // Effect.filterOrFail(
-        //   (image) => !!(image?.storagekey),
-        //   () => {
-        //     return invalidQueryError(new Error("not found"))
-        //   },
-        // ),
-
-        Effect.flatMap((image) =>
-          ctx.storageService.getPresignedUrl({ key: image!.storagekey! }),
-        ),
-
-        // Effect.catchAll((error) =>
-        //   Effect.fail(internalServerError(new Error(`${error}`))),
-        // ),
-
-        // Effect.provideService(DatabaseService, liveDatabaseService(db)),
-      );
-
-      return await Effect.runPromise(runnable);
+      return ctx.storageService.getPresignedUrl({ key: image.storagekey! })
     }),
 
   getUrls: protectedProcedure
@@ -53,12 +27,6 @@ export const docImageRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const runnable = pipe(
-        getDocImagesByDocFileId(input.docFileId),
-        Effect.provideService(DatabaseService, liveDatabaseService(ctx.db)),
-        Effect.provideService(StorageService, ctx.storageService),
-      );
-
-      return Effect.runPromise(Effect.scoped(runnable));
+      return getDocImagesByDocFileId(ctx.db, ctx.storageService, input.docFileId)
     }),
 });

@@ -1,20 +1,18 @@
 import type {
-  StorageServiceType,
   PutObjectProps,
+  StorageServiceType,
 } from "@/server/services/storage-service";
-import { Effect } from "effect";
 
 type WatcherType = Record<string, { content: Buffer; contentType: string }>;
 
 export const useTestStorageService = () => {
   const watcher: WatcherType = {};
   const storageService: StorageServiceType = {
-    putObject: ({ content, key, contentType }: PutObjectProps) => {
+    putObject: async ({ content, key, contentType }: PutObjectProps) => {
       watcher[key] = { content, contentType };
-      return Effect.succeedNone;
     },
-    getPresignedUrl: ({key}:{key:string}) => {
-      return Effect.succeed(`https://storage.com/${key}`)
+    getPresignedUrl: async ({key}:{key:string}) => {
+      return `https://storage.com/${key}`
     }
   };
 

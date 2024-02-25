@@ -75,6 +75,10 @@ const globalForPrisma = globalThis as unknown as {
   prisma: ReturnType<typeof createDb>;
 };
 
+type ParameterType<T> = T extends (param: infer P) => unknown ? P : never;
+
+export type DatabaseType = ReturnType<typeof createDb>;
 export const db = globalForPrisma.prisma ?? createDb();
+export type TransactionType = ParameterType<ParameterType<typeof db.$transaction>>;
 
 if (env.NODE_ENV !== "production") globalForPrisma.prisma = db;

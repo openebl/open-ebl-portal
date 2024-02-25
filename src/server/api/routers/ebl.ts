@@ -1,15 +1,9 @@
-import { Effect } from "effect";
-import { find, isTruthy, pick, uniq } from "remeda";
+import { isTruthy, pick, uniq } from "remeda";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getDocImagesByDocFileId } from "@/server/fx/doc-image";
 import { eBLAllowActions, eBlQueryCondition } from "@/server/fx/ebl";
-import {
-  DatabaseService,
-  liveDatabaseService,
-} from "@/server/services/database-service";
-import { StorageService } from "@/server/services/storage-service";
 import {
   EBlDraftSchema,
   EBlRowSchema,
@@ -29,34 +23,45 @@ export const eBlRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const condition = eBlQueryCondition(input.filter, ctx.session.platformId);
 
-      const [ebls, count, actionRequired, upcoming, sent, archive] = await Promise.all([
-        ctx.db.eBl.findMany({
-          where: condition,
-          orderBy: { updatedAt: "desc" },
-          skip: input.offset,
-          take: input.limit,
-        }),
-        ctx.db.eBl.count({ where: condition }),
-        ctx.db.eBl.count({
-          where: eBlQueryCondition("actionRequired", ctx.session.platformId),
-        }),
-        ctx.db.eBl.count({
-          where: eBlQueryCondition("upcoming", ctx.session.platformId),
-        }),
-        ctx.db.eBl.count({
-          where: eBlQueryCondition("sent", ctx.session.platformId),
-        }),
-        ctx.db.eBl.count({
-          where: eBlQueryCondition("archive", ctx.session.platformId),
-        }),
-      ]);
+      const [ebls, count, actionRequired, upcoming, sent, archive] =
+        await Promise.all([
+          ctx.db.eBl.findMany({
+            where: condition,
+            orderBy: { updatedAt: "desc" },
+            skip: input.offset,
+            take: input.limit,
+          }),
+          ctx.db.eBl.count({ where: condition }),
+          ctx.db.eBl.count({
+            where: eBlQueryCondition("actionRequired", ctx.session.platformId),
+          }),
+          ctx.db.eBl.count({
+            where: eBlQueryCondition("upcoming", ctx.session.platformId),
+          }),
+          ctx.db.eBl.count({
+            where: eBlQueryCondition("sent", ctx.session.platformId),
+          }),
+          ctx.db.eBl.count({
+            where: eBlQueryCondition("archive", ctx.session.platformId),
+          }),
+        ]);
 
-      const ownerIds = ebls.map((ebl) => [ebl.issuerId, ebl.shipperId, ebl.consigneeId, ebl.releaseAgentId]).flat().filter(isTruthy);
+      const ownerIds = ebls
+        .map((ebl) => [
+          ebl.issuerId,
+          ebl.shipperId,
+          ebl.consigneeId,
+          ebl.releaseAgentId,
+        ])
+        .flat()
+        .filter(isTruthy);
       const platforms = await ctx.db.platform.findMany({
         where: { id: { in: uniq(ownerIds) } },
         select: { id: true, name: true },
       });
-      const platformNames = new Map<bigint, string>(platforms.map((p) => [p.id, p.name]));
+      const platformNames = new Map<bigint, string>(
+        platforms.map((p) => [p.id, p.name]),
+      );
       const result = ebls.map((ebl) => ({
         ...ebl,
         ownerPlatform: ebl.ownerPlatformId?.toString(),
@@ -68,8 +73,10 @@ export const eBlRouter = createTRPCRouter({
         issuerName: ebl.issuerId && platformNames.get(ebl.issuerId),
         shipperName: ebl.shipperId && platformNames.get(ebl.shipperId),
         consigneeName: ebl.consigneeId && platformNames.get(ebl.consigneeId),
-        releaseAgentName: ebl.releaseAgentId && platformNames.get(ebl.releaseAgentId),
-        ownerName: ebl.ownerPlatformId && platformNames.get(ebl.ownerPlatformId),
+        releaseAgentName:
+          ebl.releaseAgentId && platformNames.get(ebl.releaseAgentId),
+        ownerName:
+          ebl.ownerPlatformId && platformNames.get(ebl.ownerPlatformId),
       }));
 
       return {
@@ -85,57 +92,39 @@ export const eBlRouter = createTRPCRouter({
   getWithImages: protectedProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
-      const runnable = DatabaseService.pipe(
-        Effect.flatMap((db) => db.transaction()),
-        Effect.flatMap((tx) =>
-          Effect.promise(() => {
-            return tx.eBl.findUnique({
-              where: { id: input },
-              include: {
-                docFile: true,
-                issuerPlatform: true,
-                shipperPlatform: true,
-                consigneePlatform: true,
-                releaseAgentPlatform: true,
-              },
-            });
-          }),
-        ),
+      const ebl = await ctx.db.eBl.findUnique({
+        where: { id: input },
+        include: {
+          docFile: true,
+          issuerPlatform: true,
+          shipperPlatform: true,
+          consigneePlatform: true,
+          releaseAgentPlatform: true,
+        },
+      });
+      if (!ebl) return null;
 
-        Effect.flatMap((ebl) =>
-          ebl
-            ? Effect.succeed({
-                ...ebl,
-                docFilename: ebl?.docFile?.filename,
-                ownerPlatform: ebl.ownerPlatformId?.toString(),
-                nextPlatform: ebl.nextPlatformId?.toString(),
-                issuer: ebl.issuerId?.toString(),
-                shipper: ebl.shipperId?.toString(),
-                consignee: ebl.consigneeId?.toString(),
-                releaseAgent: ebl.releaseAgentId?.toString(),
-                issuerName: ebl.issuerPlatform?.name,
-                shipperName: ebl.shipperPlatform?.name,
-                consigneeName: ebl.consigneePlatform?.name,
-                releaseAgentName: ebl.releaseAgentPlatform?.name,
-                allowActions: eBLAllowActions(ebl, ctx.session.platformId),
-              })
-            : Effect.fail(new Error("not found")),
-        ),
-
-        Effect.flatMap((ebl) => {
-          return getDocImagesByDocFileId(ebl.docFileId!).pipe(
-            Effect.map((images) => ({ ebl, images })),
-          );
-        }),
-
-        Effect.provideService(DatabaseService, liveDatabaseService(ctx.db)),
-        Effect.provideService(StorageService, ctx.storageService),
-      );
-
-      const res = await Effect.runPromise(Effect.scoped(runnable));
       return {
-        ebl: EBlRowSchema.parse(res.ebl),
-        images: res.images,
+        ebl: EBlRowSchema.parse({
+          ...ebl,
+          docFilename: ebl?.docFile?.filename,
+          ownerPlatform: ebl.ownerPlatformId?.toString(),
+          nextPlatform: ebl.nextPlatformId?.toString(),
+          issuer: ebl.issuerId?.toString(),
+          shipper: ebl.shipperId?.toString(),
+          consignee: ebl.consigneeId?.toString(),
+          releaseAgent: ebl.releaseAgentId?.toString(),
+          issuerName: ebl.issuerPlatform?.name,
+          shipperName: ebl.shipperPlatform?.name,
+          consigneeName: ebl.consigneePlatform?.name,
+          releaseAgentName: ebl.releaseAgentPlatform?.name,
+          allowActions: eBLAllowActions(ebl, ctx.session.platformId),
+        }),
+        images: await getDocImagesByDocFileId(
+          ctx.db,
+          ctx.storageService,
+          ebl.docFileId!,
+        ),
       };
     }),
 

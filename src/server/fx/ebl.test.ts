@@ -1,17 +1,12 @@
-import {
-  DatabaseService,
-  liveDatabaseService,
-} from "@/server/services/database-service";
-import { StorageService } from "@/server/services/storage-service";
+import { readFileSync } from "fs";
+import { type Session } from "next-auth";
+import sharp from "sharp";
+import { describe } from "vitest";
+
 import { testWithDb } from "@/test/integration/fixtures/db-fixtures";
 import { createNextRequest } from "@/test/integration/helpers/req";
 import { useTestStorageService } from "@/test/integration/helpers/test-storage";
-import { Effect, pipe } from "effect";
-import { readFileSync } from "fs";
-import { type Session } from "next-auth";
-import { describe } from "vitest";
 import { processFileDocUploadReq } from "./ebl";
-import sharp from "sharp";
 
 describe.concurrent("EBl Fx", () => {
   describe("processFileDocUploadReq", () => {
@@ -31,24 +26,12 @@ describe.concurrent("EBl Fx", () => {
       async ({ expect, db }) => {
         const req = createNextRequest(pdfFile, {'X-Filename': 'ebl.pdf'});
         const { storageService, watcher } = useTestStorageService();
-        const runnable = pipe(
-          processFileDocUploadReq(req, session),
+        const docFileId = await processFileDocUploadReq({req, session, db, storage:storageService});
 
-          // Effect.map((result) => new NextResponse(result)),
-          Effect.catchAll((error) => {
-            console.error("!!!", error);
-            return Effect.succeed(error);
-          }),
-
-          Effect.provideService(DatabaseService, liveDatabaseService(db)),
-          Effect.provideService(StorageService, storageService),
-        );
-
-        const fileDocId = await Effect.runPromise(runnable);
-        expect(fileDocId).toBeTypeOf('bigint');
+        expect(docFileId).toBeTypeOf('bigint');
 
         // validate if docFile is properly stored in database
-        const fileDocOrNull = await db.docFile.findUnique({where:{id: fileDocId as bigint}});
+        const fileDocOrNull = await db.docFile.findUnique({where:{id: docFileId }});
         expect(fileDocOrNull).not.toBeNull();
         const fileDoc = fileDocOrNull!;
         expect(fileDoc.filename).toBe('ebl.pdf');
@@ -63,7 +46,7 @@ describe.concurrent("EBl Fx", () => {
         const imagesMeta = [[1, false], [1, true], [2, false],[2, true]] as Array<[number, boolean]>;
         for (const item of imagesMeta) {
           const [page, thumbnail] = item;
-          const imageRec = await db.docImage.findMany({where:{docFileId: fileDocId as bigint, page, thumbnail}});
+          const imageRec = await db.docImage.findMany({where:{docFileId: docFileId , page, thumbnail}});
           expect(imageRec?.length).toBe(1);
           const image = sharp(watcher[imageRec[0]?.storagekey??'']?.content)
           expect(async () => await image.metadata()).not.toThrow();
