@@ -7,17 +7,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import ConfirmationDialog from "@/app/_components/dialogs/confirmation-dialog";
-import ProgressDialog from "@/app/_components/dialogs/progress-dialog";
+import { ConfirmationDialog, type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
+import { useGetShipper } from "@/app/_hooks/shippers-filter";
+import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 import { EBlSchema, type EBlDraftType } from "@/types/ebl";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
-import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
-import { useGetShipper } from "@/app/_hooks/shippers-filter";
-import NotificationDialog from "../dialogs/notification-dialog";
 
 type ImageType = {
   imageUrl: string;
@@ -33,9 +31,8 @@ const MainSection = ({
   images: ImageType[];
 }) => {
   const router = useRouter();
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [issuingOpen, setIssuingOpen] = useState(false);
-  const [issedOpen, setIssuedOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogState, setDialogState] = useState<DialogState>("confirm");
   const [shipper, setShipper] = useState<string>("");
   const getShipper = useGetShipper(shipper);
   const saveDraft = api.ebl.saveDraft.useMutation({
@@ -52,11 +49,10 @@ const MainSection = ({
 
   const issue = api.ebl.issue.useMutation({
     onSuccess: () => {
-      setIssuingOpen(false);
-      setIssuedOpen(true);
+      setDialogState("completed");
     },
     onError: (error) => {
-      setIssuingOpen(false);
+      setDialogOpen(false);
       console.error(error);
       toast.error("Failed to Issue eB/L: " + error.message);
     },
@@ -84,12 +80,23 @@ const MainSection = ({
     }
 
     setShipper(form.getValues().shipper!);
-    setConfirmOpen(true);
+    setDialogOpen(true);
+    setDialogState("confirm");
   };
 
-  const issueEBl = async () => {
-    setConfirmOpen(false);
-    setIssuingOpen(true);
+  const handleDialogConfirmed = () => {
+    if (dialogState === "confirm") {
+      setDialogState("waiting");
+      issueEBl();
+    } else {
+      setDialogOpen(false);
+      router.push("/ebls", { scroll: true });
+      router.refresh();
+    }
+  };
+
+  const issueEBl = () => {
+    setDialogState('waiting');
     issue.mutate({ ...EBlSchema.parse(form.getValues()), id: ebl.id });
   };
 
@@ -127,32 +134,31 @@ const MainSection = ({
       </div>
 
       <ConfirmationDialog
-        open={confirmOpen}
-        title="Are you sure you want to issue this eB/L?"
-        message="Please ensure that the information provided and the parties selected are accurate."
-        confirmTitle="Issue eB/L"
-        onCancel={() => setConfirmOpen(false)}
-        onConfirm={issueEBl}
-      />
-      <ProgressDialog
-        open={issuingOpen}
-        icon={<PaperPlaneIcon />}
-        message={
-          "The eB/L is issuing " +
-          (!getShipper.item ? "" : `to ${getShipper.item?.label}...`)
-        }
-      />
-      <NotificationDialog
-        open={issedOpen}
-        icon={<PaperPlaneIcon />}
-        message={
-          "The eB/L has been issued " +
-          (!getShipper.item ? "" : `to ${getShipper.item?.label}...`)
-        }
-        onConfirm={() => {
-          router.push("/ebls", { scroll: true });
-          router.refresh();
+        open={dialogOpen}
+        state={dialogState}
+        content={{
+          confirm: {
+            title: "Are you sure you want to issue this eB/L?",
+            message:
+              "Please ensure that the information provided and the parties selected are accurate.",
+            confirmButton: "Issue eB/L",
+          },
+          waiting: {
+            icon: <PaperPlaneIcon />,
+            message:
+              "The eB/L is issuing " +
+              (!getShipper.item ? "" : `to ${getShipper.item?.label}...`),
+          },
+          completed: {
+            icon: <PaperPlaneIcon />,
+            message:
+              "The eB/L has been issued " +
+              (!getShipper.item ? "" : `to ${getShipper.item?.label}...`),
+            confirmButton: "OK",
+          },
         }}
+        onCancel={() => setDialogOpen(false)}
+        onConfirm={handleDialogConfirmed}
       />
     </div>
   );

@@ -21,9 +21,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
 import { EBlAllowAction, type EBlRowType } from "@/types/ebl";
-import ConfirmationDialog from "../dialogs/confirmation-dialog";
-import NotificationDialog from "../dialogs/notification-dialog";
-import ProgressDialog from "../dialogs/progress-dialog";
+import {ConfirmationDialog, type DialogState} from "@/app/_components/dialogs/confirmation-dialog";
 
 const availableActions = {
   [EBlAllowAction.Transfer]: {
@@ -60,43 +58,49 @@ const ActionPanel = ({
 }) => {
   const [action, setAction] = useState<EBlAllowAction>(ebl.allowActions?.[0] ?? EBlAllowAction.Transfer);
   const [note, setNote] = useState<string>("");
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [transferringOpen, setTransferringOpen] = useState(false);
-  const [transferredOpen, setTransferredOpen] = useState(false);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogState, setDialogState] = useState<DialogState>("confirm");
+  // const [confirmOpen, setConfirmOpen] = useState(false);
+  // const [transferringOpen, setTransferringOpen] = useState(false);
+  // const [transferredOpen, setTransferredOpen] = useState(false);
 
   const disabled = !ebl.allowActions || isEmpty(ebl.allowActions);
   const router = useRouter();
   const transfer = api.ebl.transfer.useMutation({
     onSuccess: () => {
-      setTransferringOpen(false);
-      setTransferredOpen(true);
+      setDialogState("completed");
     },
     onError: (error) => {
-      setTransferringOpen(false);
+      setDialogOpen(false);
       console.error(error);
       toast.error("Failed to transfer eB/L: " + error.message);
     },
   });
   const accomplish = api.ebl.accomplish.useMutation({
     onSuccess: () => {
-      setTransferringOpen(false);
-      setTransferredOpen(true);
+      setDialogState("completed");
     },
     onError: (error) => {
-      setTransferringOpen(false);
+      setDialogOpen(false);
       console.error(error);
       toast.error("Failed to accomplish eB/L: " + error.message);
     },
   });
 
-  const handleClick = () => {
-    setConfirmOpen(true);
-  };
+  const handleDialogConfirmed = () => {
+    if (dialogState === "confirm") {
+      setDialogState("waiting");
+      actionHandlers[action]();
+    } else {
+      setDialogOpen(false);
+      router.push("/ebls", { scroll: true });
+      router.refresh();
+    }
+  }
 
-  const executeAction = () => {
-    setConfirmOpen(false);
-    setTransferringOpen(true);
-    actionHandlers[action]();
+  const handleClick = () => {
+    setDialogOpen(true);
   };
 
   const actionHandlers = {
@@ -175,25 +179,23 @@ const ActionPanel = ({
       </div>
 
       <ConfirmationDialog
-        open={confirmOpen}
-        title={confirmMessag}
-        confirmTitle="OK"
-        onCancel={() => setConfirmOpen(false)}
-        onConfirm={executeAction}
-      />
-      <ProgressDialog
-        open={transferringOpen}
-        icon={<PaperPlaneIcon />}
-        message={progressMessage}
-      />
-      <NotificationDialog
-        open={transferredOpen}
-        icon={<PaperPlaneIcon />}
-        message={completedMessage}
-        onConfirm={() => {
-          router.push("/ebls", { scroll: true });
-          router.refresh();
+        open={dialogOpen}
+        state={dialogState}
+        content={{
+          confirm: {
+            title: confirmMessag,
+          },
+          waiting: {
+            icon: <PaperPlaneIcon />,
+            message: progressMessage,
+          },
+          completed: {
+            icon: <PaperPlaneIcon />,
+            message: completedMessage,
+          },
         }}
+        onCancel={() => setDialogOpen(false)}
+        onConfirm={handleDialogConfirmed}
       />
     </>
   );
