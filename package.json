@@ -9,6 +9,7 @@
   "scripts": {
     "build": "next build",
     "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "dev": "next dev | pino-pretty",
     "postinstall": "prisma generate",
