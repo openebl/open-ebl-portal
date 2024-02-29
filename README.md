@@ -51,9 +51,11 @@ createdb [database_name] -O [username]
 
 #### ENV Files
 
-Create a new .env.development file and follow .env.example schema
+Reference: https://nextjs.org/docs/app/building-your-application/configuring/environment-variables#default-environment-variables
 
-In the .env.development file
+Create a new .env.local file and follow .env.local.example schema. The file will store sensitive information and should be listed in .gitignore
+
+In the .env.local file
 
 * DATABASE_URL: sets your [username], [password] and [database_name]
 
