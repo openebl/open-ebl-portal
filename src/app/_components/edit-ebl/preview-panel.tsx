@@ -116,13 +116,17 @@ const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
           ))}
         </div>
         {/* Document preview */}
-        <div className="flex flex-1 bg-[#333639] justify-center">
+        <div className="flex flex-1 bg-[#333639] justify-center overflow-auto min-h-full">
           { selectedDocument && <Image
             src={selectedDocument.imageUrl}
             width={500}
             height={680}
             alt="preview"
             priority
+            style={{
+              transform: `scale(${zoomLevel / 100})`,
+              transformOrigin: 'top'
+            }}
           /> }
         </div>
       </div>
