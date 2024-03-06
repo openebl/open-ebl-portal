@@ -57,7 +57,7 @@ const MainSection = () => {
       method: "POST",
       body: f,
       headers: {
-        "Content-Type": "application/octet-stream",
+        "Content-Type": f.type,
         "X-Filename": f.name,
       },
     }).catch((err) => {

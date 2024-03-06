@@ -33,8 +33,7 @@ const UploadView = ({ onFileSelected }: UploadViewProps) => {
         ref={fileInputRef}
         className="hidden"
         type="file"
-        // accept="image/png,image/jpeg,image/tiff,application/pdf"
-        accept="application/pdf"
+        accept="image/png,image/jpeg,image/tiff,application/pdf"
         onChange={onFilesChange}
       />
     </div>

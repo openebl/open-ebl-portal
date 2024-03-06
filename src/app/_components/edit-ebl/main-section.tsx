@@ -16,12 +16,8 @@ import { api } from "@/trpc/react";
 import { EBlSchema, type EBlDraftType } from "@/types/ebl";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
+import type { ImageType } from "@/app/_components/common/props/types";
 
-type ImageType = {
-  imageUrl: string;
-  thumbnailUrl: string;
-  page: number;
-};
 
 const MainSection = ({
   ebl,

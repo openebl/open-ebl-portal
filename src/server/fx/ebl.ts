@@ -71,17 +71,30 @@ export const processFileDocUploadReq = async ({
   const storagekey = `/ebl/${crypto.randomUUID()}`;
   validateSession(session);
 
-  // read pdf content from request body
-  const pdfBuffer = await readRequestBodyToBuffer(req.body);
+  // read content from request body
+  const contentBuffer = await readRequestBodyToBuffer(req.body);
+
+  // check content type of the file
+  const contentType = req.headers.get('Content-Type') ?? 'application/pdf';
 
   // upload file to s3
   await storage.putObject({
-    content: pdfBuffer,
+    content: contentBuffer,
     key: storagekey,
-    contentType: "application/pdf",
+    contentType,
   });
 
-  const keyPairs = await savePdfImagesToStorage(pdfBuffer, storage);
+  let keyPairs: KeyPairType[] = [];
+  if (contentType === 'application/pdf') {
+    // if file is pdf, convert pdf to images and save images to storage
+    keyPairs = await savePdfImagesToStorage(contentBuffer, storage);
+  } else {
+    keyPairs.push({
+      imageKey: storagekey,
+      thumbnailKey: storagekey,
+      page: 1,
+    });
+  }
 
   return db.$transaction(async (tx) => {
     // insert fileDoc record

@@ -10,13 +10,9 @@ import { Button } from "@/components/ui/button";
 import DownloadIcon from "@/app/_icons/download-icon";
 import Image from "next/image";
 import Link from "next/link";
+import type { ImageType } from "@/app/_components/common/props/types";
 
-export type PreviewImageType = {
-  imageUrl: string;
-  thumbnailUrl: string;
-};
-
-const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
+const PreviewPanel = ({ images }: { images: ImageType[] }) => {
   const [selectedDocument, setSelectedDocument] = useState(images[0]);
   const [zoomLevel, setZoomLevel] = useState(100); // Zoom level as a percentage
   const [page, setPage] = useState(1);
@@ -111,6 +107,9 @@ const PreviewPanel = ({ images }: { images: PreviewImageType[] }) => {
                 width={123}
                 height={170}
                 alt="preview"
+                className={
+                  selectedDocument?.page === index + 1 ? 'border-[3px] border-[#20C2C2]' : 'border-none'
+                }
               />
             </div>
           ))}
