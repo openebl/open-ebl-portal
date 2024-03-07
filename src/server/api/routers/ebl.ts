@@ -1,15 +1,41 @@
-import { isTruthy, pick, uniq } from "remeda";
 import { z } from "zod";
-
+import { env } from "@/env";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getDocImagesByDocFileId } from "@/server/fx/doc-image";
-import { eBLAllowActions, eBlQueryCondition } from "@/server/fx/ebl";
 import {
-  EBlDraftSchema,
-  EBlRowSchema,
-  EBlRowSchemaList,
-  EBlSchema,
+  EBlRecordSchema,
+  EBlRecordListSchema,
+  EBlRecordDetailSchema,
+  EBlRequestSchema,
+  EBlFilter,
+  type EBlRecordType,
+  type EBlRecordListType,
+  type EBlRecordDetailType,
 } from "@/types/ebl";
+
+const EBlActionSchemaWithID = z.object({ id: z.string(), requester: z.string(), authentication_id: z.string(), note: z.string().optional() })
+
+type EBlActionSchemaWithIDType = z.infer<typeof EBlActionSchemaWithID>
+
+const performEBlAction = async (payload: { request: EBlActionSchemaWithIDType, action: string, business_unit_id: string }) => {
+  const { request, action, business_unit_id } = payload
+  const { id, ...rest } = request;
+  const body = JSON.stringify(rest)
+  const res = await fetch(`${env.BU_SERVER_URL}/ebl/${id}/${action}`, {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
+      'X-Business-Unit-ID': business_unit_id,
+    },
+    body,
+    cache: 'no-store'
+  })
+  const data = await res.json() as EBlRecordType
+  const result = EBlRecordSchema.parse(data)
+  return result
+}
 
 export const eBlRouter = createTRPCRouter({
   list: protectedProcedure
@@ -17,81 +43,45 @@ export const eBlRouter = createTRPCRouter({
       z.object({
         offset: z.number().optional().default(0),
         limit: z.number().optional().default(10),
-        filter: z.string().optional(),
+        filter: z.string().optional().default(EBlFilter.ACTION_NEEDED),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const condition = eBlQueryCondition(input.filter, ctx.session.platformId);
-
-      const [ebls, count, actionRequired, upcoming, sent, archive] =
-        await Promise.all([
-          ctx.db.eBl.findMany({
-            where: condition,
-            orderBy: { updatedAt: "desc" },
-            skip: input.offset,
-            take: input.limit,
-          }),
-          ctx.db.eBl.count({ where: condition }),
-          ctx.db.eBl.count({
-            where: eBlQueryCondition("actionRequired", ctx.session.platformId),
-          }),
-          ctx.db.eBl.count({
-            where: eBlQueryCondition("upcoming", ctx.session.platformId),
-          }),
-          ctx.db.eBl.count({
-            where: eBlQueryCondition("sent", ctx.session.platformId),
-          }),
-          ctx.db.eBl.count({
-            where: eBlQueryCondition("archive", ctx.session.platformId),
-          }),
-        ]);
-
-      const ownerIds = ebls
-        .map((ebl) => [
-          ebl.issuerId,
-          ebl.shipperId,
-          ebl.consigneeId,
-          ebl.releaseAgentId,
-        ])
-        .flat()
-        .filter(isTruthy);
-      const platforms = await ctx.db.platform.findMany({
-        where: { id: { in: uniq(ownerIds) } },
-        select: { id: true, name: true },
-      });
-      const platformNames = new Map<bigint, string>(
-        platforms.map((p) => [p.id, p.name]),
-      );
-      const result = ebls.map((ebl) => ({
-        ...ebl,
-        ownerPlatform: ebl.ownerPlatformId?.toString(),
-        nextPlatform: ebl.nextPlatformId?.toString(),
-        issuer: ebl.issuerId?.toString(),
-        shipper: ebl.shipperId?.toString(),
-        consignee: ebl.consigneeId?.toString(),
-        releaseAgent: ebl.releaseAgentId?.toString(),
-        issuerName: ebl.issuerId && platformNames.get(ebl.issuerId),
-        shipperName: ebl.shipperId && platformNames.get(ebl.shipperId),
-        consigneeName: ebl.consigneeId && platformNames.get(ebl.consigneeId),
-        releaseAgentName:
-          ebl.releaseAgentId && platformNames.get(ebl.releaseAgentId),
-        ownerName:
-          ebl.ownerPlatformId && platformNames.get(ebl.ownerPlatformId),
-      }));
-
-      return {
-        list: await EBlRowSchemaList.parseAsync(result),
-        total: count,
-        actionRequired,
-        upcoming,
-        sent,
-        archive,
-      };
+      const res = await fetch(`${env.BU_SERVER_URL}/ebl?offset=${input.offset}&limit=${input.limit}&status=${input.filter}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
+          'X-Business-Unit-ID': 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', // TODO: ctx.session.platformId
+        },
+        cache: 'no-store'
+      })
+      const data = await res.json() as EBlRecordListType
+      const result = EBlRecordListSchema.parse(data)
+      return result
     }),
 
-  getWithImages: protectedProcedure
+  getByID: protectedProcedure
     .input(z.string())
     .query(async ({ ctx, input }) => {
+      const res = await fetch(`${env.BU_SERVER_URL}/ebl/${input}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
+          'X-Business-Unit-ID': 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', // TODO: ctx.session.platformId
+        },
+        cache: 'no-store'
+      })
+      const data = await res.json() as EBlRecordDetailType
+      const result = EBlRecordDetailSchema.parse(data)
+      return result
+    }),
+
+  new: protectedProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      // TODO: get_doc_ai_extraction
       const ebl = await ctx.db.eBl.findUnique({
         where: { id: input },
         include: {
@@ -104,39 +94,45 @@ export const eBlRouter = createTRPCRouter({
       });
       if (!ebl) return null;
 
+      // TODO: requester / authentication_id / business_unit_id from ctx.session
+      const request = {
+        requester: "did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9",
+        authentication_id: "ba05c973-7973-459f-9dd7-9f7f4e79d824",
+        file: {
+          name: "name3",
+          type: "type3",
+          content: "Y29udGVudDI="
+        },
+        bl_number: "DEMO0001",
+        bl_doc_type: "HouseBillOfLading",
+        to_order: true,
+        pol: {
+          locationName: "Yantian, CN, CNYTN",
+          UNLocationCode: "CNYTN"
+        },
+        pod: {
+          locationName: "Los Angeles, CA, US, USLAX",
+          UNLocationCode: "USLAX"
+        },
+        eta: "2024-03-08T10:21:12.061Z",
+        shipper: "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614",
+        consignee: "did:openebl:0158341d-5c6b-4121-bfe4-535c7606bbd5",
+        release_agent: "did:openebl:66c71465-3d0b-43d8-9e1b-c88c7a7634ca",
+        note: "note3",
+        draft: false
+      }
+
+      const images = await getDocImagesByDocFileId(
+        ctx.db,
+        ctx.storageService,
+        ebl.docFileId!,
+      )
+
       return {
-        ebl: EBlRowSchema.parse({
-          ...ebl,
-          docFilename: ebl?.docFile?.filename,
-          ownerPlatform: ebl.ownerPlatformId?.toString(),
-          nextPlatform: ebl.nextPlatformId?.toString(),
-          issuer: ebl.issuerId?.toString(),
-          shipper: ebl.shipperId?.toString(),
-          consignee: ebl.consigneeId?.toString(),
-          releaseAgent: ebl.releaseAgentId?.toString(),
-          issuerName: ebl.issuerPlatform?.name,
-          shipperName: ebl.shipperPlatform?.name,
-          consigneeName: ebl.consigneePlatform?.name,
-          releaseAgentName: ebl.releaseAgentPlatform?.name,
-          allowActions: eBLAllowActions(ebl, ctx.session.platformId),
-        }),
-        images: await getDocImagesByDocFileId(
-          ctx.db,
-          ctx.storageService,
-          ebl.docFileId!,
-        ),
+        ebl: EBlRequestSchema.parse(request),
+        images,
       };
     }),
-
-  find: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
-    const ebl = await ctx.db.eBl.findUnique({ where: { id: input } });
-    if (!ebl) {
-      return null;
-    }
-    return EBlDraftSchema.parseAsync(ebl).catch((err) => {
-      throw new Error(`Invalid eBl: ${err}`);
-    });
-  }),
 
   findByDocFileId: protectedProcedure
     .input(z.bigint())
@@ -148,221 +144,80 @@ export const eBlRouter = createTRPCRouter({
       return list[0]?.id ?? null;
     }),
 
-  saveDraft: protectedProcedure
-    .input(EBlDraftSchema)
-    .mutation(async ({ ctx, input }) => {
-      const res = await ctx.db.eBl.update({
-        where: { id: input.id },
-        data: {
-          ...pick(input, ["blNumber", "blType", "pol", "pod", "eta", "notes"]),
-          status: "DRAFT",
-          ownerPlatformId: ctx.session.platformId,
-          issuerPlatform: { connect: { id: ctx.session.platformId } },
-          shipperPlatform: input.shipper
-            ? { connect: { id: BigInt(input.shipper) } }
-            : undefined,
-          consigneePlatform: input.consignee
-            ? { connect: { id: BigInt(input.consignee) } }
-            : undefined,
-          releaseAgentPlatform: input.releaseAgent
-            ? { connect: { id: BigInt(input.releaseAgent) } }
-            : undefined,
-        },
-      });
-      return res.id;
-    }),
-
   issue: protectedProcedure
-    .input(EBlSchema.omit({ status: true }))
+    .input(EBlRequestSchema.omit({ requester: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.$transaction(async () => {
-        const ebl = await ctx.db.eBl.update({
-          where: { id: input.id, status: { in: ["UPLOADED", "DRAFT"] } },
-          data: {
-            ...pick(input, [
-              "blNumber",
-              "blType",
-              "pol",
-              "pod",
-              "eta",
-              "notes",
-            ]),
-            issuerPlatform: { connect: { id: ctx.session.platformId } },
-            shipperPlatform: input.shipper
-              ? { connect: { id: BigInt(input.shipper) } }
-              : undefined,
-            consigneePlatform: input.consignee
-              ? { connect: { id: BigInt(input.consignee) } }
-              : undefined,
-            releaseAgentPlatform: input.releaseAgent
-              ? { connect: { id: BigInt(input.releaseAgent) } }
-              : undefined,
-            ownerPlatformId: BigInt(input.shipper),
-            nextPlatformId: BigInt(input.consignee),
-            status: "PROCESSING",
-            updatedAt: new Date(),
-          },
-        });
-        if (!ebl) {
-          throw new Error("eBl not found");
-        }
-
-        await ctx.db.eBlJourney.create({
-          data: {
-            eBlId: ebl.id,
-            action: "DRAFT",
-            lastStatus: "DRAFT",
-            targetPlatformId: ctx.session.platformId,
-            sourcePlatformId: ctx.session.platformId,
-            userId: ctx.session.user.id,
-          },
-        });
-        await ctx.db.eBlJourney.create({
-          data: {
-            eBlId: ebl.id,
-            action: "ISSUE",
-            lastStatus: "PROCESSING",
-            targetPlatformId: BigInt(input.shipper),
-            sourcePlatformId: ctx.session.platformId,
-            userId: ctx.session.user.id,
-            note: ebl.notes,
-          },
-        });
-        await ctx.db.eBlJourney.create({
-          data: {
-            eBlId: ebl.id,
-            action: "GRANT_CONSIGNEE",
-            lastStatus: "PROCESSING",
-            targetPlatformId: BigInt(input.consignee),
-            sourcePlatformId: ctx.session.platformId,
-            userId: ctx.session.user.id,
-            note: ebl.notes,
-          },
-        });
-        await ctx.db.eBlJourney.create({
-          data: {
-            eBlId: ebl.id,
-            action: "GRANT_RELEASE_AGENT",
-            lastStatus: "PROCESSING",
-            targetPlatformId: BigInt(input.releaseAgent),
-            sourcePlatformId: ctx.session.platformId,
-            userId: ctx.session.user.id,
-            note: ebl.notes,
-          },
-        });
-
-        return ebl.id;
-      });
+      // TODO: requester / authentication_id / business_unit_id from ctx.session
+      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
+      const res = await fetch(`${env.BU_SERVER_URL}/ebl`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
+          'X-Business-Unit-ID': 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', // TODO: ctx.session.platformId
+        },
+        body: JSON.stringify(request),
+        cache: 'no-store'
+      })
+      const data = await res.json() as EBlRecordType
+      const result = EBlRecordSchema.parse(data)
+      return result
     }),
 
   transfer: protectedProcedure
-    .input(z.object({ id: z.string(), note: z.string().optional() }))
+    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.$transaction(async () => {
-        const ebl = await ctx.db.eBl.findUnique({
-          where: { id: input.id },
-        });
-        if (!ebl) {
-          // TODO: implement a consistant error framework
-          throw new Error("eBl not found");
-        }
+      // TODO: requester / authentication_id / business_unit_id from ctx.session
+      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
+      return await performEBlAction({ request, action: 'transfer', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+    }),
 
-        // check if the eBL can be trasnferred to the next platform by current p[latform]
-        if (ebl.ownerPlatformId !== ctx.session.platformId) {
-          throw new Error("eBl cannot be transferred by current platform");
-        }
+  return: protectedProcedure
+    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .mutation(async ({ ctx, input }) => {
+      // TODO: requester / authentication_id / business_unit_id from ctx.session
+      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
+      return await performEBlAction({ request, action: 'return', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+    }),
 
-        const sequence = [
-          ebl.issuerId,
-          ebl.shipperId,
-          ebl.consigneeId,
-          ebl.releaseAgentId,
-        ];
-        const index = sequence.indexOf(ebl.ownerPlatformId);
-        if (index === -1) {
-          throw new Error("eBl is not owned by any platform");
-        }
-        if (index === sequence.length - 1) {
-          throw new Error("eBl is completed");
-        }
-
-        await ctx.db.eBl.update({
-          where: { id: input.id },
-          data: {
-            ownerPlatformId: sequence[index + 1],
-            nextPlatformId:
-              index < sequence.length - 2 ? sequence[index + 2] : null,
-            updatedAt: new Date(),
-          },
-        });
-
-        await ctx.db.eBlJourney.create({
-          data: {
-            eBlId: ebl.id,
-            action: "TRANSFER",
-            lastStatus: ebl.status,
-            targetPlatformId: sequence[index + 1],
-            sourcePlatformId: ctx.session.platformId,
-            userId: ctx.session.user.id,
-            note: input.note,
-          },
-        });
-        return ebl.id;
-      });
+  surrender: protectedProcedure
+    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .mutation(async ({ ctx, input }) => {
+      // TODO: requester / authentication_id / business_unit_id from ctx.session
+      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
+      return await performEBlAction({ request, action: 'surrender', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
     }),
 
   accomplish: protectedProcedure
-    .input(z.object({ id: z.string(), note: z.string().optional() }))
+    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.$transaction(async () => {
-        const ebl = await ctx.db.eBl.findUnique({
-          where: { id: input.id },
-        });
-        if (!ebl) {
-          // TODO: implement a consistant error framework
-          throw new Error("eBl not found");
-        }
+      // TODO: requester / authentication_id / business_unit_id from ctx.session
+      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
+      return await performEBlAction({ request, action: 'accomplish', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+    }),
 
-        // check if the eBL can be trasnferred to the next platform by current p[latform]
-        if (ebl.ownerPlatformId !== ctx.session.platformId) {
-          throw new Error("eBl cannot be transferred by current platform");
-        }
+  print_to_paper: protectedProcedure
+    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .mutation(async ({ ctx, input }) => {
+      // TODO: requester / authentication_id / business_unit_id from ctx.session
+      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
+      return await performEBlAction({ request, action: 'print_to_paper', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+    }),
 
-        const sequence = [
-          ebl.issuerId,
-          ebl.shipperId,
-          ebl.consigneeId,
-          ebl.releaseAgentId,
-        ];
-        const index = sequence.indexOf(ebl.ownerPlatformId);
-        if (index === -1) {
-          throw new Error("eBl is not owned by any platform");
-        }
-        if (index !== sequence.length - 1) {
-          throw new Error("eBl cannot be accoplished");
-        }
-        const newStatus = "COMPLETED";
+  amendment_request: protectedProcedure
+    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .mutation(async ({ ctx, input }) => {
+      // TODO: requester / authentication_id / business_unit_id from ctx.session
+      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
+      return await performEBlAction({ request, action: 'amendment_request', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+    }),
 
-        await ctx.db.eBl.update({
-          where: { id: input.id },
-          data: {
-            status: newStatus,
-            updatedAt: new Date(),
-          },
-        });
-
-        await ctx.db.eBlJourney.create({
-          data: {
-            eBlId: ebl.id,
-            action: "COMPLETE",
-            lastStatus: newStatus,
-            targetPlatformId: ctx.session.platformId,
-            sourcePlatformId: ctx.session.platformId,
-            userId: ctx.session.user.id,
-            note: input.note,
-          },
-        });
-        return ebl.id;
-      });
+  delete: protectedProcedure
+    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .mutation(async ({ ctx, input }) => {
+      // TODO: requester / authentication_id / business_unit_id from ctx.session
+      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
+      return await performEBlAction({ request, action: 'delete', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
     }),
 });

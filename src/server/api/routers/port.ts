@@ -7,21 +7,16 @@ export const portRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .query(({ input }) => {
       const port = ports.find((p) => p.value === input.id);
-
-      return port ? { label: port.name, id: port.value } : null;
+      return port ? { label: port.name, value: port.value } : null;
     }),
 
   list: protectedProcedure
     .input(z.object({ keyword: z.string() }))
     .query(({ input }) => {
-      // return ctx.db.port.findMany({
-      //   orderBy: { createdAt: "desc" },
-      // });
-
-      if (input.keyword === "") return [];
-      const keyword = input.keyword.toLowerCase();
-      return ports
-        .filter((p) => p.name.toLowerCase().includes(keyword))
-        .map((p) => ({ label: p.name, id: p.value }));
+      // partial & case-insensitive search
+      const filteredPorts = ports
+        .filter(port => port.name.toLowerCase().includes(input.keyword.toLowerCase()))
+        .map(port => ({ label: port.name, value: port.value }))
+      return filteredPorts;
     }),
 });

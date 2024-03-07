@@ -5,7 +5,6 @@ import { portRouter } from "./routers/port";
 import { consigneeRouter } from "./routers/consignee";
 import { docAiTaskRouter } from "./routers/doc-ai-task";
 import { docImageRouter } from "./routers/doc-image";
-import { eBlJourneyRouter } from "./routers/ebl-journey";
 import { releaseAgentRouter } from "./routers/releaseAgent";
 
 /**
@@ -19,7 +18,6 @@ export const appRouter = createTRPCRouter({
   consignee: consigneeRouter,
   releaseAgent: releaseAgentRouter,
   ebl: eBlRouter,
-  eBlJourney: eBlJourneyRouter,
   docAiTask: docAiTaskRouter,
   docImage: docImageRouter,
 });

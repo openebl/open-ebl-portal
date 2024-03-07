@@ -6,24 +6,25 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { api } from "@/trpc/react";
 
 import { ConfirmationDialog, type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
 import { useGetShipper } from "@/app/_hooks/shippers-filter";
 import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
-import { api } from "@/trpc/react";
-import { EBlSchema, type EBlDraftType } from "@/types/ebl";
+import { EBlRequestSchema, type EBlRequestType } from "@/types/ebl";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
 import type { ImageType } from "@/app/_components/common/props/types";
-
+import { type TRPCClientErrorLike } from "@trpc/client";
+import { type AppRouter } from "@/server/api/root";
 
 const MainSection = ({
   ebl,
   images,
 }: {
-  ebl: EBlDraftType;
+  ebl: EBlRequestType;
   images: ImageType[];
 }) => {
   const router = useRouter();
@@ -31,42 +32,36 @@ const MainSection = ({
   const [dialogState, setDialogState] = useState<DialogState>("confirm");
   const [shipper, setShipper] = useState<string>("");
   const getShipper = useGetShipper(shipper);
-  const saveDraft = api.ebl.saveDraft.useMutation({
-    onSuccess: () => {
-      router.push("/ebls", { scroll: true });
-      router.refresh();
-      toast.success("Draft eB/L Saved");
-    },
-    onError: (error) => {
-      console.error(error);
-      toast.error("Failed to save draft: " + error.message);
-    },
-  });
 
-  const issue = api.ebl.issue.useMutation({
-    onSuccess: () => {
-      setDialogState("completed");
-    },
-    onError: (error) => {
-      setDialogOpen(false);
-      console.error(error);
-      toast.error("Failed to Issue eB/L: " + error.message);
-    },
-  });
-
-  const form = useForm<EBlDraftType>({
-    resolver: zodResolver(EBlSchema),
+  const form = useForm<EBlRequestType>({
+    resolver: zodResolver(EBlRequestSchema),
     defaultValues: {
       ...ebl,
     },
   });
 
-  const handleSaveDraft = async () => {
-    saveDraft.mutate({
-      ...form.getValues(),
-      id: ebl.id,
-    });
+  const issue = api.ebl.issue.useMutation({
+    onSuccess: () => {
+      console.log(`eB/L issue successfully.`);
+      setDialogState("completed");
+    },
+    onError: (error: TRPCClientErrorLike<AppRouter>) => {
+      setDialogOpen(false);
+      toast.error(`Failed to issue eB/L: ${error.message}`);
+      console.error(error);
+    },
+  });
+
+  const issueEBl = (payload: { isDraft: boolean }) => {
+    const body = EBlRequestSchema.omit({ requester: true, authentication_id: true }).parse({ ...form.getValues(), draft: payload.isDraft });
+    issue.mutate(body);
   };
+
+  const saveDraft = () => {
+    setDialogState('waiting');
+    setDialogOpen(true);
+    issueEBl({ isDraft: true });
+  }
 
   const submitClicked = async () => {
     const r = await form.trigger(undefined, { shouldFocus: true });
@@ -75,25 +70,24 @@ const MainSection = ({
       return;
     }
 
-    setShipper(form.getValues().shipper!);
+    setShipper(form.getValues().shipper);
     setDialogOpen(true);
     setDialogState("confirm");
   };
 
+  const handleDialogCanceled = () => {
+    setShipper("");
+    setDialogOpen(false);
+  }
   const handleDialogConfirmed = () => {
     if (dialogState === "confirm") {
-      setDialogState("waiting");
-      issueEBl();
+      setDialogState('waiting');
+      issueEBl({ isDraft: false });
     } else {
       setDialogOpen(false);
       router.push("/ebls", { scroll: true });
       router.refresh();
     }
-  };
-
-  const issueEBl = () => {
-    setDialogState('waiting');
-    issue.mutate({ ...EBlSchema.parse(form.getValues()), id: ebl.id });
   };
 
   return (
@@ -117,7 +111,7 @@ const MainSection = ({
               variant="outline"
               size="lg"
               className="w-[11.25rem]"
-              onClick={handleSaveDraft}
+              onClick={saveDraft}
             >
               Save as Draft
             </Button>
@@ -142,18 +136,18 @@ const MainSection = ({
           waiting: {
             icon: <PaperPlaneIcon />,
             message:
-              "The eB/L is issuing " +
-              (!getShipper.item ? "" : `to ${getShipper.item?.label}...`),
+              !getShipper.item ? "Drafting eB/L..." : `Issuing eB/L to ${getShipper.item?.label}...`,
           },
           completed: {
             icon: <PaperPlaneIcon />,
             message:
-              "The eB/L has been issued " +
-              (!getShipper.item ? "" : `to ${getShipper.item?.label}...`),
+              !getShipper.item
+                ? "The eB/L has been drafted."
+                : `The eB/L has been issued to ${getShipper.item?.label}.`,
             confirmButton: "OK",
           },
         }}
-        onCancel={() => setDialogOpen(false)}
+        onCancel={handleDialogCanceled}
         onConfirm={handleDialogConfirmed}
       />
     </div>

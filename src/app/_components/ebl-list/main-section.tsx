@@ -5,18 +5,18 @@ import Link from "next/link";
 import SearchBox from "@/app/_components/common/searchbox";
 import AddIcon from "@/app/_icons/add-icon";
 import { Button } from "@/components/ui/button";
-import { type EBlRowType } from "@/types/ebl";
+import type { EBlFilter, EBlRecordListType } from "@/types/ebl";
 import EblSection from "./ebl-section";
 import PaginatorSection from "./paginator-section";
 
 const MainSection = ({
-  result,
+  recordList,
   page,
   filter,
 }: {
-  result: { list: EBlRowType[]; total: number; actionRequired: number, upcoming: number, sent: number, archive: number};
+  recordList: EBlRecordListType;
   page: number;
-  filter: string | null | undefined;
+  filter: EBlFilter | null | undefined;
 }) => {
   return (
     <div className="px-12 py-10 font-content">
@@ -34,11 +34,11 @@ const MainSection = ({
       <div className="flex w-full flex-col items-start justify-start gap-4">
         <EblSection
           filter={filter}
-          list={result.list}
-          stats={result}
+          recordList={recordList}
+          stats={{ action_needed: 1, upcoming: 1, sent: 1, archive: 1 }} // TODO
         />
         <PaginatorSection
-          total={result.total}
+          total={recordList.total}
           currentPage={page}
           filter={filter}
         />

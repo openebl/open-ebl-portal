@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import crypto from "crypto";
 import { twMerge } from "tailwind-merge";
+import type { Platforms } from "@/types/platform";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -23,4 +24,12 @@ export function randomId(len = 20): string {
     crypto.getRandomValues(arr);
     return Array.from(arr, (dec) => dec.toString(16).padStart(2, "0")).join("");
   }
+}
+
+export function platformsToDropdownOptionList(platforms: Platforms | null | undefined) {
+  if (!platforms) return [];
+  return Object.entries(platforms).map(([id, platform]) => ({
+    label: platform.name,
+    value: id,
+  }));
 }

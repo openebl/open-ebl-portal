@@ -10,12 +10,11 @@ import Link from "next/link";
 const Page = async ({ params }: { params: { uuid: string } }) => {
   let block: JSX.Element | null = null;
   try {
-    const ebl = await api.ebl.getWithImages.query(params.uuid);
+    const ebl = await api.ebl.getByID.query(params.uuid);
     if (!ebl) throw new Error("NOT_FOUND");
-    const journey = await api.eBlJourney.get.query(params.uuid);
-    block = <MainSection ebl={ebl.ebl} journey={journey} />;
+    block = <MainSection ebl={ebl} journey={[]} />;
 
-  } catch(err) {
+  } catch (err) {
     getLogger().error(err);
 
     block = err instanceof Error && err.message === "NOT_FOUND" ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import Paginator from "@/app/_components/common/paginator";
+import type { EBlFilter } from "@/types/ebl";
 import { useRouter } from "next/navigation";
 
 const PaginatorSection = ({
@@ -10,7 +11,7 @@ const PaginatorSection = ({
 }: {
   total: number;
   currentPage: number;
-  filter: string | null | undefined;
+  filter: EBlFilter | null | undefined;
 }) => {
   const router = useRouter();
   return (

@@ -8,10 +8,9 @@ import CalendarIcon from "@/app/_icons/calendar-icon";
 import LocationIcon from "@/app/_icons/location-icon";
 import PdfIcon from "@/app/_icons/pdf-icon";
 import { Button } from "@/components/ui/button";
-import { type EBlRowType } from "@/types/ebl";
-import { portName } from "@/lib/ports";
-import { format } from "date-fns";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { type EBlRecordDetailType } from "@/types/ebl";
+import { getLatestBillOfLading } from "@/lib/server-utils";
 
 const FileDetailsLine = ({
   title,
@@ -28,14 +27,16 @@ const FileDetailsLine = ({
   </div>
 );
 
-const FileDetails = ({ ebl }: { ebl: EBlRowType }) => {
+const getBLContent = (ebl: EBlRecordDetailType) => getLatestBillOfLading(ebl.record)?.bill_of_lading
+
+const FileDetails = ({ ebl }: { ebl: EBlRecordDetailType }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <section className="flex flex-col items-start rounded-lg border border-solid border-[#DFE4E9] bg-white p-[1.875rem] shadow-lg">
       <div className="flex items-center gap-2.5">
         <div className="grow whitespace-nowrap text-[1.375rem] font-semibold leading-8 text-main">
-          {ebl.blNumber}
+          {getBLContent(ebl)?.transportDocumentReference}
         </div>
         <HblNonNegotiableBadge />
       </div>
@@ -53,34 +54,25 @@ const FileDetails = ({ ebl }: { ebl: EBlRowType }) => {
           <div className="ml-[3.75rem] flex flex-col items-start text-[.8125rem] leading-[1.125rem]">
             <div className="flex flex-col items-start justify-start gap-[.875rem]">
               <FileDetailsLine title="File Name">
-                <div className="font-semibold text-main">{ebl.docFilename}</div>
+                <div className="font-semibold text-main">{getLatestBillOfLading(ebl.record)?.file.name}</div>
               </FileDetailsLine>
 
               <FileDetailsLine title="File Type">
                 <PdfIcon className="h-[18px] w-[18px]" />
-                <div className="ml-2.5 font-semibold text-main">PDF</div>
+                <div className="ml-2.5 font-semibold text-main">{getLatestBillOfLading(ebl.record)?.file.file_type}</div>
               </FileDetailsLine>
 
               <FileDetailsLine title="Port of Loading">
                 <LocationIcon />
                 <div className="ml-2.5 font-semibold text-main">
-                  {portName(ebl.pol)}
+                  {getBLContent(ebl)?.shipmentLocations[0]?.location.locationName}
                 </div>
               </FileDetailsLine>
 
               <FileDetailsLine title="Port of Discharge">
                 <LocationIcon />
                 <div className="ml-2.5 font-semibold text-main">
-                {portName(ebl.pod)}
-                </div>
-              </FileDetailsLine>
-
-              <FileDetailsLine title="ETA">
-                <div className="flex h-[18px] w-[18px] items-center justify-center text-[#738DBC]">
-                  <CalendarIcon />
-                </div>
-                <div className="ml-2.5 font-semibold text-main">
-                {ebl.eta && format(ebl.eta, "MMM dd, yyyy")}
+                  {getBLContent(ebl)?.shipmentLocations[1]?.location.locationName}
                 </div>
               </FileDetailsLine>
             </div>

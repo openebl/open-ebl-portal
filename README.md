@@ -53,19 +53,19 @@ createdb [database_name] -O [username]
 
 Reference: https://nextjs.org/docs/app/building-your-application/configuring/environment-variables#default-environment-variables
 
-Create a new .env.local file and follow .env.local.example schema. The file will store sensitive information and should be listed in .gitignore
+Create a new .env file and follow .env.example schema. The file will store sensitive information and should be listed in .gitignore
 
-In the .env.local file
+In the .env file
 
 * DATABASE_URL: sets your [username], [password] and [database_name]
 
-* NEXTAUTH_SECRET: random string, can be generated from [this website](https://generate-secret.vercel.app/32)
-
-* EMAIL_SERVER: username and password ask Jordan or Alvin to provide a Bitwarden link
+* NEXTAUTH_SECRET: use `openssl rand -base64 32` to generate openssl random string. It will be used to hash tokens, sign/encrypt cookies and generate cryptographic keys.
 
 * S3_BUCKET: bluex-ebl-static-files-dev
 
-* AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY: ask Alvin to open your account's S3 access permission
+* EMAIL_SERVER / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY: login to AWS EKS `devbxebl` pod and `cat /vault/secrets/config`
+
+* BU_SERVER_API_KEY: ask Wesley to provide bu server api key
 
 #### Database
 

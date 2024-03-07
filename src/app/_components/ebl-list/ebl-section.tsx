@@ -3,7 +3,7 @@ import Link from "next/link";
 import EmptyFolderIcon from "@/app/_icons/empty-folder-icon";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import { type EBlRowType } from "@/types/ebl";
+import { EBlFilter, type EBlRecordListType } from "@/types/ebl";
 import TableRow from "./table-row";
 
 const FilterGroupItem = ({
@@ -36,10 +36,10 @@ const FilterList = ({
 
 }: {
   filter?: string | null;
-  stats: {actionRequired: number, upcoming: number, sent: number, archive: number};
+  stats: { action_needed: number, upcoming: number, sent: number, archive: number };
 
 }) => {
-  const currentFilter = filter ?? "actionNeeded";
+  const currentFilter = filter ?? "action_needed";
   return (
     <ToggleGroup
       className="inline-flex rounded-md px-4 font-header text-sm text-main"
@@ -47,13 +47,13 @@ const FilterList = ({
       type="single"
     >
       <FilterGroupItem
-        value="actionNeeded"
+        value="action_needed"
         className="rounded-none rounded-s-lg border"
       >
         Action Needed
-        {stats.actionRequired > 0 && (
+        {stats.action_needed > 0 && (
           <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
-            {stats.actionRequired}
+            {stats.action_needed}
           </span>
         )}
       </FilterGroupItem>
@@ -92,7 +92,7 @@ const FilterList = ({
 };
 
 const emptyMessgaes: Record<string, string[]> = {
-  actionNeeded: ["There are no drafts or eB/Ls pending action."] as const,
+  action_needed: ["There are no drafts or eB/Ls pending action."] as const,
   upcoming: [
     "There are no upcoming eB/Ls.",
     "You currently have no eB/Ls assigned to you.",
@@ -108,9 +108,9 @@ const emptyMessgaes: Record<string, string[]> = {
   default: ["No eB/Ls found."] as const,
 };
 
-const EmptyList = ({ filter }: { filter: string | null | undefined }) => {
+const EmptyList = ({ filter }: { filter: EBlFilter | null | undefined }) => {
   const message =
-    emptyMessgaes[filter ?? "actionNeeded"] ?? emptyMessgaes.default;
+    emptyMessgaes[filter ?? EBlFilter.ACTION_NEEDED] ?? emptyMessgaes.default;
   return (
     <div className="flex min-h-[28rem] w-full flex-col justify-center">
       <div className="text-content flex w-full flex-col items-center justify-start text-main">
@@ -131,17 +131,17 @@ const EmptyList = ({ filter }: { filter: string | null | undefined }) => {
 };
 
 const EblTable = ({
-  list,
+  recordList,
   filter,
 }: {
-  list: EBlRowType[];
-  filter: string | null | undefined;
+  recordList: EBlRecordListType;
+  filter: EBlFilter | null | undefined;
 }) => {
-  if (list.length === 0) return <EmptyList filter={filter} />;
+  if (recordList.total === 0) return <EmptyList filter={filter} />;
 
   return (
     <div className="text-content flex min-h-[28rem] w-full flex-col justify-start">
-      {list.map((row, index) => (
+      {recordList.records.map((row, index) => (
         <TableRow key={index} row={row} filter={filter} />
       ))}
     </div>
@@ -149,13 +149,13 @@ const EblTable = ({
 };
 
 const EblSection = ({
-  list,
+  recordList,
   filter,
   stats,
 }: {
-  list: EBlRowType[];
-  filter: string | null | undefined;
-  stats: {actionRequired: number, upcoming: number, sent: number, archive: number};
+  recordList: EBlRecordListType;
+  filter: EBlFilter | null | undefined;
+  stats: { action_needed: number, upcoming: number, sent: number, archive: number };
 }) => {
   return (
     <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">
@@ -165,7 +165,7 @@ const EblSection = ({
           stats={stats}
         />
       </div>
-      <EblTable list={list} filter={filter} />
+      <EblTable recordList={recordList} filter={filter} />
     </div>
   );
 };

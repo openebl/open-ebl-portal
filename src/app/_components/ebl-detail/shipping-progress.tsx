@@ -1,6 +1,3 @@
-import { format } from "date-fns";
-import { fromPairs } from "remeda";
-
 import {
   Tooltip,
   TooltipContent,
@@ -8,7 +5,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { type EBlRowType } from "@/types/ebl";
+import { type EBlRecordDetailType } from "@/types/ebl";
 import ActionPanel from "./action-panel";
 
 type TrackerPosition = "first" | "middle" | "last";
@@ -61,12 +58,12 @@ const ProgressTracker = ({
   );
 };
 
-const ProgressTrackerBar = ({ ebl }: { ebl: EBlRowType }) => {
+const ProgressTrackerBar = ({ ebl }: { ebl: EBlRecordDetailType }) => {
   const active = "bg-[#004DE3]";
   const inactive = "bg-[#0D447A]";
   return (
     <div className="flex w-full max-w-full justify-evenly">
-      <ProgressTracker
+      {/* <ProgressTracker
         title="Issuing Agent"
         name={ebl.issuerName ?? "--"}
         className={ebl.ownerPlatform === ebl.issuer ? active : inactive}
@@ -89,7 +86,7 @@ const ProgressTrackerBar = ({ ebl }: { ebl: EBlRowType }) => {
         name={ebl.releaseAgentName ?? "--"}
         className={ebl.ownerPlatform === ebl.releaseAgent ? active : inactive}
         position="last"
-      />
+      /> */}
     </div>
   );
 };
@@ -115,29 +112,14 @@ const ProgressStatus = ({
   ebl,
   sessionPlatformId,
 }: {
-  ebl: EBlRowType;
+  ebl: EBlRecordDetailType;
   sessionPlatformId: string | undefined;
 }) => {
-  const nameMapping = fromPairs(
-    [
-      [ebl.issuer, ebl.issuerName],
-      [ebl.shipper, ebl.shipperName],
-      [ebl.consignee, ebl.consigneeName],
-      [ebl.releaseAgent, ebl.releaseAgentName],
-    ].filter(([id]) => !!id) as [string, string][],
-  );
-
-  const currentOwnerName = ebl.ownerPlatform
-    ? nameMapping[ebl.ownerPlatform]
-    : "-";
-  const nextOwnerName = ebl.nextPlatform ? nameMapping[ebl.nextPlatform] : "-";
+  const currentOwnerName = 'TODO: currentOwnerName' // TODO
+  const nextOwnerName = 'TODO: nextOwnerName' // TODO
   return (
     <div className="flex h-[3.875rem] w-full items-start justify-start gap-[3.75rem] px-[1.875rem]">
-      <ProgressStatusItem title="Last Update">
-        {ebl.eta && format(ebl.eta, "MMM dd, yyyy 'at' hh:mm a")}
-      </ProgressStatusItem>
-
-      <ProgressStatusItem title="Current Owner">
+      {/* <ProgressStatusItem title="Current Owner">
         {currentOwnerName}
         {sessionPlatformId === ebl.ownerPlatform && (
           <span className="text-xs leading-[1.125rem] text-disabled">
@@ -155,7 +137,7 @@ const ProgressStatus = ({
             (You)
           </span>
         )}
-      </ProgressStatusItem>
+      </ProgressStatusItem> */}
     </div>
   );
 };
@@ -164,7 +146,7 @@ const ShippingProgress = ({
   ebl,
   sessionPlatformId,
 }: {
-  ebl: EBlRowType;
+  ebl: EBlRecordDetailType;
   sessionPlatformId: string | undefined;
 }) => {
   return (

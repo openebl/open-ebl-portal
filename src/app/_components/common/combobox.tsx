@@ -136,6 +136,7 @@ export function Combobox({
   );
 }
 
+// TODO: virtualized list to improve rendering, maybe use react-window (TBD)
 function buildScrollableContent(
   noResultsMsg: string,
   unselect: boolean,

@@ -7,7 +7,7 @@ import { TRPCClientError } from "@trpc/client";
 
 export default async function Page({ params }: { params: { uuid: string } }) {
   const execution = async () => {
-    const ebl = await api.ebl.getWithImages.query(params.uuid);
+    const ebl = await api.ebl.new.query(params.uuid);
 
     if (!ebl) {
       throw new TRPCClientError("NOT_FOUND");

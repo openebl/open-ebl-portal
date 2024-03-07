@@ -10,7 +10,7 @@ describe.concurrent("ports API", () => {
     const session = null;
 
     testWithDb("list ports returns UNAUTHORIZED", async ({ expect, db }) => {
-      const {storageService} = useTestStorageService();
+      const { storageService } = useTestStorageService();
       const caller = appRouter.createCaller({
         headers: new Headers(),
         session,
@@ -23,7 +23,7 @@ describe.concurrent("ports API", () => {
     });
 
     testWithDb("get ports returns UNAUTHORIZED", async ({ expect, db }) => {
-      const {storageService} = useTestStorageService();
+      const { storageService } = useTestStorageService();
       const caller = appRouter.createCaller({
         headers: new Headers(),
         session,
@@ -51,7 +51,7 @@ describe.concurrent("ports API", () => {
       testWithDb(
         "lists all ports returns ports filter by keyword",
         async ({ expect, db }) => {
-          const {storageService} = useTestStorageService();
+          const { storageService } = useTestStorageService();
           const caller = appRouter.createCaller({
             headers: new Headers(),
             session,
@@ -61,8 +61,8 @@ describe.concurrent("ports API", () => {
           const list = await caller.port.list({ keyword: "cnytn" });
           expect(list).toMatchObject([
             {
-              id: "CNYTN",
               label: "Yantian, CN, CNYTN",
+              value: "CNYTN",
             },
           ]);
         },
@@ -71,7 +71,7 @@ describe.concurrent("ports API", () => {
 
     describe("get port by value", () => {
       testWithDb("lists all portss returns nothing", async ({ expect, db }) => {
-        const {storageService} = useTestStorageService();
+        const { storageService } = useTestStorageService();
         const caller = appRouter.createCaller({
           headers: new Headers(),
           session,
@@ -80,8 +80,8 @@ describe.concurrent("ports API", () => {
         });
         const list = await caller.port.get({ id: "USNYC" });
         expect(list).toMatchObject({
-          id: "USNYC",
           label: "New York, NY, US, USNYC",
+          value: "USNYC",
         });
       });
     });

@@ -1,3 +1,4 @@
+import { platforms } from "@/lib/platforms";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { z } from "zod";
 
@@ -5,40 +6,17 @@ export const shipperRouter = createTRPCRouter({
   get: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const platform = await ctx.db.platform.findUnique({
-        where: {
-          id: BigInt(input.id),
-          tradeRoles: {
-            some: {
-              tradeRole: "Shipper",
-            },
-          },
-        },
-      });
-      return platform
-        ? { label: platform.name, id: platform.id.toString() }
-        : null;
+      return platforms[input.id] ?? null;
     }),
 
   list: protectedProcedure
     .input(z.object({ keyword: z.string() }))
     .query(async ({ ctx, input }) => {
-      const platforms = await ctx.db.platform.findMany({
-        where: {
-          tradeRoles: {
-            some: {
-              tradeRole: "Shipper",
-            },
-          },
-          name: {
-            contains: input.keyword,
-          },
-        },
-      });
+      // partial & case-insensitive search
+      const filteredPlatforms = Object.entries(platforms)
+        .filter(([_id, platform]) => platform.name.toLowerCase().includes(input.keyword.toLowerCase()))
+        .reduce((obj, [id, platform]) => ({ ...obj, [id]: platform }), {});
 
-      return platforms.map((platform) => ({
-        label: platform.name,
-        id: platform.id.toString(),
-      }));
+      return filteredPlatforms;
     }),
 });
