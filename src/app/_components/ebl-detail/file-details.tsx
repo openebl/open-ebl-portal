@@ -1,6 +1,8 @@
-import Image from "next/image";
-import React from "react";
+"use client";
 
+import Image from "next/image";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { HblNonNegotiableBadge } from "@/app/_components/common/ebl-badges";
 import CalendarIcon from "@/app/_icons/calendar-icon";
 import LocationIcon from "@/app/_icons/location-icon";
@@ -9,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { type EBlRowType } from "@/types/ebl";
 import { portName } from "@/lib/ports";
 import { format } from "date-fns";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const FileDetailsLine = ({
   title,
@@ -26,6 +29,8 @@ const FileDetailsLine = ({
 );
 
 const FileDetails = ({ ebl }: { ebl: EBlRowType }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <section className="flex flex-col items-start rounded-lg border border-solid border-[#DFE4E9] bg-white p-[1.875rem] shadow-lg">
       <div className="flex items-center gap-2.5">
@@ -36,12 +41,13 @@ const FileDetails = ({ ebl }: { ebl: EBlRowType }) => {
       </div>
       <div className="mt-[1.875rem] flex w-full items-stretch justify-between gap-5 self-stretch">
         <div className="flex w-full gap-5">
-          <div className="flex flex-col items-start ">
+          <div className="flex flex-col items-start cursor-pointer">
             <Image
               src="/ebl-pdf-preview.jpg"
               alt="eBL Preview"
               width={123}
               height={170}
+              onClick={() => setModalOpen(true)}
             />
           </div>
           <div className="ml-[3.75rem] flex flex-col items-start text-[.8125rem] leading-[1.125rem]">
@@ -86,6 +92,21 @@ const FileDetails = ({ ebl }: { ebl: EBlRowType }) => {
           </Button>
         </div>
       </div>
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent
+          className={cn("fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-[50vw] max-h-[90vh] overflow-auto p-0 font-content border-[2px] border-[#738DBC] !rounded-none")}
+        >
+          <Image
+            src="/ebl-pdf-preview.jpg"
+            alt="eBL full-sized"
+            width={1230}
+            height={6000}
+            layout="responsive"
+            objectFit="contain"
+            onClick={() => setModalOpen(true)}
+          />
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
