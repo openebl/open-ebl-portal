@@ -1,4 +1,5 @@
 import { FormField } from "@/components/ui/form";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,7 @@ type SelectFormFieldProps<
   name: TName;
   items: { name: string; value: string }[];
   formItemBuilder?: TFormItemBuilder;
+  className?: string;
 };
 
 const SelectFormField = <
@@ -36,6 +38,7 @@ const SelectFormField = <
   name,
   items,
   formItemBuilder = hFormItemBuilder,
+  className,
 }: SelectFormFieldProps<TFieldValues, TName>) => {
   const TFormItem = formItemBuilder();
   return (
@@ -45,7 +48,7 @@ const SelectFormField = <
       render={({ field }) => (
         <TFormItem label={label} required={required}>
           <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <SelectTrigger className="w-[21.25rem]">
+            <SelectTrigger className={cn(`w-[21.25rem] ${className}`)}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="font-content">

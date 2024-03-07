@@ -2,6 +2,7 @@
 
 import { FormField } from "@/components/ui/form";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   type Control,
   type FieldPath,
@@ -24,6 +25,7 @@ type ComboboxFieldProps<
   searchPlaceholder?: string;
   noResultsMsg?: string;
   formItemBuilder?: TFormItemBuilder;
+  className?: string;
   useFilterItems: (keyword: string) => {
     items: ComboBoxItemType[];
     loading: boolean;
@@ -47,6 +49,7 @@ const ComboboxField = <
   searchPlaceholder = "Type in Keyword",
   noResultsMsg = "No results found",
   formItemBuilder = hFormItemBuilder,
+  className,
   useFilterItems,
   useGetItem,
 }: ComboboxFieldProps<TFieldValues, TName>) => {
@@ -67,7 +70,7 @@ const ComboboxField = <
       render={({ field }) => (
         <TFormItem label={label} required={required}>
           <Combobox
-            className="h-10 w-[21.25rem]"
+            className={cn(`h-10 w-[21.25rem] ${className}`)}
             value={field.value}
             onSelect={field.onChange}
             items={renderItems}
