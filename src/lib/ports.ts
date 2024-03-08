@@ -1061,19 +1061,6 @@ const rawPorts = [
   { c: "CNZUH", n: "Zhuhai, CN, CNZUH" },
   { c: "CNZGZ", n: "Zhuhaigang, CN, CNZGZ" },
   { c: "CNZUU", n: "Zhuzhou, CN, CNZUU" },
-  { c: "THBKKALL", n: "Bangkok (All Ports)", l: ["THBKK", "THLCH"] },
-  {
-    c: "VNBDGALL",
-    n: "Ho Chi Minh (All Ports)",
-    l: ["VNBDG", "VNHPP", "VNSGN"],
-  },
-  { c: "KWKWIALL", n: "Kuwait (All Ports)", l: ["KWKWI", "KWSAA", "KWSWK"] },
-  { c: "USLAXALL", n: "Los Angeles (All Ports)", l: ["USLAX", "USLGB"] },
-  { c: "PHMNNALL", n: "Manila (All Ports)", l: ["PHMNN", "PHMNS"] },
-  { c: "USEWRALL", n: "New York (All Ports)", l: ["USEWR", "USEZA", "USNYC"] },
-  { c: "INBOMALL", n: "Nhava Sheva (All Ports)", l: ["INBOM", "INNSA"] },
-  { c: "MYLPKALL", n: "Port Klang (All Ports)", l: ["MYLPK", "MYPKG"] },
-  { c: "CNTSNALL", n: "Tianjin (All Ports)", l: ["CNTSN", "CNTXG"] },
 ];
 
 export const ports = rawPorts.map((port) => ({ name: port.n, value: port.c }));
