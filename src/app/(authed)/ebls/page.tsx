@@ -1,5 +1,6 @@
 import MainSection from "@/app/_components/ebl-list/main-section";
 import { api } from "@/trpc/server";
+import { type EBlFilter } from "@/types/ebl";
 
 export default async function Page({
   searchParams,
@@ -16,5 +17,5 @@ export default async function Page({
 
   const recordList = await api.ebl.list.query({ filter, offset: (currentPage - 1) * 10, limit: 10 });
 
-  return <MainSection recordList={recordList} page={currentPage} filter={filter} />;
+  return <MainSection recordList={recordList} page={currentPage} filter={filter as EBlFilter} />;
 }

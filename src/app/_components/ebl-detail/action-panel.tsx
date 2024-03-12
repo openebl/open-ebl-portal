@@ -159,7 +159,7 @@ const ActionPanel = ({
                   className="h-2.75rem flex gap-x-2.5 px-[1rem]"
                   onClick={() => setAction(act)}
                 >
-                  {block.icon} {block.label}
+                  {block?.icon} {block?.label}
                 </DropdownMenuItem>
               );
             })}

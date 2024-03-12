@@ -6,7 +6,7 @@ import EditIcon from "@/app/_icons/edit-icon";
 import GoalFlagIcon from "@/app/_icons/goal-flag-icon";
 import MailIcon from "@/app/_icons/mail-icon";
 import PrintedIcon from "@/app/_icons/printed-icon";
-import { getLatestBillOfLading } from "@/lib/server-utils";
+import { getLatestBillOfLading } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { EBlFilter, type EBlRecordType } from "@/types/ebl";
 import Link from "next/link";

@@ -10,7 +10,7 @@ import PdfIcon from "@/app/_icons/pdf-icon";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { type EBlRecordDetailType } from "@/types/ebl";
-import { getLatestBillOfLading } from "@/lib/server-utils";
+import { getLatestBillOfLading } from "@/lib/utils";
 
 const FileDetailsLine = ({
   title,

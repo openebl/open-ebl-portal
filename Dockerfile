@@ -19,6 +19,7 @@ ENV GOOGLE_CLIENT_SECRET="--google-client-secret--"
 ENV EMAIL_SERVER=smtps://smtp.example.com:465
 ENV EMAIL_FROM=noreply@example.com
 ENV S3_BUCKET=example-bucket
+ENV BU_SERVER_URL="http://localhost:8080"
 ENV BU_SERVER_API_KEY=key
 
 # Build next.js app

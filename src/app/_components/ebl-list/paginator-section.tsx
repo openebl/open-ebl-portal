@@ -20,7 +20,7 @@ const PaginatorSection = ({
       perPage={10}
       currentPage={currentPage}
       onPageChanged={(page) =>
-        router.push(`/ebls?page=${page}&filter=${filter}`, { scroll: true })
+        router.push(`/ebls?page=${page ?? 1}&filter=${filter ?? 'action_needed'}`, { scroll: true })
       }
     />
   );
