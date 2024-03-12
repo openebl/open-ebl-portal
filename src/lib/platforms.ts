@@ -1,16 +1,85 @@
 import type { Platforms } from '@/types/platform';
 
+// TODO: this will be transformed to a json file and put on cdn server
 export const platforms: Platforms = {
   'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9': {
-    name: 'Issuer Agent A, LTD'
+    name: 'Issuer Agent A, LTD',
+    country: "China",
+    legalName: "Issuer Agent A, LTD",
+    dba: "",
+    category: "",
+    type: "",
+    ein: "",
+    taxId: "",
+    oti: "",
+    usdot: "",
+    customBroker: "",
+    phone: "15353535353",
+    email: "",
+    address: "Room 123A, No. 9999 Demo Road",
+    city: "Shanghai",
+    state: "",
+    zipCode: "",
+    website: ""
   },
   'did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614': {
-    name: 'A Factory Co., Ltd'
+    name: 'A Factory Co., Ltd',
+    country: "China",
+    legalName: "A Factory Co., Ltd",
+    dba: "",
+    category: "",
+    type: "",
+    ein: "",
+    taxId: "",
+    oti: "",
+    usdot: "",
+    customBroker: "",
+    phone: "861223123123",
+    email: "",
+    address: "123 Guangrong Street, Shiling Town",
+    city: "GuangZhou",
+    state: "",
+    zipCode: "",
+    website: ""
   },
   'did:openebl:0158341d-5c6b-4121-bfe4-535c7606bbd5': {
-    name: 'Importer A, Inc'
+    name: 'Importer A, Inc',
+    country: "United States",
+    legalName: "Importer A, Inc",
+    dba: "",
+    category: "",
+    type: "",
+    ein: "",
+    taxId: "",
+    oti: "",
+    usdot: "",
+    customBroker: "",
+    phone: "123-123-1234",
+    email: "",
+    address: "123 Salt Street",
+    city: "Arlington",
+    state: "TN",
+    zipCode: "38002",
+    website: ""
   },
   'did:openebl:66c71465-3d0b-43d8-9e1b-c88c7a7634ca': {
-    name: 'Release Agent A, Inc'
-  },
+    name: 'Release Agent A, Inc',
+    country: "United States",
+    legalName: "Release Agent A, Inc",
+    dba: "",
+    category: "",
+    type: "",
+    ein: "",
+    taxId: "",
+    oti: "",
+    usdot: "",
+    customBroker: "",
+    phone: "123-232-4253",
+    email: "",
+    address: "321 Sugar Street",
+    city: "Los Angeles",
+    state: "CA",
+    zipCode: "90025",
+    website: ""
+  }
 }
