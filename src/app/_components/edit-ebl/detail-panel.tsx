@@ -29,7 +29,7 @@ const DetailPanel = ({ form }: { form: UseFormReturn<EBlRequestType> }) => {
             control={form.control}
             name="bl_number"
             render={({ field }) => (
-              <HFormItem label="B/L No." required={true}>
+              <HFormItem label="BL No." required={true}>
                 <Input
                   className={`h-10 w-[21.25rem] shadow-inner ${form.formState.errors.bl_number && '!border-[#E42525]'}`}
                   {...field}
@@ -39,7 +39,7 @@ const DetailPanel = ({ form }: { form: UseFormReturn<EBlRequestType> }) => {
           />
           <SelectFormField
             control={form.control}
-            label="B/L Type"
+            label="BL Type"
             required={true}
             name="bl_doc_type"
             items={blDocTypes}

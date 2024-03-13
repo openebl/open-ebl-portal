@@ -41,7 +41,7 @@ const Menu = ({ session }: { session: Session | null }) => {
 
   return (
     <div className="flex h-[3.875rem] items-center border-b-4 border-[#059CF1]">
-      <div className="text-[13px] font-semibold leading-[18px]">eB/L</div>
+      <div className="text-[13px] font-semibold leading-[18px]">eBL</div>
     </div>
   );
 };
@@ -67,7 +67,7 @@ const OuterFrame = async ({
           </Link> */}
           <Link href="/">
             <div className="mx-0 text-lg font-semibold text-header-text">
-              Open eB/L
+              Open eBL
             </div>
           </Link>
           <div className="mx-20">

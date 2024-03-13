@@ -8,15 +8,15 @@ import { getServerAuthSession } from "@/server/auth";
 import { api } from "@/trpc/server";
 
 const actionMapping: Record<EBlAllowAction, string> = {
-  UPDATE_DRAFT: "Update eB/L draft",
-  AMEND: "Amend eB/L",
-  AMENDMENT_REQUEST: "Request issuer for eB/L amendment",
-  PRINT_TO_PAPER: "Print eB/L",
-  TRANSFER: "Transfer eB/L",
-  RETURN: "Return eB/L",
-  SURRENDER: "Surrender eB/L",
-  ACCOMPLISH: "Accomplish eB/L",
-  DELETE: "Delete eB/L",
+  UPDATE_DRAFT: "Updated draft",
+  AMEND: "Amended and Transferred",
+  REQUEST_AMEND: "Requested amendment",
+  PRINT: "Printed to paper",
+  TRANSFER: "Transferred document",
+  RETURN: "Returned document",
+  SURRENDER: "Surrendered document",
+  ACCOMPLISH: "Accomplished document",
+  DELETE: "Deleted document",
 };
 
 const MainSection = async ({
@@ -33,37 +33,33 @@ const MainSection = async ({
     const actorName = ''; // TODO: user name
     let actedAt = ''; // ISO 8601 date-time string, it will be converted to local time in client component later
     let target = '';
-    let targetedAt = '';
+    const targetedAt = '';
     let note = '';
     let noteAltered = false;
 
     if (event.bill_of_lading) {
-      action = 'bill_of_lading';
+      action = 'Issued document';
       actor = platforms[event.bill_of_lading.created_by]?.name ?? '';
       actedAt = event.bill_of_lading.created_at;
       target = '';
-      targetedAt = '';
       note = event.bill_of_lading.note ?? '';
     } else if (event.transfer) {
       action = actionMapping.TRANSFER;
       actor = platforms[event.transfer.transfer_by]?.name ?? '';
       actedAt = event.transfer.transfer_at;
       target = platforms[event.transfer.transfer_to]?.name ?? '';
-      targetedAt = '';
       note = event.transfer.note ?? '';
     } else if (event.return) {
       action = actionMapping.RETURN;
       actor = platforms[event.return.return_by]?.name ?? '';
       actedAt = event.return.return_at;
       target = platforms[event.return.return_to]?.name ?? '';
-      targetedAt = '';
       note = event.return?.note ?? '';
     } else if (event.surrender) {
       action = actionMapping.SURRENDER;
       actor = platforms[event.surrender.surrender_by]?.name ?? '';
       actedAt = event.surrender.surrender_at;
       target = platforms[event.surrender.surrender_to]?.name ?? '';
-      targetedAt = '';
       note = event.surrender?.note ?? '';
     } else if (event.accomplish) {
       action = actionMapping.ACCOMPLISH;
@@ -71,12 +67,12 @@ const MainSection = async ({
       actedAt = event.accomplish.accomplish_at;
       note = event.accomplish?.note ?? '';
     } else if (event.print_to_paper) {
-      action = actionMapping.PRINT_TO_PAPER;
+      action = actionMapping.PRINT;
       actor = platforms[event.print_to_paper.print_by]?.name ?? '';
       actedAt = event.print_to_paper.print_at;
       note = event.print_to_paper?.note ?? '';
     } else if (event.amendment_request) {
-      action = actionMapping.AMENDMENT_REQUEST;
+      action = actionMapping.REQUEST_AMEND;
       actor = platforms[event.amendment_request.request_by]?.name ?? '';
       actedAt = event.amendment_request.request_at;
       note = event.amendment_request?.note ?? '';

@@ -115,7 +115,7 @@ const EBlRecordEventSchema = z.object({
 const EBlRecordHistorySchema = z.array(EBlRecordEventSchema);
 
 export const EBlRecordSchema = z.object({
-  allow_actions: z.array(EBlAllowActionTypeSchema).nullable(),
+  allow_actions: z.array(EBlAllowActionTypeSchema),
   bl: z.object({
     id: z.string(),
     version: z.number(),

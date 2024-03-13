@@ -81,10 +81,10 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
         </div>
 
         <div className="flex items-center gap-7">
-        <Link href="/ebls/new">
-          <Button variant="flat" className="text-white">
-            Upload New B/L
-          </Button>
+          <Link href="/ebls/new">
+            <Button variant="flat" className="text-white">
+              Upload New BL
+            </Button>
           </Link>
           <Button variant="flat" className="h-[1.875rem] w-[1.875rem] p-0">
             <DownloadIcon className="text-white" />
@@ -96,7 +96,7 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
       <div className="flex flex-1">
         {/* Page Selector */}
         <div className="flex w-[8.125rem] flex-shrink-0 flex-col gap-5 bg-[#2D2D2D] p-5">
-          {images.map(({imageUrl}, index) => (
+          {images.map(({ imageUrl }, index) => (
             <div
               key={index}
               className="flex cursor-pointer items-center justify-center"
@@ -116,7 +116,7 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
         </div>
         {/* Document preview */}
         <div className="flex flex-1 bg-[#333639] justify-center overflow-auto min-h-full">
-          { selectedDocument && <Image
+          {selectedDocument && <Image
             src={selectedDocument.imageUrl}
             width={500}
             height={680}
@@ -126,7 +126,7 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
               transform: `scale(${zoomLevel / 100})`,
               transformOrigin: 'top'
             }}
-          /> }
+          />}
         </div>
       </div>
     </div>

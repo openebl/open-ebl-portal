@@ -80,7 +80,7 @@ const FileDetails = ({ ebl }: { ebl: EBlRecordType }) => {
         </div>
         <div className="flex flex-col justify-end">
           <Button className="flex h-[2.75rem] w-[11.25rem] items-center justify-center rounded-lg border border-secondary1 bg-white text-sm font-semibold">
-            <a href="...">Download eB/L</a>
+            <a href="...">Download eBL</a>
           </Button>
         </div>
       </div>

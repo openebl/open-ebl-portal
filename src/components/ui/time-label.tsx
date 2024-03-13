@@ -9,7 +9,7 @@ interface TimeLabelProps {
 }
 
 const TimeLabel: React.FC<TimeLabelProps> = ({ time, formatStr }) => {
-  let localTime = 'Invalid date or format';
+  let localTime = '';
 
   try {
     const date = new Date(time);

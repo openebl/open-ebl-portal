@@ -4,12 +4,14 @@ import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { isEmpty } from "remeda";
 
 import AmendIcon from "@/app/_icons/amend-icon";
 import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
 import PrinterIcon from "@/app/_icons/printer-icon";
 import ReturnIcon from "@/app/_icons/return-icon";
 import SendIcon from "@/app/_icons/send-icon";
+import AccomplishIcon from "@/app/_icons/accomplish-icon";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,14 +31,14 @@ const ActionPanel = ({
 }: {
   ebl: EBlRecordType;
 }) => {
-  const [action, setAction] = useState<EBlAllowAction>(ebl.allow_actions?.[0] ?? EBlAllowAction.UpdateDraft);
+  const [action, setAction] = useState<EBlAllowAction | null>(ebl.allow_actions?.[0] ?? null);
   const [note, setNote] = useState<string>("");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogState, setDialogState] = useState<DialogState>("confirm");
   const [isLoading, setLoading] = useState(false);
 
-  const disabled = ebl.allow_actions?.length === 0;
+  const disabled = isEmpty(ebl.allow_actions);
   const router = useRouter();
 
   const actionHandlerCallback = (action: EBlAllowAction) => ({
@@ -48,57 +50,57 @@ const ActionPanel = ({
       setDialogOpen(false);
       setLoading(false);
       console.error(error);
-      toast.error(`Failed to ${action} eB/L: ` + error.message);
+      toast.error(`Failed to ${action} eBL: ` + error.message);
     },
   })
   const transfer = api.ebl.transfer.useMutation(actionHandlerCallback(EBlAllowAction.Transfer));
 
   const allowActions = {
     [EBlAllowAction.UpdateDraft]: {
-      icon: <></>, // TODO: icon
-      label: "Update eB/L Draft",
+      icon: <AmendIcon />,
+      label: "Update Draft",
       handler: () => null,
     },
     [EBlAllowAction.Amend]: {
-      icon: <AmendIcon className="text-white" />,
-      label: "Amend eB/L",
+      icon: <AmendIcon />,
+      label: "Amend",
       handler: () => null,
     },
-    [EBlAllowAction.AmendmentRequest]: {
-      icon: <AmendIcon className="text-white" />,
-      label: "Request eB/L amendment",
+    [EBlAllowAction.RequestAmend]: {
+      icon: <AmendIcon />,
+      label: "Request Amendment",
       handler: () => null,
     },
     [EBlAllowAction.Print]: {
-      icon: <PrinterIcon className="text-white" />,
-      label: "Print eB/L",
+      icon: <PrinterIcon />,
+      label: "Print to Paper",
       handler: () => null,
     },
     [EBlAllowAction.Transfer]: {
-      icon: <SendIcon className="text-white" />,
-      label: "Transfer eB/L",
+      icon: <SendIcon />,
+      label: "Transfer",
       handler: (id: string, note: string) => {
         transfer.mutate({ id, note });
       },
     },
     [EBlAllowAction.Return]: {
-      icon: <ReturnIcon className="text-white" />,
-      label: "Return eB/L",
+      icon: <ReturnIcon />,
+      label: "Return eBL to Requestor",
       handler: () => null,
     },
     [EBlAllowAction.Surrender]: {
-      icon: <></>, // TODO: icon
-      label: "Surrender eB/L",
+      icon: <SendIcon />,
+      label: "Surrender",
       handler: () => null,
     },
     [EBlAllowAction.Accomplish]: {
-      icon: <SendIcon className="text-white" />,
-      label: "Accomplish eB/L",
+      icon: <AccomplishIcon />,
+      label: "Accomplish",
       handler: () => null,
     },
     [EBlAllowAction.Delete]: {
-      icon: <></>, // TODO: icon
-      label: "Delete eB/L",
+      icon: <></>,
+      label: "Delete",
       handler: () => null,
     },
   };
@@ -107,7 +109,7 @@ const ActionPanel = ({
     if (dialogState === "confirm") {
       setDialogState("waiting");
       setLoading(true);
-      allowActions[action].handler(ebl.bl.id, note);
+      action && allowActions[action].handler(ebl.bl.id, note);
     } else {
       setDialogOpen(false);
       router.push("/ebls", { scroll: true });
@@ -120,11 +122,11 @@ const ActionPanel = ({
   };
 
   const nextPlatformName = 'nextPlatformName' // TODO
-  const confirmMessag = action === EBlAllowAction.Transfer ? `Are you sure you want to transfer this eB/L to ${nextPlatformName}?` : 'Are you sure you want to accomplish this eB/L?'
-  const transferringMessage = !nextPlatformName ? "The eB/L is transferring..." : `The eB/L is transferring to ${nextPlatformName}...`
-  const transferredMessage = !nextPlatformName ? "The eB/L has been transferred" : `The eB/L has been transferred to ${nextPlatformName}.`
-  const progressMessage = action === EBlAllowAction.Transfer ? transferringMessage : "The eB/L is accomplishing..."
-  const completedMessage = action === EBlAllowAction.Transfer ? transferredMessage : "The eB/L has been accomplished."
+  const confirmMessage = action === EBlAllowAction.Transfer ? `Are you sure you want to transfer this eBL to ${nextPlatformName}?` : 'Are you sure you want to accomplish this eBL?'
+  const transferringMessage = !nextPlatformName ? "The eBL is transferring..." : `The eBL is transferring to ${nextPlatformName}...`
+  const transferredMessage = !nextPlatformName ? "The eBL has been transferred" : `The eBL has been transferred to ${nextPlatformName}.`
+  const progressMessage = action === EBlAllowAction.Transfer ? transferringMessage : "The eBL is accomplishing..."
+  const completedMessage = action === EBlAllowAction.Transfer ? transferredMessage : "The eBL has been accomplished."
 
   return (
     <>
@@ -138,12 +140,12 @@ const ActionPanel = ({
       </div>
       <div className="flex w-full items-center justify-end px-[1.875rem]">
         <Button
-          className="flex h-[2.75rem] w-[12.5rem] select-none items-center justify-start gap-2.5 rounded-none rounded-l-md bg-[#F86919] px-[1.25rem] text-white hover:bg-[#FF965C] focus-visible:ring-[#F86919]/30 active:bg-[#D24B00] disabled:border-[1px] disabled:border-[#CAD2E0] disabled:bg-[#F1F0F0] disabled:text-disabled"
+          className="flex h-[2.75rem] select-none items-center justify-start gap-2.5 rounded-none rounded-l-md bg-[#F86919] px-[1.25rem] text-white hover:bg-[#FF965C] focus-visible:ring-[#F86919]/30 active:bg-[#D24B00] disabled:border-[1px] disabled:border-[#CAD2E0] disabled:bg-[#F1F0F0] disabled:text-disabled"
           disabled={disabled}
           loading={isLoading}
           onClick={handleClick}
         >
-          {allowActions[action]?.icon} {allowActions[action]?.label}
+          {action && allowActions[action]?.icon} {action && allowActions[action]?.label}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -155,7 +157,7 @@ const ActionPanel = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-[15rem] font-header" align="end">
-            {ebl.allow_actions?.map((act) => {
+            {ebl.allow_actions.map((act) => {
               if (act === action) return null;
               const block = allowActions[act];
               return (
@@ -177,7 +179,7 @@ const ActionPanel = ({
         state={dialogState}
         content={{
           confirm: {
-            title: confirmMessag,
+            title: confirmMessage,
           },
           waiting: {
             icon: <PaperPlaneIcon />,

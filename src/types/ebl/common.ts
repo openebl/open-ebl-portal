@@ -9,18 +9,18 @@ enum EBlFilter {
   ACTION_NEEDED = "action_needed",
   UPCOMING = "upcoming",
   SENT = "sent",
-  ARCHIVED = "archived",
+  ARCHIVE = "archive",
 }
 
 enum EBlAllowAction {
   UpdateDraft = "UPDATE_DRAFT",
   Amend = "AMEND",
-  AmendmentRequest = "AMENDMENT_REQUEST", // request issuer for eB/L amendment, the eB/L will be returned to the issuer
-  Print = "PRINT_TO_PAPER", // any role to finish the eB/L cycle immediately (even if it's not the stage in the eB/L cycle)
+  RequestAmend = "REQUEST_AMEND", // request issuer for eBL amendment, the eBL will be returned to the issuer
+  Print = "PRINT", // any role to finish the eBL cycle immediately (even if it's not the stage in the eBL cycle)
   Transfer = "TRANSFER", // issuer to shipper, shipper to consignee
-  Return = "RETURN", // return the eB/L ownership to previous owner
+  Return = "RETURN", // return the eBL ownership to previous owner
   Surrender = "SURRENDER", // consignee to release agent
-  Accomplish = "ACCOMPLISH", // release agent to finish the eB/L cycle
+  Accomplish = "ACCOMPLISH", // release agent to finish the eBL cycle
   Delete = "DELETE",
 }
 

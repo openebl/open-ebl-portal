@@ -20,13 +20,13 @@ const MainSection = ({
 }) => {
   return (
     <div className="px-12 py-10 font-content">
-      <div className="text-2xl font-bold leading-9 text-main">eB/L</div>
+      <div className="text-2xl font-bold leading-9 text-main">eBL</div>
       <div className="flex flex-row justify-between py-[1.875rem]">
         <SearchBox />
         <Link href="/ebls/new">
           <Button className="bor h-11 w-[11.25rem] font-medium">
             <AddIcon className="mr-1" />
-            New eB/L
+            New eBL
           </Button>
         </Link>
       </div>

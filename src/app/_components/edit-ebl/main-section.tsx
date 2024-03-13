@@ -42,12 +42,12 @@ const MainSection = ({
 
   const issue = api.ebl.issue.useMutation({
     onSuccess: () => {
-      console.log(`eB/L issue successfully.`);
+      console.log(`eBL issue successfully.`);
       setDialogState("completed");
     },
     onError: (error: TRPCClientErrorLike<AppRouter>) => {
       setDialogOpen(false);
-      toast.error(`Failed to issue eB/L: ${error.message}`);
+      toast.error(`Failed to issue eBL: ${error.message}`);
       console.error(error);
     },
   });
@@ -92,7 +92,7 @@ const MainSection = ({
 
   return (
     <div className="px-12 py-10 font-content">
-      <div className="text-2xl font-bold leading-9 text-main">New eB/L</div>
+      <div className="text-2xl font-bold leading-9 text-main">New eBL</div>
 
       <div className="mt-[1.875rem] flex h-[53.5rem] flex-col justify-between rounded-lg border border-solid border-border-light bg-white shadow-lg">
         <div className="flex h-[48.125rem] items-stretch">
@@ -117,7 +117,7 @@ const MainSection = ({
             </Button>
             <Button size="lg" className="w-[11.25rem]" onClick={submitClicked}>
               <SendIcon className="mr-1" />
-              Issue eB/L
+              Issue eBL
             </Button>
           </div>
         </div>
@@ -128,22 +128,22 @@ const MainSection = ({
         state={dialogState}
         content={{
           confirm: {
-            title: "Are you sure you want to issue this eB/L?",
+            title: "Are you sure you want to issue this eBL?",
             message:
               "Please ensure that the information provided and the parties selected are accurate.",
-            confirmButton: "Issue eB/L",
+            confirmButton: "Issue eBL",
           },
           waiting: {
             icon: <PaperPlaneIcon />,
             message:
-              !getShipper.item ? "Drafting eB/L..." : `Issuing eB/L to ${getShipper.item?.label}...`,
+              !getShipper.item ? "Drafting eBL..." : `Issuing eBL to ${getShipper.item?.label}...`,
           },
           completed: {
             icon: <PaperPlaneIcon />,
             message:
               !getShipper.item
-                ? "The eB/L has been drafted."
-                : `The eB/L has been issued to ${getShipper.item?.label}.`,
+                ? "The eBL has been drafted."
+                : `The eBL has been issued to ${getShipper.item?.label}.`,
             confirmButton: "OK",
           },
         }}

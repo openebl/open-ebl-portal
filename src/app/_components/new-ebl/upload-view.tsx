@@ -17,7 +17,7 @@ const UploadView = ({ onFileSelected }: UploadViewProps) => {
 
   return (
     <div className="flex h-[48.125rem] flex-col items-center justify-center p-[3.125rem] text-main">
-      <p className="text-[1.375rem] font-semibold leading-8">Upload a B/L</p>
+      <p className="text-[1.375rem] font-semibold leading-8">Upload a BL</p>
       <p className="my-2.5 whitespace-nowrap text-sm font-normal">
         Supported file formats: PNG, JPEG, TIFF and PDF
       </p>

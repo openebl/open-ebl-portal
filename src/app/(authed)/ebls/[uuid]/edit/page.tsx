@@ -17,7 +17,7 @@ export default async function Page({ params }: { params: { uuid: string } }) {
 
   return execution().catch((err) => {
     return err instanceof TRPCClientError && err.message === "NOT_FOUND" ? (
-      <ErrorPage message="eB/L Not Found" />
+      <ErrorPage message="eBL Not Found" />
     ) : (
       <ErrorPage message={`Something went wrong: ${err}`} />
     );

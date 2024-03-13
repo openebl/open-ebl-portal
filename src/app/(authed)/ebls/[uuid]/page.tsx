@@ -18,7 +18,7 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
     getLogger().error(err);
 
     block = err instanceof Error && err.message === "NOT_FOUND" ? (
-      <ErrorPage message="eB/L Not Found" />
+      <ErrorPage message="eBL Not Found" />
     ) : (
       <ErrorPage message={`Something went wrong`} />
     )

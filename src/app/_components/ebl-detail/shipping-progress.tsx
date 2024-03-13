@@ -136,7 +136,7 @@ const ProgressStatus = async ({
   const partyIDList = documentParties?.map(party => party?.party.identifyingCodes[0]?.partyCode) ?? []
   const nextPartyID = partyIDList[partyIDList.indexOf(ebl.bl.current_owner) + 1] ?? ""
   const currentOwnerName = platforms[ebl.bl.current_owner]?.name ?? ""
-  const nextOwnerName = platforms[nextPartyID]?.name ?? ""
+  const nextOwnerName = platforms[nextPartyID]?.name ?? "--"
   return (
     <div className="flex h-[3.875rem] w-full items-start justify-start gap-[3.75rem] px-[1.875rem]">
       <ProgressStatusItem title="Current Owner">

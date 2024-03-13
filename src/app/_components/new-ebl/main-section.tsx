@@ -83,7 +83,7 @@ const MainSection = () => {
 
   return (
     <div className="px-12 py-10 font-content">
-      <div className="text-2xl font-bold leading-9 text-main">New eB/L</div>
+      <div className="text-2xl font-bold leading-9 text-main">New eBL</div>
 
       <div className="mt-[1.875rem] flex h-[53.5rem] flex-col justify-between rounded-lg border border-solid border-border-light bg-white shadow-lg">
         {status === "new" && <UploadView onFileSelected={handleFileSelected} />}

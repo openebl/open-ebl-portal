@@ -113,9 +113,9 @@ const TableRow = ({
     <Link href={detailLink}>
       <div className="border-b-bolder-light flex w-full items-center justify-center border-b border-solid text-main hover:bg-border-light hover:bg-opacity-20">
         {(filterType === EBlFilter.ACTION_NEEDED && isDraft) && <DraftStamp />}
-        {(filterType !== EBlFilter.ARCHIVED && !isDraft) && <InProgessStamp />}
-        {(filterType === EBlFilter.ARCHIVED && lastEvent?.accomplish) && <CompletedStamp />}
-        {(filterType === EBlFilter.ARCHIVED && lastEvent?.print_to_paper) && <PrintedStamp />}
+        {(filterType === EBlFilter.UPCOMING || (filterType !== EBlFilter.ARCHIVE && !isDraft)) && <InProgessStamp />}
+        {(filterType === EBlFilter.ARCHIVE && lastEvent?.accomplish) && <CompletedStamp />}
+        {(filterType === EBlFilter.ARCHIVE && lastEvent?.print_to_paper) && <PrintedStamp />}
 
         <div className="flex w-full flex-col items-stretch py-5 pr-8">
           <span className="flex w-full items-center justify-between gap-5">
