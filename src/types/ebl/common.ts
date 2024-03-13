@@ -13,7 +13,7 @@ enum EBlFilter {
 }
 
 enum EBlAllowAction {
-  Update = "UPDATE",
+  UpdateDraft = "UPDATE_DRAFT",
   Amend = "AMEND",
   AmendmentRequest = "AMENDMENT_REQUEST", // request issuer for eB/L amendment, the eB/L will be returned to the issuer
   Print = "PRINT_TO_PAPER", // any role to finish the eB/L cycle immediately (even if it's not the stage in the eB/L cycle)
@@ -21,6 +21,7 @@ enum EBlAllowAction {
   Return = "RETURN", // return the eB/L ownership to previous owner
   Surrender = "SURRENDER", // consignee to release agent
   Accomplish = "ACCOMPLISH", // release agent to finish the eB/L cycle
+  Delete = "DELETE",
 }
 
 const EBlDocTypeSchema = z.enum(Object.keys(EBlDocType) as [keyof typeof EBlDocType]);

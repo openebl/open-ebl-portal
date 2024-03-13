@@ -5,12 +5,10 @@ import { getDocImagesByDocFileId } from "@/server/fx/doc-image";
 import {
   EBlRecordSchema,
   EBlRecordListSchema,
-  EBlRecordDetailSchema,
   EBlRequestSchema,
   EBlFilter,
   type EBlRecordType,
   type EBlRecordListType,
-  type EBlRecordDetailType,
 } from "@/types/ebl";
 
 const EBlActionSchemaWithID = z.object({ id: z.string(), requester: z.string(), authentication_id: z.string(), note: z.string().optional() })
@@ -73,8 +71,8 @@ export const eBlRouter = createTRPCRouter({
         },
         cache: 'no-store'
       })
-      const data = await res.json() as EBlRecordDetailType
-      const result = EBlRecordDetailSchema.parse(data)
+      const data = await res.json() as EBlRecordType
+      const result = EBlRecordSchema.parse(data)
       return result
     }),
 

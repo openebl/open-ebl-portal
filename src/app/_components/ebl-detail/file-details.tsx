@@ -9,7 +9,7 @@ import LocationIcon from "@/app/_icons/location-icon";
 import PdfIcon from "@/app/_icons/pdf-icon";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { type EBlRecordDetailType } from "@/types/ebl";
+import { type EBlRecordType } from "@/types/ebl";
 import { getLatestBillOfLading } from "@/lib/utils";
 
 const FileDetailsLine = ({
@@ -27,9 +27,9 @@ const FileDetailsLine = ({
   </div>
 );
 
-const getBLContent = (ebl: EBlRecordDetailType) => getLatestBillOfLading(ebl.record)?.bill_of_lading
+const getBLContent = (ebl: EBlRecordType) => getLatestBillOfLading(ebl)?.bill_of_lading
 
-const FileDetails = ({ ebl }: { ebl: EBlRecordDetailType }) => {
+const FileDetails = ({ ebl }: { ebl: EBlRecordType }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
@@ -54,12 +54,12 @@ const FileDetails = ({ ebl }: { ebl: EBlRecordDetailType }) => {
           <div className="ml-[3.75rem] flex flex-col items-start text-[.8125rem] leading-[1.125rem]">
             <div className="flex flex-col items-start justify-start gap-[.875rem]">
               <FileDetailsLine title="File Name">
-                <div className="font-semibold text-main">{getLatestBillOfLading(ebl.record)?.file.name}</div>
+                <div className="font-semibold text-main">{getLatestBillOfLading(ebl)?.file.name}</div>
               </FileDetailsLine>
 
               <FileDetailsLine title="File Type">
                 <PdfIcon className="h-[18px] w-[18px]" />
-                <div className="ml-2.5 font-semibold text-main">{getLatestBillOfLading(ebl.record)?.file.file_type}</div>
+                <div className="ml-2.5 font-semibold text-main">{getLatestBillOfLading(ebl)?.file.file_type}</div>
               </FileDetailsLine>
 
               <FileDetailsLine title="Port of Loading">

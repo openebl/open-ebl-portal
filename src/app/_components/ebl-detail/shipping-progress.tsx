@@ -4,9 +4,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { type EBlRecordDetailType } from "@/types/ebl";
+import { cn, getLatestBillOfLading } from "@/lib/utils";
+import { type EBlRecordType } from "@/types/ebl";
 import ActionPanel from "./action-panel";
+import { api } from "@/trpc/server";
 
 type TrackerPosition = "first" | "middle" | "last";
 
@@ -58,37 +59,51 @@ const ProgressTracker = ({
   );
 };
 
-const ProgressTrackerBar = ({ ebl }: { ebl: EBlRecordDetailType }) => {
+const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
   const active = "bg-[#004DE3]";
   const inactive = "bg-[#0D447A]";
-  return (
-    <div className="flex w-full max-w-full justify-evenly">
-      {/* <ProgressTracker
-        title="Issuing Agent"
-        name={ebl.issuerName ?? "--"}
-        className={ebl.ownerPlatform === ebl.issuer ? active : inactive}
-        position="first"
-      />
-      <ProgressTracker
-        title="Shipper"
-        name={ebl.shipperName ?? "--"}
-        className={ebl.ownerPlatform === ebl.shipper ? active : inactive}
-        position="middle"
-      />
-      <ProgressTracker
-        title="Consignee"
-        name={ebl.consigneeName ?? "--"}
-        className={ebl.ownerPlatform === ebl.consignee ? active : inactive}
-        position="middle"
-      />
-      <ProgressTracker
-        title="Release Agent"
-        name={ebl.releaseAgentName ?? "--"}
-        className={ebl.ownerPlatform === ebl.releaseAgent ? active : inactive}
-        position="last"
-      /> */}
-    </div>
-  );
+  // TODO: try not to await in RSC
+  const platforms = await api.platform.list.query();
+  const documentParties = getLatestBillOfLading(ebl)?.bill_of_lading?.shippingInstruction.documentParties
+  if (documentParties && Symbol.iterator in Object(documentParties)) {
+    const [issuer, shipper, consignee, releaseAgent] = documentParties;
+    const issuerID = issuer?.party.identifyingCodes[0]?.partyCode ?? "";
+    const shipperID = shipper?.party.identifyingCodes[0]?.partyCode ?? "";
+    const consigneeID = consignee?.party.identifyingCodes[0]?.partyCode ?? "";
+    const releaseAgentID = releaseAgent?.party.identifyingCodes[0]?.partyCode ?? "";
+    const issuerName = platforms[issuerID]?.name ?? "--"
+    const shipperName = platforms[shipperID]?.name ?? "--"
+    const consigneeName = platforms[consigneeID]?.name ?? "--"
+    const releaseAgentName = platforms[releaseAgentID]?.name ?? "--"
+    return (
+      <div className="flex w-full max-w-full justify-evenly">
+        <ProgressTracker
+          title="Issuing Agent"
+          name={issuerName}
+          className={ebl.bl.current_owner === issuerID ? active : inactive}
+          position="first"
+        />
+        <ProgressTracker
+          title="Shipper"
+          name={shipperName}
+          className={ebl.bl.current_owner === shipperID ? active : inactive}
+          position="middle"
+        />
+        <ProgressTracker
+          title="Consignee"
+          name={consigneeName}
+          className={ebl.bl.current_owner === consigneeID ? active : inactive}
+          position="middle"
+        />
+        <ProgressTracker
+          title="Release Agent"
+          name={releaseAgentName}
+          className={ebl.bl.current_owner === releaseAgentID ? active : inactive}
+          position="last"
+        />
+      </div>
+    );
+  }
 };
 
 const ProgressStatusItem = ({
@@ -108,20 +123,25 @@ const ProgressStatusItem = ({
   </div>
 );
 
-const ProgressStatus = ({
+const ProgressStatus = async ({
   ebl,
   sessionPlatformId,
 }: {
-  ebl: EBlRecordDetailType;
+  ebl: EBlRecordType;
   sessionPlatformId: string | undefined;
 }) => {
-  const currentOwnerName = 'TODO: currentOwnerName' // TODO
-  const nextOwnerName = 'TODO: nextOwnerName' // TODO
+  // TODO: try not to await in RSC
+  const platforms = await api.platform.list.query();
+  const documentParties = getLatestBillOfLading(ebl)?.bill_of_lading?.shippingInstruction.documentParties
+  const partyIDList = documentParties?.map(party => party?.party.identifyingCodes[0]?.partyCode) ?? []
+  const nextPartyID = partyIDList[partyIDList.indexOf(ebl.bl.current_owner) + 1] ?? ""
+  const currentOwnerName = platforms[ebl.bl.current_owner]?.name ?? ""
+  const nextOwnerName = platforms[nextPartyID]?.name ?? ""
   return (
     <div className="flex h-[3.875rem] w-full items-start justify-start gap-[3.75rem] px-[1.875rem]">
-      {/* <ProgressStatusItem title="Current Owner">
+      <ProgressStatusItem title="Current Owner">
         {currentOwnerName}
-        {sessionPlatformId === ebl.ownerPlatform && (
+        {sessionPlatformId === ebl.bl.current_owner && (
           <span className="text-xs leading-[1.125rem] text-disabled">
             {" "}
             (You)
@@ -131,13 +151,13 @@ const ProgressStatus = ({
 
       <ProgressStatusItem title="Next Owner">
         {nextOwnerName}
-        {sessionPlatformId === ebl.nextPlatform && (
+        {sessionPlatformId === nextPartyID && (
           <span className="text-xs leading-[1.125rem] text-disabled">
             {" "}
             (You)
           </span>
         )}
-      </ProgressStatusItem> */}
+      </ProgressStatusItem>
     </div>
   );
 };
@@ -146,7 +166,7 @@ const ShippingProgress = ({
   ebl,
   sessionPlatformId,
 }: {
-  ebl: EBlRecordDetailType;
+  ebl: EBlRecordType;
   sessionPlatformId: string | undefined;
 }) => {
   return (

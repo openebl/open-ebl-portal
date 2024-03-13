@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
-import { EBlAllowAction, type EBlRecordDetailType } from "@/types/ebl";
+import { EBlAllowAction, type EBlRecordType } from "@/types/ebl";
 import { ConfirmationDialog, type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type AppRouter } from "@/server/api/root";
@@ -27,16 +27,16 @@ import { type AppRouter } from "@/server/api/root";
 const ActionPanel = ({
   ebl,
 }: {
-  ebl: EBlRecordDetailType;
+  ebl: EBlRecordType;
 }) => {
-  const [action, setAction] = useState<EBlAllowAction>(ebl.allowed_actions?.[0] ?? EBlAllowAction.Update);
+  const [action, setAction] = useState<EBlAllowAction>(ebl.allow_actions?.[0] ?? EBlAllowAction.UpdateDraft);
   const [note, setNote] = useState<string>("");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogState, setDialogState] = useState<DialogState>("confirm");
   const [isLoading, setLoading] = useState(false);
 
-  const disabled = ebl.allowed_actions?.length === 0;
+  const disabled = ebl.allow_actions?.length === 0;
   const router = useRouter();
 
   const actionHandlerCallback = (action: EBlAllowAction) => ({
@@ -54,7 +54,7 @@ const ActionPanel = ({
   const transfer = api.ebl.transfer.useMutation(actionHandlerCallback(EBlAllowAction.Transfer));
 
   const allowActions = {
-    [EBlAllowAction.Update]: {
+    [EBlAllowAction.UpdateDraft]: {
       icon: <></>, // TODO: icon
       label: "Update eB/L Draft",
       handler: () => null,
@@ -96,13 +96,18 @@ const ActionPanel = ({
       label: "Accomplish eB/L",
       handler: () => null,
     },
+    [EBlAllowAction.Delete]: {
+      icon: <></>, // TODO: icon
+      label: "Delete eB/L",
+      handler: () => null,
+    },
   };
 
   const handleDialogConfirmed = () => {
     if (dialogState === "confirm") {
       setDialogState("waiting");
       setLoading(true);
-      allowActions[action].handler(ebl.record.id, note);
+      allowActions[action].handler(ebl.bl.id, note);
     } else {
       setDialogOpen(false);
       router.push("/ebls", { scroll: true });
@@ -150,7 +155,7 @@ const ActionPanel = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-[15rem] font-header" align="end">
-            {ebl.allowed_actions?.map((act) => {
+            {ebl.allow_actions?.map((act) => {
               if (act === action) return null;
               const block = allowActions[act];
               return (

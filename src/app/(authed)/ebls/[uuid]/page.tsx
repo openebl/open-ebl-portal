@@ -12,7 +12,7 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
   try {
     const ebl = await api.ebl.getByID.query(params.uuid);
     if (!ebl) throw new Error("NOT_FOUND");
-    block = <MainSection ebl={ebl} journey={[]} />;
+    block = <MainSection ebl={ebl} />;
 
   } catch (err) {
     getLogger().error(err);

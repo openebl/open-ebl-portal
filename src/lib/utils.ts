@@ -30,7 +30,7 @@ export function randomId(len = 20): string {
 export const getLatestBillOfLading = (record: EBlRecordType) => {
   try {
     // Reverse the events array to start searching from the end
-    const reversedEvents = [...record.events].reverse();
+    const reversedEvents = [...record.bl.events].reverse();
 
     // Find the last event that has a bill_of_lading property
     const latestEventWithBillOfLading = reversedEvents.find(event => event.bill_of_lading !== undefined);

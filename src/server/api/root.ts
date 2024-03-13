@@ -1,5 +1,6 @@
 import { createTRPCRouter } from "@/server/api/trpc";
 import { eBlRouter } from "./routers/ebl";
+import { platformRouter } from "./routers/platform";
 import { shipperRouter } from "./routers/shipper";
 import { portRouter } from "./routers/port";
 import { consigneeRouter } from "./routers/consignee";
@@ -14,6 +15,7 @@ import { releaseAgentRouter } from "./routers/releaseAgent";
  */
 export const appRouter = createTRPCRouter({
   port: portRouter,
+  platform: platformRouter,
   shipper: shipperRouter,
   consignee: consigneeRouter,
   releaseAgent: releaseAgentRouter,

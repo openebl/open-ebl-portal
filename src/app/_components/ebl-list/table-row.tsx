@@ -6,6 +6,7 @@ import EditIcon from "@/app/_icons/edit-icon";
 import GoalFlagIcon from "@/app/_icons/goal-flag-icon";
 import MailIcon from "@/app/_icons/mail-icon";
 import PrintedIcon from "@/app/_icons/printed-icon";
+import { TimeLabel } from "@/components/ui/time-label";
 import { getLatestBillOfLading } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { EBlFilter, type EBlRecordType } from "@/types/ebl";
@@ -105,9 +106,9 @@ const TableRow = ({
 }) => {
   const filterType = filter ?? EBlFilter.ACTION_NEEDED
   const isDraft = getBLContent(row)?.shippingInstruction.documentStatus === "DRFT"
-  const lastEvent = row.events[row.events.length - 1]
+  const lastEvent = row.bl.events[row.bl.events.length - 1]
   const isEditable = filterType === EBlFilter.ACTION_NEEDED && (isDraft || lastEvent?.amendment_request != null)
-  const detailLink = isEditable ? `/ebls/${row.id}/edit` : `/ebls/${row.id}`;
+  const detailLink = isEditable ? `/ebls/${row.bl.id}/edit` : `/ebls/${row.bl.id}`; // TODO: update draft
   return (
     <Link href={detailLink}>
       <div className="border-b-bolder-light flex w-full items-center justify-center border-b border-solid text-main hover:bg-border-light hover:bg-opacity-20">
@@ -135,10 +136,7 @@ const TableRow = ({
             </div>
             <div className="my-auto text-right text-xs leading-5">
               <span>Last updated on </span>
-              {/* TODO: time need to be localized, make time display UI to client component */}
-              <span className="font-semibold">
-                {getLatestBillOfLading(row)?.created_at}
-              </span>
+              <TimeLabel time={getLatestBillOfLading(row)?.created_at ?? ''} formatStr={'MMM d'} />
             </div>
           </span>
         </div>
