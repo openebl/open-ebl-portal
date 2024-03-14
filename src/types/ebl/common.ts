@@ -30,6 +30,7 @@ const EBlAllowActionTypeSchema = z.nativeEnum(EBlAllowAction);
 export {
   EBlDocTypeSchema,
   EBlAllowActionTypeSchema,
+  EBlDocType,
   EBlFilter,
   EBlAllowAction,
 };
