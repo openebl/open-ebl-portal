@@ -43,7 +43,14 @@ describe.concurrent("ports API", () => {
         name: "John Doe",
         email: "jogn.doe@example.com",
       },
-      platformId: 168n,
+      platform: {
+        id: 168n,
+        platformId: "",
+        name: "",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      authentication_id: '',
       expires: "1",
     };
 

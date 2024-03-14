@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { EBlDocTypeSchema, BusinessUnitID, Base64EncodedString, Timestamp } from "./common";
+import { EBlDocTypeSchema } from "./common";
+import { BusinessUnitID, Base64EncodedString } from "../common";
 
 export const EBlRequestSchema = z.object({
-  requester: BusinessUnitID,
+  meta_data: z.string(),
   authentication_id: z.string(),
   file: z.object({
     name: z.string(),
@@ -11,7 +12,7 @@ export const EBlRequestSchema = z.object({
   }),
   bl_number: z.string().min(1).max(50),
   bl_doc_type: EBlDocTypeSchema,
-  to_order: z.boolean(),
+  to_order: z.boolean(), // false: non-negotiable, true: negotiable
   pol: z.object({ // port of loading
     locationName: z.string(),
     UNLocationCode: z.string(),
@@ -20,7 +21,6 @@ export const EBlRequestSchema = z.object({
     locationName: z.string(),
     UNLocationCode: z.string(),
   }),
-  eta: Timestamp, // estimated time of arrival
   shipper: BusinessUnitID,
   consignee: BusinessUnitID,
   release_agent: BusinessUnitID,

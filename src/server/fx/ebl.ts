@@ -98,7 +98,7 @@ export const processFileDocUploadReq = async ({
     const docFile = await tx.docFile.create({
       data: {
         filename: req.headers.get("X-Filename"),
-        platformId: session!.platformId,
+        platformId: session!.platform.id,
         uploaderId: session!.user.id,
         storagekey,
       },

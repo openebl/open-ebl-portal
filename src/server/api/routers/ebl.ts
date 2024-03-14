@@ -11,7 +11,7 @@ import {
   type EBlRecordListType,
 } from "@/types/ebl";
 
-const EBlActionSchemaWithID = z.object({ id: z.string(), requester: z.string(), authentication_id: z.string(), note: z.string().optional() })
+const EBlActionSchemaWithID = z.object({ id: z.string(), meta_data: z.string(), authentication_id: z.string(), note: z.string().optional() })
 
 type EBlActionSchemaWithIDType = z.infer<typeof EBlActionSchemaWithID>
 
@@ -50,7 +50,7 @@ export const eBlRouter = createTRPCRouter({
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', // TODO: ctx.session.platformId
+          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
         },
         cache: 'no-store'
       })
@@ -67,7 +67,7 @@ export const eBlRouter = createTRPCRouter({
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', // TODO: ctx.session.platformId
+          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
         },
         cache: 'no-store'
       })
@@ -92,10 +92,9 @@ export const eBlRouter = createTRPCRouter({
       });
       if (!ebl) return null;
 
-      // TODO: requester / authentication_id / business_unit_id from ctx.session
       const request = {
-        requester: "did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9",
-        authentication_id: "ba05c973-7973-459f-9dd7-9f7f4e79d824",
+        meta_data: ctx.session.user.name ?? '',
+        authentication_id: String(ctx.session.authentication_id),
         file: {
           name: "name3",
           type: "type3",
@@ -103,7 +102,7 @@ export const eBlRouter = createTRPCRouter({
         },
         bl_number: "DEMO0001",
         bl_doc_type: "HouseBillOfLading",
-        to_order: true,
+        to_order: false,
         pol: {
           locationName: "Yantian, CN, CNYTN",
           UNLocationCode: "CNYTN"
@@ -112,11 +111,10 @@ export const eBlRouter = createTRPCRouter({
           locationName: "Los Angeles, CA, US, USLAX",
           UNLocationCode: "USLAX"
         },
-        eta: "2024-03-08T10:21:12.061Z",
         shipper: "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614",
         consignee: "did:openebl:0158341d-5c6b-4121-bfe4-535c7606bbd5",
         release_agent: "did:openebl:66c71465-3d0b-43d8-9e1b-c88c7a7634ca",
-        note: "note3",
+        note: "",
         draft: false
       }
 
@@ -143,17 +141,16 @@ export const eBlRouter = createTRPCRouter({
     }),
 
   issue: protectedProcedure
-    .input(EBlRequestSchema.omit({ requester: true, authentication_id: true }))
+    .input(EBlRequestSchema.omit({ meta_data: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      // TODO: requester / authentication_id / business_unit_id from ctx.session
-      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
+      const request = { ...input, meta_data: ctx.session.user.name ?? '', authentication_id: ctx.session.authentication_id }
       const res = await fetch(`${env.BU_SERVER_URL}/ebl`, {
         method: 'POST',
         headers: {
           'accept': 'application/json',
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', // TODO: ctx.session.platformId
+          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
         },
         body: JSON.stringify(request),
         cache: 'no-store'
@@ -164,58 +161,51 @@ export const eBlRouter = createTRPCRouter({
     }),
 
   transfer: protectedProcedure
-    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .input(EBlActionSchemaWithID.omit({ meta_data: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      // TODO: requester / authentication_id / business_unit_id from ctx.session
-      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
-      return await performEBlAction({ request, action: 'transfer', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+      const request = { ...input, meta_data: ctx.session.user.name ?? '', authentication_id: ctx.session.authentication_id }
+      return await performEBlAction({ request, action: 'transfer', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   return: protectedProcedure
-    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .input(EBlActionSchemaWithID.omit({ meta_data: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      // TODO: requester / authentication_id / business_unit_id from ctx.session
-      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
-      return await performEBlAction({ request, action: 'return', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+      const request = { ...input, meta_data: ctx.session.user.name ?? '', authentication_id: ctx.session.authentication_id }
+      return await performEBlAction({ request, action: 'return', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   surrender: protectedProcedure
-    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .input(EBlActionSchemaWithID.omit({ meta_data: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      // TODO: requester / authentication_id / business_unit_id from ctx.session
-      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
-      return await performEBlAction({ request, action: 'surrender', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+      const request = { ...input, meta_data: ctx.session.user.name ?? '', authentication_id: ctx.session.authentication_id }
+      return await performEBlAction({ request, action: 'surrender', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   accomplish: protectedProcedure
-    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .input(EBlActionSchemaWithID.omit({ meta_data: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      // TODO: requester / authentication_id / business_unit_id from ctx.session
-      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
-      return await performEBlAction({ request, action: 'accomplish', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+      const request = { ...input, meta_data: ctx.session.user.name ?? '', authentication_id: ctx.session.authentication_id }
+      return await performEBlAction({ request, action: 'accomplish', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   print_to_paper: protectedProcedure
-    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .input(EBlActionSchemaWithID.omit({ meta_data: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      // TODO: requester / authentication_id / business_unit_id from ctx.session
-      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
-      return await performEBlAction({ request, action: 'print_to_paper', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+      const request = { ...input, meta_data: ctx.session.user.name ?? '', authentication_id: ctx.session.authentication_id }
+      return await performEBlAction({ request, action: 'print_to_paper', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   amendment_request: protectedProcedure
-    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .input(EBlActionSchemaWithID.omit({ meta_data: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      // TODO: requester / authentication_id / business_unit_id from ctx.session
-      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
-      return await performEBlAction({ request, action: 'amendment_request', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+      const request = { ...input, meta_data: ctx.session.user.name ?? '', authentication_id: ctx.session.authentication_id }
+      return await performEBlAction({ request, action: 'amendment_request', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   delete: protectedProcedure
-    .input(EBlActionSchemaWithID.omit({ requester: true, authentication_id: true }))
+    .input(EBlActionSchemaWithID.omit({ meta_data: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      // TODO: requester / authentication_id / business_unit_id from ctx.session
-      const request = { ...input, requester: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9', authentication_id: 'ba05c973-7973-459f-9dd7-9f7f4e79d824' }
-      return await performEBlAction({ request, action: 'delete', business_unit_id: 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9' })
+      const request = { ...input, meta_data: ctx.session.user.name ?? '', authentication_id: ctx.session.authentication_id }
+      return await performEBlAction({ request, action: 'delete', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 });

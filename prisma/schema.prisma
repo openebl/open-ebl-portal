@@ -38,6 +38,7 @@ model Session {
 
 model Platform {
   id           BigInt      @id @default(autoincrement())
+  platformId   String?     @unique
   name         String
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @default(now())

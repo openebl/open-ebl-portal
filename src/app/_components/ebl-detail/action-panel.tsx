@@ -31,7 +31,14 @@ const ActionPanel = ({
 }: {
   ebl: EBlRecordType;
 }) => {
-  const [action, setAction] = useState<EBlAllowAction | null>(ebl.allow_actions?.[0] ?? null);
+  const defaultAction = ebl.allow_actions.includes(EBlAllowAction.Transfer)
+    ? EBlAllowAction.Transfer
+    : ebl.allow_actions.includes(EBlAllowAction.Surrender)
+      ? EBlAllowAction.Surrender
+      : ebl.allow_actions.includes(EBlAllowAction.Accomplish)
+        ? EBlAllowAction.Accomplish
+        : ebl.allow_actions?.[0] ?? null;
+  const [action, setAction] = useState<EBlAllowAction | null>(defaultAction);
   const [note, setNote] = useState<string>("");
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -53,7 +60,12 @@ const ActionPanel = ({
       toast.error(`Failed to ${action} eBL: ` + error.message);
     },
   })
-  const transfer = api.ebl.transfer.useMutation(actionHandlerCallback(EBlAllowAction.Transfer));
+  const requestAmendEBl = api.ebl.amendment_request.useMutation(actionHandlerCallback(EBlAllowAction.RequestAmend));
+  const printEBl = api.ebl.print_to_paper.useMutation(actionHandlerCallback(EBlAllowAction.Print));
+  const transferEBl = api.ebl.transfer.useMutation(actionHandlerCallback(EBlAllowAction.Transfer));
+  const returnEBl = api.ebl.return.useMutation(actionHandlerCallback(EBlAllowAction.Return));
+  const surrenderEBl = api.ebl.surrender.useMutation(actionHandlerCallback(EBlAllowAction.Surrender));
+  const accomplishEBl = api.ebl.accomplish.useMutation(actionHandlerCallback(EBlAllowAction.Accomplish));
 
   const allowActions = {
     [EBlAllowAction.UpdateDraft]: {
@@ -69,34 +81,44 @@ const ActionPanel = ({
     [EBlAllowAction.RequestAmend]: {
       icon: <AmendIcon />,
       label: "Request Amendment",
-      handler: () => null,
+      handler: (id: string, note: string) => {
+        requestAmendEBl.mutate({ id, note });
+      },
     },
     [EBlAllowAction.Print]: {
       icon: <PrinterIcon />,
       label: "Print to Paper",
-      handler: () => null,
+      handler: (id: string, note: string) => {
+        printEBl.mutate({ id, note });
+      },
     },
     [EBlAllowAction.Transfer]: {
       icon: <SendIcon />,
       label: "Transfer",
       handler: (id: string, note: string) => {
-        transfer.mutate({ id, note });
+        transferEBl.mutate({ id, note });
       },
     },
     [EBlAllowAction.Return]: {
       icon: <ReturnIcon />,
       label: "Return eBL to Requestor",
-      handler: () => null,
+      handler: (id: string, note: string) => {
+        returnEBl.mutate({ id, note });
+      },
     },
     [EBlAllowAction.Surrender]: {
       icon: <SendIcon />,
       label: "Surrender",
-      handler: () => null,
+      handler: (id: string, note: string) => {
+        surrenderEBl.mutate({ id, note });
+      },
     },
     [EBlAllowAction.Accomplish]: {
       icon: <AccomplishIcon />,
       label: "Accomplish",
-      handler: () => null,
+      handler: (id: string, note: string) => {
+        accomplishEBl.mutate({ id, note });
+      },
     },
     [EBlAllowAction.Delete]: {
       icon: <></>,
@@ -134,6 +156,7 @@ const ActionPanel = ({
         <Textarea
           placeholder="Leave notes"
           className="h-[7.5rem]"
+          disabled={disabled}
           value={note}
           onChange={(event) => setNote(event.target.value)}
         />

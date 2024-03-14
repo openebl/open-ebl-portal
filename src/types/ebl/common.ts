@@ -26,25 +26,10 @@ enum EBlAllowAction {
 
 const EBlDocTypeSchema = z.enum(Object.keys(EBlDocType) as [keyof typeof EBlDocType]);
 const EBlAllowActionTypeSchema = z.nativeEnum(EBlAllowAction);
-const BusinessUnitID = z.string();
-const Base64EncodedString = z.string();
-const NullableString = z.string().nullable();
-const MaybeString = z.string().optional(); // optional: the field may not exist
-const Timestamp = z.string().refine((value) => {
-  // Validate that the string is a valid ISO 8601 date-time format
-  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/.test(value);
-}, {
-  message: 'Invalid timestamp format. Expected ISO 8601 date-time with Zulu time (UTC).',
-});
 
 export {
   EBlDocTypeSchema,
   EBlAllowActionTypeSchema,
-  BusinessUnitID,
-  Base64EncodedString,
-  NullableString,
-  MaybeString,
-  Timestamp,
   EBlFilter,
   EBlAllowAction,
 };

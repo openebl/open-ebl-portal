@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { EBlDocTypeSchema, EBlAllowActionTypeSchema, BusinessUnitID, Base64EncodedString, NullableString, MaybeString, Timestamp } from "./common";
+import { EBlDocTypeSchema, EBlAllowActionTypeSchema } from "./common";
+import { BusinessUnitID, Base64EncodedString, NullableString, MaybeString, ISOTimestamp } from "../common";
 
 const identifyingCodesSchema = z.object({
   DCSAResponsibleAgencyCode: z.string(),
@@ -38,7 +39,7 @@ const shipmentLocationsSchema = z.array(
   z.object({
     location: locationSchema,
     shipmentLocationTypeCode: z.string(),
-    eventDateTime: Timestamp.optional(), // TODO: to be deleted
+    eventDateTime: ISOTimestamp.optional(), // TODO: to be deleted
   })
 );
 
@@ -64,51 +65,59 @@ const EBlRecordEventSchema = z.object({
       name: z.string(),
       file_type: z.string(),
       content: Base64EncodedString.nullable(),
-      created_date: Timestamp,
+      created_date: ISOTimestamp,
     }),
     doc_type: EBlDocTypeSchema,
     created_by: BusinessUnitID,
-    created_at: Timestamp,
+    created_at: ISOTimestamp,
     note: MaybeString,
+    meta_data: MaybeString,
   }).optional(),
   transfer: z.object({ // transfer eBL event
     transfer_by: BusinessUnitID,
     transfer_to: BusinessUnitID,
-    transfer_at: Timestamp,
+    transfer_at: ISOTimestamp,
     note: MaybeString,
+    meta_data: MaybeString,
   }).optional(),
   return: z.object({ // return eBL event
     return_by: BusinessUnitID,
     return_to: BusinessUnitID,
-    return_at: Timestamp,
+    return_at: ISOTimestamp,
     note: MaybeString,
+    meta_data: MaybeString,
   }).optional(),
   surrender: z.object({ // surrender eBL event
     surrender_by: BusinessUnitID,
     surrender_to: BusinessUnitID,
-    surrender_at: Timestamp,
+    surrender_at: ISOTimestamp,
     note: MaybeString,
+    meta_data: MaybeString,
   }).optional(),
   amendment_request: z.object({ // amend eBL event
     request_by: BusinessUnitID,
     request_to: BusinessUnitID,
-    request_at: Timestamp,
+    request_at: ISOTimestamp,
     note: MaybeString,
+    meta_data: MaybeString,
   }).optional(),
   print_to_paper: z.object({ // print eBL event
     print_by: BusinessUnitID,
-    print_at: Timestamp,
+    print_at: ISOTimestamp,
     note: MaybeString,
+    meta_data: MaybeString,
   }).optional(),
   accomplish: z.object({ // accomplish eBL event
     accomplish_by: BusinessUnitID,
-    accomplish_at: Timestamp,
+    accomplish_at: ISOTimestamp,
     note: MaybeString,
+    meta_data: MaybeString,
   }).optional(),
   delete: z.object({ // delete eBL event
     delete_by: BusinessUnitID,
-    delete_at: Timestamp,
+    delete_at: ISOTimestamp,
     note: MaybeString,
+    meta_data: MaybeString,
   }).optional(),
 });
 

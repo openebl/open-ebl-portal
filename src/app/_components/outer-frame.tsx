@@ -29,7 +29,7 @@ const AvatarButton = ({ session }: { session: Session | null }) => {
         <DropdownMenuLabel>({session.user.email})</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <Link href="/api/auth/signout">Sign out</Link>
+          <Link className="w-full" href="/api/auth/signout">Sign out</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

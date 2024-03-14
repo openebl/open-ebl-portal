@@ -30,7 +30,7 @@ const MainSection = async ({
   const history = ebl.bl.events.map(event => {
     let action = '';
     let actor = '';
-    const actorName = ''; // TODO: user name
+    let actorName = '';
     let actedAt = ''; // ISO 8601 date-time string, it will be converted to local time in client component later
     let target = '';
     const targetedAt = '';
@@ -40,46 +40,54 @@ const MainSection = async ({
     if (event.bill_of_lading) {
       action = 'Issued document';
       actor = platforms[event.bill_of_lading.created_by]?.name ?? '';
+      actorName = event.bill_of_lading.meta_data ?? '';
       actedAt = event.bill_of_lading.created_at;
       target = '';
       note = event.bill_of_lading.note ?? '';
     } else if (event.transfer) {
       action = actionMapping.TRANSFER;
       actor = platforms[event.transfer.transfer_by]?.name ?? '';
+      actorName = event.transfer.meta_data ?? '';
       actedAt = event.transfer.transfer_at;
       target = platforms[event.transfer.transfer_to]?.name ?? '';
       note = event.transfer.note ?? '';
     } else if (event.return) {
       action = actionMapping.RETURN;
       actor = platforms[event.return.return_by]?.name ?? '';
+      actorName = event.return.meta_data ?? '';
       actedAt = event.return.return_at;
       target = platforms[event.return.return_to]?.name ?? '';
       note = event.return?.note ?? '';
     } else if (event.surrender) {
       action = actionMapping.SURRENDER;
       actor = platforms[event.surrender.surrender_by]?.name ?? '';
+      actorName = event.surrender.meta_data ?? '';
       actedAt = event.surrender.surrender_at;
       target = platforms[event.surrender.surrender_to]?.name ?? '';
       note = event.surrender?.note ?? '';
     } else if (event.accomplish) {
       action = actionMapping.ACCOMPLISH;
       actor = platforms[event.accomplish.accomplish_by]?.name ?? '';
+      actorName = event.accomplish.meta_data ?? '';
       actedAt = event.accomplish.accomplish_at;
       note = event.accomplish?.note ?? '';
     } else if (event.print_to_paper) {
       action = actionMapping.PRINT;
       actor = platforms[event.print_to_paper.print_by]?.name ?? '';
+      actorName = event.print_to_paper.meta_data ?? '';
       actedAt = event.print_to_paper.print_at;
       note = event.print_to_paper?.note ?? '';
     } else if (event.amendment_request) {
       action = actionMapping.REQUEST_AMEND;
       actor = platforms[event.amendment_request.request_by]?.name ?? '';
+      actorName = event.amendment_request.meta_data ?? '';
       actedAt = event.amendment_request.request_at;
       note = event.amendment_request?.note ?? '';
       noteAltered = true;
     } else if (event.delete) {
       action = actionMapping.DELETE;
       actor = platforms[event.delete.delete_by]?.name ?? '';
+      actorName = event.delete.meta_data ?? '';
       actedAt = event.delete.delete_at;
       note = event.delete?.note ?? '';
     }
@@ -101,7 +109,7 @@ const MainSection = async ({
       <FileDetails ebl={ebl} />
       <ShippingProgress
         ebl={ebl}
-        sessionPlatformId={session?.platformId.toString()}
+        sessionPlatformId={String(session?.platform.platformId)}
       />
       <HistoryList history={history} />
     </div>

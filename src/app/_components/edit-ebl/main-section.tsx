@@ -53,7 +53,7 @@ const MainSection = ({
   });
 
   const issueEBl = (payload: { isDraft: boolean }) => {
-    const body = EBlRequestSchema.omit({ requester: true, authentication_id: true }).parse({ ...form.getValues(), draft: payload.isDraft });
+    const body = EBlRequestSchema.omit({ meta_data: true, authentication_id: true }).parse({ ...form.getValues(), draft: payload.isDraft });
     issue.mutate(body);
   };
 

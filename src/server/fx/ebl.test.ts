@@ -16,7 +16,14 @@ describe.concurrent("EBl Fx", () => {
         name: "John Doe",
         email: "jogn.doe@example.com",
       },
-      platformId: 168n,
+      platform: {
+        id: 168n,
+        platformId: "",
+        name: "",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      authentication_id: '',
       expires: "1",
     };
     const pdfFile = readFileSync('./src/test/integration/fixtures/ebl.pdf');
@@ -24,14 +31,14 @@ describe.concurrent("EBl Fx", () => {
     testWithDb(
       "upload a valid PDF file, it converts PDF to images and store to storage and database",
       async ({ expect, db }) => {
-        const req = createNextRequest(pdfFile, {'X-Filename': 'ebl.pdf'});
+        const req = createNextRequest(pdfFile, { 'X-Filename': 'ebl.pdf' });
         const { storageService, watcher } = useTestStorageService();
-        const docFileId = await processFileDocUploadReq({req, session, db, storage:storageService});
+        const docFileId = await processFileDocUploadReq({ req, session, db, storage: storageService });
 
         expect(docFileId).toBeTypeOf('bigint');
 
         // validate if docFile is properly stored in database
-        const fileDocOrNull = await db.docFile.findUnique({where:{id: docFileId }});
+        const fileDocOrNull = await db.docFile.findUnique({ where: { id: docFileId } });
         expect(fileDocOrNull).not.toBeNull();
         const fileDoc = fileDocOrNull!;
         expect(fileDoc.filename).toBe('ebl.pdf');
@@ -43,12 +50,12 @@ describe.concurrent("EBl Fx", () => {
         expect(Buffer.compare(fileDocStore.content, pdfFile)).toEqual(0)
 
         // validate if the images are properly stored in database
-        const imagesMeta = [[1, false], [1, true], [2, false],[2, true]] as Array<[number, boolean]>;
+        const imagesMeta = [[1, false], [1, true], [2, false], [2, true]] as Array<[number, boolean]>;
         for (const item of imagesMeta) {
           const [page, thumbnail] = item;
-          const imageRec = await db.docImage.findMany({where:{docFileId: docFileId , page, thumbnail}});
+          const imageRec = await db.docImage.findMany({ where: { docFileId: docFileId, page, thumbnail } });
           expect(imageRec?.length).toBe(1);
-          const image = sharp(watcher[imageRec[0]?.storagekey??'']?.content)
+          const image = sharp(watcher[imageRec[0]?.storagekey ?? '']?.content)
           expect(async () => await image.metadata()).not.toThrow();
           const metadata = await image.metadata();
           expect(metadata.format).toBe('webp');

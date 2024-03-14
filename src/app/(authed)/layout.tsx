@@ -17,8 +17,8 @@ export const metadata = {
 
 const RootLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerAuthSession();
+
   if (!session) {
-    // redirect('/auth/signin');
     redirect("/api/auth/signin");
   }
 
