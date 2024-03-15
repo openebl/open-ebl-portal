@@ -88,3 +88,13 @@ You can download [TablePlus](https://tableplus.com/) to visualize and manipulate
 npm ci
 npm run dev
 ```
+
+#### Local development consideration
+
+If your local development environment cannot access directly to DocuSum service, you will need to create a tunnel over Kubectl. Here is an example:
+
+```
+kubectl -n devbxebl port-forward svc/devbxebl-portals-docu-sum 5000:5000
+```
+
+then you can set `DOCU_SUM_ADDR` to `localhost:5000`
