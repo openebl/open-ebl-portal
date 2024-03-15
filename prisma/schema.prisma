@@ -42,13 +42,8 @@ model Platform {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @default(now())
   platformId   String?     @unique
-  consignedEBl EBl[]       @relation("consigneePlatform")
-  IssuedEBl    EBl[]       @relation("issuerPlatform")
-  releasedEBl  EBl[]       @relation("releaseAgentPlatform")
-  shippedEBl   EBl[]       @relation("shipperPlatform")
   activeUsers  User[]
   userRoles    UserRole[]
-  tradeRoles   TradeRole[] @relation("PlatformToTradeRole")
 }
 
 model User {
@@ -85,32 +80,6 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model EBl {
-  id                   String       @id @db.VarChar(48)
-  blNumber             String       @db.VarChar(160)
-  status               EBlStatus    @default(DRAFT)
-  blType               String?      @db.VarChar(32)
-  pol                  String?      @db.VarChar(16)
-  pod                  String?      @db.VarChar(16)
-  issuerId             BigInt?
-  shipperId            BigInt?
-  consigneeId          BigInt?
-  releaseAgentId       BigInt?
-  ownerPlatformId      BigInt?
-  nextPlatformId       BigInt?
-  eta                  DateTime?
-  notes                String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @default(now())
-  consigneePlatform    Platform?    @relation("consigneePlatform", fields: [consigneeId], references: [id])
-  issuerPlatform       Platform?    @relation("issuerPlatform", fields: [issuerId], references: [id])
-  releaseAgentPlatform Platform?    @relation("releaseAgentPlatform", fields: [releaseAgentId], references: [id])
-  shipperPlatform      Platform?    @relation("shipperPlatform", fields: [shipperId], references: [id])
-  journey              EBlJourney[]
-
-  @@index([updatedAt(sort: Desc)], map: "idx_ebl_updated_at")
-}
-
 model DocFile {
   id         BigInt     @id @default(autoincrement())
   platformId BigInt
@@ -133,66 +102,4 @@ model DocImage {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
   docFile    DocFile  @relation(fields: [docFileId], references: [id])
-}
-
-model DocAiTask {
-  id         BigInt          @id @default(autoincrement())
-  externalId String          @db.VarChar(160)
-  docFileId  BigInt
-  status     DocAiTaskStatus @default(UPLOADED)
-  error      String?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @default(now())
-
-  @@index([status], map: "idx_doc_ai_task_status")
-}
-
-model EBlJourney {
-  id               BigInt           @id @default(autoincrement())
-  eBlId            String           @db.VarChar(48)
-  action           EBlJourneyAction
-  note             String?
-  lastStatus       EBlStatus
-  targetPlatformId BigInt?
-  sourcePlatformId BigInt?
-  userId           BigInt?
-  createdAt        DateTime         @default(now())
-  eBL              EBl              @relation(fields: [eBlId], references: [id])
-
-  @@index([eBlId], map: "idx_ebl_journey_ebl_id")
-  @@index([targetPlatformId, eBlId], map: "idx_ebl_journey_target_platform_id_ebl_id")
-}
-
-model TradeRole {
-  id        BigInt     @id @default(autoincrement())
-  tradeRole String     @db.VarChar(32)
-  platforms Platform[] @relation("PlatformToTradeRole")
-}
-
-enum EBlStatus {
-  DRAFT
-  PROCESSING
-  COMPLETED
-  PRINTED
-  UPLOADED
-}
-
-enum DocAiTaskStatus {
-  UPLOADED
-  PROCESSING
-  COMPLETED
-  FAILED
-}
-
-enum EBlJourneyAction {
-  DRAFT
-  ISSUE
-  GRANT_SHIPPER
-  GRANT_CONSIGNEE
-  GRANT_RELEASE_AGENT
-  TRANSFER
-  AMEND
-  SURRENDER
-  COMPLETE
-  PRINT
 }

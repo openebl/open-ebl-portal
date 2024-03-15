@@ -1,4 +1,3 @@
-import { bxDocExtraction } from "@/add-ons/doc-reader/doc-extraction";
 import { withDocFile } from "@/test/integration/contexts/doc-files";
 import { withDocImages } from "@/test/integration/contexts/doc-images";
 import { withValidPlatformAndUser } from "@/test/integration/contexts/users";
