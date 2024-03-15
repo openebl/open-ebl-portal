@@ -67,6 +67,8 @@ In the .env file
 
 * BU_SERVER_API_KEY: ask Wesley to provide bu server api key
 
+* DOCU_SUM_ADDR: check below `Local development consideration` part. If kubectl isn't installed on your mac, `brew install kubectl`, and you need to perform [AWS SSO](https://www.notion.so/bluext/AWS-SSO-access-environment-cf3c01b25e894e45bdad677fd2fa3e9c) to access EKS in terminal.
+
 #### Database
 
 Init database with seed data

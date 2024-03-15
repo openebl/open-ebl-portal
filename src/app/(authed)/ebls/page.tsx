@@ -15,7 +15,7 @@ export default async function Page({
     ? searchParams?.filter[0]
     : searchParams?.filter;
 
-  const recordList = await api.ebl.list.query({ filter, offset: (currentPage - 1) * 10, limit: 10 });
+  const recordList = await api.ebl.list.query({ filter, offset: (currentPage - 1) * 20, limit: 20 });
 
   return <MainSection recordList={recordList} page={currentPage} filter={filter as EBlFilter} />;
 }

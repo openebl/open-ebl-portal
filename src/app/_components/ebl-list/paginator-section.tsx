@@ -17,7 +17,7 @@ const PaginatorSection = ({
   return (
     <Paginator
       total={total}
-      perPage={10}
+      perPage={20}
       currentPage={currentPage}
       onPageChanged={(page) =>
         router.push(`/ebls?page=${page ?? 1}&filter=${filter ?? 'action_needed'}`, { scroll: true })

@@ -19,6 +19,7 @@ import PreviewPanel from "./preview-panel";
 import type { ImageType } from "@/app/_components/common/props/types";
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type AppRouter } from "@/server/api/root";
+import { portName } from "@/lib/ports";
 
 const MainSection = ({
   ebl,
@@ -53,7 +54,10 @@ const MainSection = ({
   });
 
   const issueEBl = (payload: { isDraft: boolean }) => {
-    const body = EBlRequestSchema.omit({ meta_data: true, authentication_id: true }).parse({ ...form.getValues(), draft: payload.isDraft });
+    const formData = form.getValues()
+    formData.pol.locationName = portName(formData.pol.UNLocationCode) ?? formData.pol.locationName;
+    formData.pod.locationName = portName(formData.pod.UNLocationCode) ?? formData.pod.locationName;
+    const body = EBlRequestSchema.omit({ meta_data: true, authentication_id: true }).parse({ ...formData, draft: payload.isDraft });
     issue.mutate(body);
   };
 

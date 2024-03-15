@@ -135,12 +135,12 @@ const getDocInfo = async (uuid: string) => {
   return null;
 };
 
-const portFusreOpts = {
+const portFuseOpts = {
   includeScore: false,
   keys: ["name", "value"],
 };
 
-const portFuse = new Fuse(ports, portFusreOpts);
+const portFuse = new Fuse(ports, portFuseOpts);
 
 const lookupPort = (port?: string) => {
   if (!port) return undefined;

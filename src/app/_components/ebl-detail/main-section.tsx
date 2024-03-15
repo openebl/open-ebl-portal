@@ -33,7 +33,7 @@ const MainSection = async ({
     let actorName = '';
     let actedAt = ''; // ISO 8601 date-time string, it will be converted to local time in client component later
     let target = '';
-    const targetedAt = '';
+    let targetedAt = '';
     let note = '';
     let noteAltered = false;
 
@@ -50,6 +50,7 @@ const MainSection = async ({
       actorName = event.transfer.meta_data ?? '';
       actedAt = event.transfer.transfer_at;
       target = platforms[event.transfer.transfer_to]?.name ?? '';
+      targetedAt = actedAt;
       note = event.transfer.note ?? '';
     } else if (event.return) {
       action = actionMapping.RETURN;
@@ -57,6 +58,7 @@ const MainSection = async ({
       actorName = event.return.meta_data ?? '';
       actedAt = event.return.return_at;
       target = platforms[event.return.return_to]?.name ?? '';
+      targetedAt = actedAt;
       note = event.return?.note ?? '';
     } else if (event.surrender) {
       action = actionMapping.SURRENDER;
@@ -64,6 +66,7 @@ const MainSection = async ({
       actorName = event.surrender.meta_data ?? '';
       actedAt = event.surrender.surrender_at;
       target = platforms[event.surrender.surrender_to]?.name ?? '';
+      targetedAt = actedAt;
       note = event.surrender?.note ?? '';
     } else if (event.accomplish) {
       action = actionMapping.ACCOMPLISH;
