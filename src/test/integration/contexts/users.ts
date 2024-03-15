@@ -2,7 +2,7 @@ import { type TestDbType } from "../fixtures/db-fixtures";
 
 export const withValidPlatformAndUser = async (db: TestDbType) => {
   const platform = await db.platform.create({
-    data: { name: "Mock FF" },
+    data: { name: "Mock FF", platformId: "" },
   });
 
   const user = await db.user.create({
