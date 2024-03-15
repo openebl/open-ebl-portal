@@ -1,18 +1,19 @@
 "use server";
 
 import ErrorPage from "@/app/_components/ebl-detail/error-page";
-import MainSection from "@/app/_components/edit-ebl/main-section";
+import { getLogger } from "@/lib/logger";
 import { api } from "@/trpc/server";
 import { TRPCClientError } from "@trpc/client";
 
 export default async function Page({ params }: { params: { uuid: string } }) {
   const execution = async () => {
-    const ebl = await api.ebl.new.query(params.uuid);
+    const ebl = await api.ebl.getByID.query(params.uuid);
+    getLogger().info(`Got eBL from Server: ${JSON.stringify(ebl)}`);
 
-    if (!ebl) {
-      throw new TRPCClientError("NOT_FOUND");
-    }
-    return <MainSection ebl={ebl.ebl} images={ebl.images} />;
+    // TODO: kevinj: translate DCSA eBL scheme to eBL
+    // return <MainSection ebl={ebl.ebl} images={ebl.images} />;
+
+    return <ErrorPage message="Under Construction" />
   };
 
   return execution().catch((err) => {

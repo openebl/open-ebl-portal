@@ -4,17 +4,14 @@ import { type Session } from "next-auth";
 import { type NextRequest } from "next/server";
 import path from "path";
 
+import { type DocExtractionType } from "@/add-ons/doc-reader/types";
 import { getLogger } from "@/lib/logger";
 import { pdf2Image } from "@/lib/pdf2image";
 import { tempFolder } from "@/lib/server-utils";
+import { randomId } from "@/lib/utils";
 import { type StorageServiceType } from "@/server/services/storage-service";
-import { eBlIdGenerator } from "@/types/ebl";
-import {
-  DocAiTaskStatus,
-} from "@prisma/client";
 import { type DatabaseType, type TransactionType } from "../db";
-import { readRequestBodyToBuffer } from "./req";
-import { validateSession } from "./session";
+import { readRequestBodyToBuffer } from "./streram";
 
 type KeyPairType = { imageKey: string; thumbnailKey: string; page: number };
 
@@ -25,7 +22,7 @@ const saveContentToTempFile = async (content: Buffer) => {
   return tmpFilename;
 };
 
-const savePdfImagesToStorage = async (
+const saveImagesToStorage = async (
   content: Buffer,
   storage: StorageServiceType,
 ) => {
@@ -59,77 +56,71 @@ export const processFileDocUploadReq = async ({
   session,
   db,
   storage,
+  docExtraction,
 }: {
   req: NextRequest;
   session: Session | null;
   db: DatabaseType;
   storage: StorageServiceType;
+  docExtraction: DocExtractionType;
 }) => {
   const storagekey = `/ebl/${crypto.randomUUID()}`;
-  validateSession(session);
+  const filename = req.headers.get("X-Filename") ?? "(unknown)";
+  const contentType = req.headers.get("Content-Type") ?? "application/pdf";
 
-  // read content from request body
-  const contentBuffer = await readRequestBodyToBuffer(req.body);
+  try {
+    // read content from request body
+    const content = await readRequestBodyToBuffer(req.body);
+    const hash = crypto.createHash("md5").update(content).digest("hex");
+    const uuid = `${hash}-${randomId(8)}`;
 
-  // check content type of the file
-  const contentType = req.headers.get('Content-Type') ?? 'application/pdf';
+    const findOrCreateDocFile = async () => {
+      // find docFile with the hash
+      const existingDocFile = await db.docFile.findFirst({
+        where: { uuid: hash },
+      });
 
-  // upload file to s3
-  await storage.putObject({
-    content: contentBuffer,
-    key: storagekey,
-    contentType,
-  });
+      if (existingDocFile) return existingDocFile;
 
-  let keyPairs: KeyPairType[] = [];
-  if (contentType === 'application/pdf') {
-    // if file is pdf, convert pdf to images and save images to storage
-    keyPairs = await savePdfImagesToStorage(contentBuffer, storage);
-  } else {
-    keyPairs.push({
-      imageKey: storagekey,
-      thumbnailKey: storagekey,
-      page: 1,
-    });
-  }
+      // upload file to storage
+      await storage.putObject({
+        content,
+        key: storagekey,
+        contentType,
+      });
 
-  return db.$transaction(async (tx) => {
-    // insert fileDoc record
-    const docFile = await tx.docFile.create({
-      data: {
-        filename: req.headers.get("X-Filename"),
-        platformId: session!.platform.id,
-        uploaderId: session!.user.id,
-        storagekey,
-      },
-    });
-    if (!docFile) throw new Error("Failed to create docFile record");
+      // create docfile
+      const docFile = await db.docFile.create({
+        data: {
+          // use hash as uuid so same content will have same uuid
+          uuid: hash,
+          filename,
+          platformId: session!.platform.id,
+          uploaderId: session!.user.id,
+          storagekey,
+        },
+      });
+      if (!docFile) throw new Error("Failed to create docFile record");
 
-    // insert ebl record
+      const keyPairs = await saveImagesToStorage(content, storage);
+      await Promise.all(
+        keyPairs.map((keyPair) => insertImageRecords(db, docFile.id, keyPair)),
+      );
+      return docFile;
+    }
+
     await Promise.all([
-      tx.eBl.create({
-        data: {
-          id: eBlIdGenerator(),
-          docFileId: docFile.id,
-          blNumber: "",
-          status: "UPLOADED",
-        },
-      }),
-
-      // insert ebl record
-      tx.docAiTask.create({
-        data: {
-          docFileId: docFile.id,
-          externalId: "",
-          status: DocAiTaskStatus.PROCESSING,
-        },
-      }),
-      ...keyPairs.map((keyPair) => insertImageRecords(tx, docFile.id, keyPair)),
+      docExtraction.createExtraction({uuid, filename, content}),
+      findOrCreateDocFile(),
     ]);
 
-    return docFile.id;
-  });
+    return uuid;
+  } catch (err) {
+    getLogger().error(err);
+    throw err;
+  }
 };
+
 
 const insertImageRecords = async (
   tx: TransactionType,

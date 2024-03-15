@@ -4,21 +4,45 @@ import { type DatabaseType } from "@/server/db";
 import { type StorageServiceType } from "@/server/services/storage-service";
 import { type DocImage } from "@prisma/client";
 
-export const getDocImagesByDocFileId = async (db: DatabaseType, storage: StorageServiceType, docFileId: bigint) => {
-  const images = await db.docImage.findMany({ where: { docFileId } });
+export const getDocImagesByDocFileUuid = async (
+  db: DatabaseType,
+  storage: StorageServiceType,
+  uuid: string,
+) => {
+  const images = await db.docImage.findMany({ where: { docFile: { uuid } } });
   const n = groupImagesByPage(images).map(async (image) => {
     const [imageUrl, thumbnailUrl] = await Promise.all([
-      storage.getPresignedUrl({key: image.imageKey!}),
-      storage.getPresignedUrl({key: image.thumbnailKey!,})
+      storage.getPresignedUrl({ key: image.imageKey! }),
+      storage.getPresignedUrl({ key: image.thumbnailKey! }),
     ]);
     return {
       page: image.page,
       imageUrl,
-      thumbnailUrl
-    }
+      thumbnailUrl,
+    };
   });
   return Promise.all(n);
-}
+};
+
+export const getDocImagesByDocFileId = async (
+  db: DatabaseType,
+  storage: StorageServiceType,
+  docFileId: bigint,
+) => {
+  const images = await db.docImage.findMany({ where: { docFileId } });
+  const n = groupImagesByPage(images).map(async (image) => {
+    const [imageUrl, thumbnailUrl] = await Promise.all([
+      storage.getPresignedUrl({ key: image.imageKey! }),
+      storage.getPresignedUrl({ key: image.thumbnailKey! }),
+    ]);
+    return {
+      page: image.page,
+      imageUrl,
+      thumbnailUrl,
+    };
+  });
+  return Promise.all(n);
+};
 
 const groupImagesByPage = (images: DocImage[]) => {
   const result = {} as Record<

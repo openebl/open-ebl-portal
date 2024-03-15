@@ -1,15 +1,15 @@
-import { z } from "zod";
 import { env } from "@/env";
+import { getLogger } from "@/lib/logger";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { getDocImagesByDocFileId } from "@/server/fx/doc-image";
 import {
-  EBlRecordSchema,
-  EBlRecordListSchema,
-  EBlRequestSchema,
   EBlFilter,
-  type EBlRecordType,
+  EBlFormSchema,
+  EBlRecordListSchema,
+  EBlRecordSchema,
   type EBlRecordListType,
+  type EBlRecordType
 } from "@/types/ebl";
+import { z } from "zod";
 
 const EBlActionSchemaWithID = z.object({ id: z.string(), meta_data: z.string(), authentication_id: z.string(), note: z.string().optional() })
 
@@ -76,74 +76,11 @@ export const eBlRouter = createTRPCRouter({
       return result
     }),
 
-  new: protectedProcedure
-    .input(z.string())
-    .query(async ({ ctx, input }) => {
-      // TODO: get_doc_ai_extraction
-      const ebl = await ctx.db.eBl.findUnique({
-        where: { id: input },
-        include: {
-          docFile: true,
-          issuerPlatform: true,
-          shipperPlatform: true,
-          consigneePlatform: true,
-          releaseAgentPlatform: true,
-        },
-      });
-      if (!ebl) return null;
-
-      const request = {
-        meta_data: ctx.session.user.name ?? '',
-        authentication_id: String(ctx.session.authentication_id),
-        file: {
-          name: "name3",
-          type: "type3",
-          content: "Y29udGVudDI="
-        },
-        bl_number: "DEMO0001",
-        bl_doc_type: "HouseBillOfLading",
-        to_order: false,
-        pol: {
-          locationName: "Yantian, CN, CNYTN",
-          UNLocationCode: "CNYTN"
-        },
-        pod: {
-          locationName: "Los Angeles, CA, US, USLAX",
-          UNLocationCode: "USLAX"
-        },
-        shipper: "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614",
-        consignee: "did:openebl:0158341d-5c6b-4121-bfe4-535c7606bbd5",
-        release_agent: "did:openebl:66c71465-3d0b-43d8-9e1b-c88c7a7634ca",
-        note: "",
-        draft: false
-      }
-
-      const images = await getDocImagesByDocFileId(
-        ctx.db,
-        ctx.storageService,
-        ebl.docFileId!,
-      )
-
-      return {
-        ebl: EBlRequestSchema.parse(request),
-        images,
-      };
-    }),
-
-  findByDocFileId: protectedProcedure
-    .input(z.bigint())
-    .query(async ({ ctx, input }) => {
-      const list = await ctx.db.eBl.findMany({
-        where: { docFileId: input },
-        take: 1,
-      });
-      return list[0]?.id ?? null;
-    }),
-
   issue: protectedProcedure
-    .input(EBlRequestSchema.omit({ meta_data: true, authentication_id: true }))
+    .input(EBlFormSchema)
     .mutation(async ({ ctx, input }) => {
       const request = { ...input, meta_data: ctx.session.user.name ?? '', authentication_id: ctx.session.authentication_id }
+      getLogger().info('send issue request to Doc Engine', request)
       const res = await fetch(`${env.BU_SERVER_URL}/ebl`, {
         method: 'POST',
         headers: {
@@ -155,9 +92,13 @@ export const eBlRouter = createTRPCRouter({
         body: JSON.stringify(request),
         cache: 'no-store'
       })
-      const data = await res.json() as EBlRecordType
-      const result = EBlRecordSchema.parse(data)
-      return result
+      if (res.status === 201) {
+        const data = await res.json() as EBlRecordType
+        const result = EBlRecordSchema.parse(data)
+        return result
+      } else {
+        throw new Error(`Failed to create EBL: ${await res.text()}`)
+      }
     }),
 
   transfer: protectedProcedure

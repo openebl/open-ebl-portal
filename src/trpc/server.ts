@@ -15,6 +15,7 @@ import { appRouter, type AppRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
 import { transformer } from "./shared";
 import { s3StorageService } from "@/server/services/storage-service";
+import { bxDocExtraction } from "@/add-ons/doc-reader/doc-extraction";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -27,6 +28,7 @@ const createContext = cache(() => {
       "x-trpc-source": "rsc",
     }),
     storageService: s3StorageService,
+    docExtraction: bxDocExtraction,
   });
 });
 

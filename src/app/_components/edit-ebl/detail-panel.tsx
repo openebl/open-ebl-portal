@@ -13,10 +13,10 @@ import { useFilterShippers, useGetShipper } from "@/app/_hooks/shippers-filter";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { type EBlRequestType } from "@/types/ebl";
+import { type EBlFormType } from "@/types/ebl";
 import { type UseFormReturn } from "react-hook-form";
 
-const DetailPanel = ({ form }: { form: UseFormReturn<EBlRequestType> }) => {
+const DetailPanel = ({ form }: { form: UseFormReturn<EBlFormType> }) => {
   const blDocTypes = [{ name: "HBL Non-negotiable", value: "HouseBillOfLading" }];
   return (
     <div className="flex w-[35rem] flex-none flex-col items-stretch py-[1.875rem] pl-[3.125rem] pr-[1.875rem]">

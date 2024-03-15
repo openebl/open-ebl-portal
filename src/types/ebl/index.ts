@@ -2,6 +2,7 @@ import type { z } from "zod";
 import { EBlFilter, EBlAllowAction } from "./common";
 import { EBlRequestSchema } from "./request";
 import { EBlRecordSchema, EBlRecordListSchema } from "./record";
+import { EBlFormSchema, type EBlFormType } from "./form";
 
 type EBlRequestType = z.infer<typeof EBlRequestSchema>;
 type EBlRecordType = z.infer<typeof EBlRecordSchema>;
@@ -14,6 +15,7 @@ export {
   EBlRequestSchema,
   EBlRecordSchema,
   EBlRecordListSchema,
+  EBlFormSchema,
   eBlIdGenerator,
   EBlFilter,
   EBlAllowAction,
@@ -22,4 +24,5 @@ export type {
   EBlRequestType,
   EBlRecordType,
   EBlRecordListType,
+  EBlFormType,
 };

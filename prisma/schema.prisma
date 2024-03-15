@@ -38,10 +38,10 @@ model Session {
 
 model Platform {
   id           BigInt      @id @default(autoincrement())
-  platformId   String?     @unique
   name         String
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @default(now())
+  platformId   String?     @unique
   consignedEBl EBl[]       @relation("consigneePlatform")
   IssuedEBl    EBl[]       @relation("issuerPlatform")
   releasedEBl  EBl[]       @relation("releaseAgentPlatform")
@@ -86,12 +86,12 @@ model VerificationToken {
 }
 
 model EBl {
-  id                   String    @id @db.VarChar(48)
-  blNumber             String    @db.VarChar(160)
-  status               EBlStatus @default(DRAFT)
-  blType               String?   @db.VarChar(32)
-  pol                  String?   @db.VarChar(16)
-  pod                  String?   @db.VarChar(16)
+  id                   String       @id @db.VarChar(48)
+  blNumber             String       @db.VarChar(160)
+  status               EBlStatus    @default(DRAFT)
+  blType               String?      @db.VarChar(32)
+  pol                  String?      @db.VarChar(16)
+  pod                  String?      @db.VarChar(16)
   issuerId             BigInt?
   shipperId            BigInt?
   consigneeId          BigInt?
@@ -100,15 +100,13 @@ model EBl {
   nextPlatformId       BigInt?
   eta                  DateTime?
   notes                String?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @default(now())
-  docFileId            BigInt?
-  consigneePlatform    Platform? @relation("consigneePlatform", fields: [consigneeId], references: [id])
-  docFile              DocFile?  @relation(fields: [docFileId], references: [id])
-  issuerPlatform       Platform? @relation("issuerPlatform", fields: [issuerId], references: [id])
-  releaseAgentPlatform Platform? @relation("releaseAgentPlatform", fields: [releaseAgentId], references: [id])
-  shipperPlatform      Platform? @relation("shipperPlatform", fields: [shipperId], references: [id])
-  journey        EBlJourney[]
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @default(now())
+  consigneePlatform    Platform?    @relation("consigneePlatform", fields: [consigneeId], references: [id])
+  issuerPlatform       Platform?    @relation("issuerPlatform", fields: [issuerId], references: [id])
+  releaseAgentPlatform Platform?    @relation("releaseAgentPlatform", fields: [releaseAgentId], references: [id])
+  shipperPlatform      Platform?    @relation("shipperPlatform", fields: [shipperId], references: [id])
+  journey              EBlJourney[]
 
   @@index([updatedAt(sort: Desc)], map: "idx_ebl_updated_at")
 }
@@ -121,9 +119,9 @@ model DocFile {
   storagekey String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @default(now())
+  uuid       String?    @unique
   uploader   User       @relation(fields: [uploaderId], references: [id])
   docImage   DocImage[]
-  eBl        EBl[]
 }
 
 model DocImage {

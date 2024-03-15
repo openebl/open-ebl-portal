@@ -7,6 +7,7 @@ import { testWithDb } from "@/test/integration/fixtures/db-fixtures";
 import { createNextRequest } from "@/test/integration/helpers/req";
 import { useTestStorageService } from "@/test/integration/helpers/test-storage";
 import { processFileDocUploadReq } from "./ebl";
+import { useTestDocExtraction } from "@/test/integration/helpers/test-doc-extraction";
 
 describe.concurrent("EBl Fx", () => {
   describe("processFileDocUploadReq", () => {
@@ -33,12 +34,14 @@ describe.concurrent("EBl Fx", () => {
       async ({ expect, db }) => {
         const req = createNextRequest(pdfFile, { 'X-Filename': 'ebl.pdf' });
         const { storageService, watcher } = useTestStorageService();
-        const docFileId = await processFileDocUploadReq({ req, session, db, storage: storageService });
+        const { docExtraction } = useTestDocExtraction();
+        const docFileUuid = await processFileDocUploadReq({ req, session, db, storage: storageService, docExtraction });
 
-        expect(docFileId).toBeTypeOf('bigint');
+        expect(docFileUuid).toBeTypeOf('string');
+        const hash = docFileUuid.split('-')[0];
 
         // validate if docFile is properly stored in database
-        const fileDocOrNull = await db.docFile.findUnique({ where: { id: docFileId } });
+        const fileDocOrNull = await db.docFile.findUnique({ where: { uuid: hash } });
         expect(fileDocOrNull).not.toBeNull();
         const fileDoc = fileDocOrNull!;
         expect(fileDoc.filename).toBe('ebl.pdf');
@@ -53,7 +56,7 @@ describe.concurrent("EBl Fx", () => {
         const imagesMeta = [[1, false], [1, true], [2, false], [2, true]] as Array<[number, boolean]>;
         for (const item of imagesMeta) {
           const [page, thumbnail] = item;
-          const imageRec = await db.docImage.findMany({ where: { docFileId: docFileId, page, thumbnail } });
+          const imageRec = await db.docImage.findMany({ where: { docFileId: fileDoc.id, page, thumbnail } });
           expect(imageRec?.length).toBe(1);
           const image = sharp(watcher[imageRec[0]?.storagekey ?? '']?.content)
           expect(async () => await image.metadata()).not.toThrow();

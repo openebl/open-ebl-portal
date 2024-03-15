@@ -1,7 +1,6 @@
 "use client";
 
 import { api } from "@/trpc/react";
-import { DocAiTaskStatus } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,11 +15,11 @@ import UploadingView from "./uploading-view";
 const MainSection = () => {
   const router = useRouter();
   const [status, setStatus] = useState("new");
-  const [dockFileId, setDocFileId] = useState(0n);
+  const [fileUuid, setFileUuid] = useState("");
   const [lastError, setLastError] = useState("");
 
-  const { data: task, error: taskError } = api.docAiTask.get.useQuery(
-    { docFileId: dockFileId },
+  const { data: extraction, error } = api.docExtreaction.get.useQuery(
+    { uuid: fileUuid },
     {
       queryKeyHashFn: hashQueryKey,
       refetchInterval: 1000,
@@ -29,25 +28,12 @@ const MainSection = () => {
     },
   );
 
-  const { data: eblId, error: eblError } = api.ebl.findByDocFileId.useQuery(
-    dockFileId,
-    {
-      queryKeyHashFn: hashQueryKey,
-      enabled:
-        status === "processing" && task?.status === DocAiTaskStatus.COMPLETED,
-    },
-  );
-
-  if (eblId) {
-    router.push(`/ebls/${eblId}/edit`);
+  if (extraction) {
+    router.push(`/ebls/new/edit?uuid=${fileUuid}`);
   }
 
-  if (task?.status === DocAiTaskStatus.FAILED) {
-    setLastError(task.error ?? "Unknown error");
-    setStatus("error");
-  }
-  if (taskError ?? eblError) {
-    setLastError(taskError?.message ?? eblError?.message ?? "Unknown error");
+  if (error) {
+    setLastError(error?.message ?? "Unknown error");
     setStatus("error");
   }
 
@@ -66,9 +52,8 @@ const MainSection = () => {
 
     if (res) {
       if (res?.ok) {
-        const id = await res.text();
-        console.log(`File uploaded successfully. task: ${id}`);
-        setDocFileId(BigInt(id));
+        const uuid = await res.text();
+        setFileUuid(uuid);
         setStatus("processing");
       } else {
         console.error(
@@ -77,6 +62,8 @@ const MainSection = () => {
           res.statusText,
           await res.text(),
         );
+        setLastError(res.statusText ?? "Unknown error");
+        setStatus("error");
       }
     }
   };

@@ -1,3 +1,4 @@
+import { bxDocExtraction } from "@/add-ons/doc-reader/doc-extraction";
 import { withDocFile } from "@/test/integration/contexts/doc-files";
 import { withDocImages } from "@/test/integration/contexts/doc-images";
 import { withValidPlatformAndUser } from "@/test/integration/contexts/users";
@@ -5,6 +6,7 @@ import {
   testWithDb,
   type TestDbType,
 } from "@/test/integration/fixtures/db-fixtures";
+import { useTestDocExtraction } from "@/test/integration/helpers/test-doc-extraction";
 import { buildTestSession } from "@/test/integration/helpers/test-session";
 import { useTestStorageService } from "@/test/integration/helpers/test-storage";
 import { TRPCError } from "@trpc/server";
@@ -20,11 +22,13 @@ const useCaller = ({
   session: Session | null;
 }) => {
   const { storageService, watcher } = useTestStorageService();
+  const { docExtraction } = useTestDocExtraction();
   const caller = appRouter.createCaller({
     headers: new Headers(),
     session,
     db,
     storageService,
+    docExtraction,
   });
   return { caller, session, db, storageService, storageWatch: watcher };
 };

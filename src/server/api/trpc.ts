@@ -14,6 +14,7 @@ import { ZodError } from "zod";
 import { getServerAuthSession } from "@/server/auth";
 import { db } from "@/server/db";
 import { type StorageServiceType } from "@/server/services/storage-service";
+import { type DocExtractionType } from "@/add-ons/doc-reader/types";
 
 /**
  * 1. CONTEXT
@@ -29,6 +30,7 @@ import { type StorageServiceType } from "@/server/services/storage-service";
  */
 export const createTRPCContext = async (opts: {
   storageService: StorageServiceType;
+  docExtraction: DocExtractionType;
   headers: Headers;
 }) => {
   const session = await getServerAuthSession();

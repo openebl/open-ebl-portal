@@ -1,5 +1,5 @@
 const readRequestBodyToBuffer = async (
-  stream: ReadableStream<Uint8Array> | null,
+  stream: ReadableStream<Uint8Array> | null | undefined,
 ) => {
   if (!stream) {
     throw new Error("No readable stream is provided");

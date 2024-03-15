@@ -12,6 +12,7 @@ export const withDocFile = ({
 }) => {
   return db.docFile.create({
     data: {
+      uuid: 'mockuuid',
       platformId: platform.id,
       uploaderId: user.id,
       filename: "mockfile",

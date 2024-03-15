@@ -4,36 +4,34 @@ import { keys } from "remeda";
 
 import { getLogger } from "@/lib/logger";
 import { platforms } from "@/lib/platforms";
-import { ports } from "@/lib/ports";
+import { portName, ports } from "@/lib/ports";
+import { type EBlFormType } from "@/types/ebl";
+import { EBlDocType } from "@/types/ebl/common";
 import {
   DocuSumDefinition,
   type ExtractDocumentRequest,
   type ListDocumentExtractionRequest,
 } from "./protos/bluex_payment/docu_sum_service";
-
-type ExtractedDocInfo = {
-  blNumber?: string;
-  shipper?: string;
-  consignee?: string;
-  releaseAgent?: string;
-  pol?: string;
-  pod?: string;
-};
+import { type DocExtractionType } from "./types";
 
 // Create an Document Extraction.
 // uuid: unique id for the document
 // fileName: name of the document
 // content: content of the document
 // If it fails to create a new document extraction, it throws an error.
-export const createExtraction = async (
-  uuid: string,
-  fileName: string,
-  content: Buffer,
-) => {
+const createExtraction = async ({
+  uuid,
+  filename,
+  content,
+}: {
+  uuid: string;
+  filename: string;
+  content: Buffer;
+}) => {
   const client = createClient(DocuSumDefinition, getChannel());
   const req: Partial<ExtractDocumentRequest> = {
     requestId: uuid,
-    fileName,
+    fileName: filename,
     file: content,
   };
   const res = await client.extractDocument(req);
@@ -51,30 +49,50 @@ export const createExtraction = async (
 // If the extraction is still in progress, it will return null.
 // If the extraction is not found, it returns null.
 // If it fails to get the extraction, it throws an error.
-export const getExtraction: (
+const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (
   uuid: string,
-) => Promise<ExtractedDocInfo | null> = async (uuid: string) => {
+) => {
   const docInfo = await getDocInfo(uuid);
   if (!docInfo) return null;
 
+  const polCode = lookupPort(
+    docInfo.originEntities.find((e) => e.label === "PortOfLoading")?.value,
+  );
+  const podCode = lookupPort(
+    docInfo.originEntities.find((e) => e.label === "PortOfDischarge")?.value,
+  );
+
   return {
-    blNumber: docInfo.originEntities.find((e) => e.label === "BlNumber")
-      ?.value,
-    shipper: lookupParty(
-      docInfo.originEntities.find((e) => e.label === "Shipper")?.value,
-    ),
-    consignee: lookupParty(
-      docInfo.originEntities.find((e) => e.label === "Consignee")?.value,
-    ),
-    releaseAgent: lookupParty(
-      docInfo.originEntities.find((e) => e.label === "NotifyParty")?.value,
-    ),
-    pol: lookupPort(
-      docInfo.originEntities.find((e) => e.label === "PortOfLoading")?.value,
-    ),
-    pod: lookupPort(
-      docInfo.originEntities.find((e) => e.label === "PortOfDischarge")?.value,
-    ),
+    bl_number:
+      docInfo.originEntities.find((e) => e.label === "BlNumber")?.value ?? "",
+    bl_doc_type: EBlDocType.HouseBillOfLading,
+    to_order: false,
+    draft: true,
+    file: {
+      name: "",
+      type: "",
+      content: "",
+    },
+    shipper:
+      lookupParty(
+        docInfo.originEntities.find((e) => e.label === "Shipper")?.value,
+      ) ?? "",
+    consignee:
+      lookupParty(
+        docInfo.originEntities.find((e) => e.label === "Consignee")?.value,
+      ) ?? "",
+    release_agent:
+      lookupParty(
+        docInfo.originEntities.find((e) => e.label === "NotifyParty")?.value,
+      ) ?? "",
+    pol: {
+      UNLocationCode: polCode ?? "",
+      locationName: portName(polCode) ?? "",
+    },
+    pod: {
+      UNLocationCode: podCode ?? "",
+      locationName: portName(podCode) ?? "",
+    },
   };
 };
 
@@ -101,7 +119,8 @@ const getDocInfo = async (uuid: string) => {
   const res = client.listDocumentExtraction(req);
   for await (const item of res) {
     if (item.extraction) {
-      const docInfos = item.extraction.reference?.docInfos ?? item.extraction.data?.docInfos;
+      const docInfos =
+        item.extraction.reference?.docInfos ?? item.extraction.data?.docInfos;
       return docInfos?.[0];
     }
   }
@@ -132,4 +151,9 @@ const partyFuse = new Fuse(
 const lookupParty = (name?: string) => {
   if (!name) return undefined;
   return partyFuse.search(name)[0]?.item?.did;
+};
+
+export const bxDocExtraction: DocExtractionType = {
+  createExtraction,
+  getExtraction,
 };

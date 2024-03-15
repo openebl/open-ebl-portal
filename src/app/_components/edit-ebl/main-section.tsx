@@ -13,7 +13,7 @@ import { useGetShipper } from "@/app/_hooks/shippers-filter";
 import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
-import { EBlRequestSchema, type EBlRequestType } from "@/types/ebl";
+import { type EBlFormType, EBlRequestSchema, type EBlRequestType, EBlFormSchema } from "@/types/ebl";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
 import type { ImageType } from "@/app/_components/common/props/types";
@@ -24,7 +24,7 @@ const MainSection = ({
   ebl,
   images,
 }: {
-  ebl: EBlRequestType;
+  ebl: EBlFormType;
   images: ImageType[];
 }) => {
   const router = useRouter();
@@ -33,8 +33,8 @@ const MainSection = ({
   const [shipper, setShipper] = useState<string>("");
   const getShipper = useGetShipper(shipper);
 
-  const form = useForm<EBlRequestType>({
-    resolver: zodResolver(EBlRequestSchema),
+  const form = useForm<EBlFormType>({
+    resolver: zodResolver(EBlFormSchema),
     defaultValues: {
       ...ebl,
     },
