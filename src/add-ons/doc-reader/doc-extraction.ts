@@ -13,6 +13,7 @@ import {
   type ListDocumentExtractionRequest,
 } from "./protos/bluex_payment/docu_sum_service";
 import { type DocExtractionType } from "./types";
+import { DocuSumDocumentExtraction_DocInfo_Status } from "./protos/bluex_payment/docu_sum";
 
 // Create an Document Extraction.
 // uuid: unique id for the document
@@ -45,6 +46,12 @@ const createExtraction = async ({
   }
 };
 
+const InProgressStatusList = [
+  DocuSumDocumentExtraction_DocInfo_Status.UNKNOWN,
+  DocuSumDocumentExtraction_DocInfo_Status.REQUESTED,
+  DocuSumDocumentExtraction_DocInfo_Status.WAITING_HIL
+];
+
 // Get the document extraction by uuid.
 // If the extraction is still in progress, it will return null.
 // If the extraction is not found, it returns null.
@@ -53,7 +60,7 @@ const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (
   uuid: string,
 ) => {
   const docInfo = await getDocInfo(uuid);
-  if (!docInfo) return null;
+  if (!docInfo || InProgressStatusList.includes(docInfo.status)) return null;
 
   const polCode = lookupPort(
     docInfo.originEntities.find((e) => e.label === "PortOfLoading")?.value,
