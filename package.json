@@ -18,6 +18,7 @@
     "lint": "next lint",
     "test:unit": "vitest run",
     "test:unit:dev": "vitest dev",
+    "openapi": "openapi-typescript ./external/bu/api.yaml -o ./src/types/bu-scheme.d.ts",
     "start": "next start",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
@@ -61,6 +62,7 @@
     "nice-grpc": "^2.1.7",
     "node-poppler": "^7.1.0",
     "nodemailer": "^6.9.9",
+    "openapi-fetch": "^0.9.3",
     "pino": "^8.18.0",
     "pino-pretty": "^10.3.1",
     "react": "18.2.0",
@@ -97,6 +99,7 @@
     "eslint": "^8.54.0",
     "eslint-config-next": "^14.0.4",
     "eslint-plugin-storybook": "^0.6.15",
+    "openapi-typescript": "^6.7.5",
     "postcss": "^8.4.31",
     "prettier": "^3.1.0",
     "prettier-plugin-tailwindcss": "^0.5.7",

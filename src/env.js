@@ -30,6 +30,7 @@ export const env = createEnv({
     S3_BUCKET: z.string().min(1),
     BU_SERVER_URL: z.string().url(),
     BU_SERVER_API_KEY: z.string().min(1),
+    NOTIFIER_POLL_INTERVAL: z.number().default(1000 * 60 * 5),
   },
 
   /**
@@ -57,6 +58,7 @@ export const env = createEnv({
     S3_BUCKET: process.env.S3_BUCKET,
     BU_SERVER_URL: process.env.BU_SERVER_URL,
     BU_SERVER_API_KEY: process.env.BU_SERVER_API_KEY,
+    NOTIFIER_POLL_INTERVAL: process.env.NOTIFIER_POLL_INTERVAL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

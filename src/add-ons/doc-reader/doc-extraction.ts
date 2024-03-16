@@ -62,6 +62,8 @@ const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (
   const docInfo = await getDocInfo(uuid);
   if (!docInfo || InProgressStatusList.includes(docInfo.status)) return null;
 
+  getLogger().info(`Got docInfo: ${JSON.stringify(docInfo)}`);
+
   const polCode = lookupPort(
     docInfo.originEntities.find((e) => e.label === "PortOfLoading")?.value,
   );

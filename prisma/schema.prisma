@@ -37,13 +37,13 @@ model Session {
 }
 
 model Platform {
-  id           BigInt      @id @default(autoincrement())
-  name         String
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @default(now())
-  platformId   String?     @unique
-  activeUsers  User[]
-  userRoles    UserRole[]
+  id          BigInt     @id @default(autoincrement())
+  name        String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now())
+  platformId  String?    @unique
+  activeUsers User[]
+  userRoles   UserRole[]
 }
 
 model User {
@@ -102,4 +102,21 @@ model DocImage {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
   docFile    DocFile  @relation(fields: [docFileId], references: [id])
+}
+
+model EBlStash {
+  id           BigInt   @id @default(autoincrement())
+  platformId   BigInt
+  eBlId        String
+  status       String
+  currentOwner String
+  createdAt    DateTime @default(now())
+  version      Int
+}
+
+model EBlNotification {
+  id         BigInt   @id @default(autoincrement())
+  eBlStashId BigInt
+  createdAt  DateTime @default(now())
+  name       String
 }

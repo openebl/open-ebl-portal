@@ -26,7 +26,7 @@ ENV BU_SERVER_API_KEY=key
 ADD . /app
 RUN npm run postinstall
 RUN npm run build
-RUN npx tsup prisma/seed.ts src/daemons/doc-ai-daemon.ts
+RUN npx tsup prisma/seed.ts src/daemons/email-notify-daemon.ts
 RUN ls -la  /app/dist
 
 # Build the production image
@@ -54,7 +54,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/dist/prisma/seed.cjs ./seed.cjs
-COPY --from=builder --chown=nextjs:nodejs /app/dist/src/daemons/doc-ai-daemon.cjs ./doc-ai-daemon.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/dist/src/daemons/email-notify-daemon.cjs ./email-notify-daemon.cjs
 ADD ./prisma ./prisma
 ADD ./bin/launch.sh ./launch.sh
 ADD ./bin/migrate.sh ./migrate.sh

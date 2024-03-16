@@ -33,8 +33,6 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
 
 ```shell
 brew install poppler # for processing pdf files
-npx tsup src/daemons/doc-ai-daemon.ts # build mocked doc AI service
-node dist/doc-ai-daemon.cjs # run mocked doc AI service
 ```
 
 [Optional] If you haven't installed postgresql yet

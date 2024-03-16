@@ -9,7 +9,7 @@ export EMAIL_SERVER
 
 node server.js &
 
-dumb-init node doc-ai-daemon.cjs &
+dumb-init node email-notify-daemon.cjs &
 
 # Wait for any process to exit
 wait -n
