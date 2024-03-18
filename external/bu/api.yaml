@@ -1175,66 +1175,44 @@ components:
       enum:
         - DRFT # Draft
         - ISSU # Issued
-    Party:
-      type: object
-      description: Refers to a company or a legal entity
-      properties:
-        partyName:
-          type: string
-          description: Name of the party
-        identifyingCodes:
-          type: array
-          items:
-            $ref: '#/components/schemas/IdentifyingCode'
-    IdentifyingCode:
-      type: object
-      title: 'Identifying Code'
-      properties:
-        # codeListProvider:
-        #   $ref: '#/components/schemas/codeListProvider'
-        partyCode:
-          $ref: '#/components/schemas/partyCode'
-        # codeListName:
-        #   $ref: '#/components/schemas/codeListName'
-      required:
-        - codeListProvider
-        - partyCode
-    partyCode:
-      type: string
-      description: |
-        Code to identify the party as provided by the agency
-      maxLength: 100
-    DocumentParty:
-      type: object
-      description: Party involved in the transport document
-      properties:
-        party:
-          $ref: '#/components/schemas/Party'
-        partyFunction:
-          type: string
-          description: Role of the party
-          enum:
-            - DDR # Issuing agent
-            - OS  # Shipper
-            - CN  # Consignee
-            - DDS # Release agent
-    ShippingInstruction:
-      type: object
-      description: Enrichment to the original booking shard by the shipper to the carrier
-      properties:
-        shippingInstructionReference:
-          type: string
-          description: B/L Number
-        documentStatus:
-          $ref: '#/components/schemas/DocumentStatus'
-        isToOrder:
-          type: boolean
-          description: Indicate if the eB/L is negotiable
-        documentParties:
-          type: array
-          description: Parties involved in the eB/L
-          items:
-            $ref: '#/components/schemas/DocumentParty'
+    # Party:
+    #   type: object
+    #   description: Refers to a company or a legal entity
+    #   properties:
+    #     partyName:
+    #       type: string
+    #       description: Name of the party
+    # DocumentParty:
+    #   type: object
+    #   description: Party involved in the transport document
+    #   properties:
+    #     party:
+    #       $ref: '#/components/schemas/Party'
+    #     partyFunction:
+    #       type: string
+    #       description: Role of the party
+    #       enum:
+    #         - DDR # Issuing agent
+    #         - OS  # Shipper
+    #         - CN  # Consignee
+    #         - DDS # Release agent
+    # ShippingInstruction:
+    #   type: object
+    #   description: Enrichment to the original booking shard by the shipper to the carrier
+    #   properties:
+    #     shippingInstructionReference:
+    #       type: string
+    #       description: B/L Number
+    #     documentStatus:
+    #       $ref: '#/components/schemas/DocumentStatus'
+    #     isToOrder:
+    #       type: boolean
+    #       description: Indicate if the eB/L is negotiable
+    #     documentParties:
+    #       type: array
+    #       description: Parties involved in the eB/L
+    #       items:
+    #         $ref: '#/components/schemas/DocumentParty'
     Location:
       type: object
       properties:
@@ -1244,56 +1222,59 @@ components:
         UNLocationCode:
           type: string
           description: UN location code
-    ShipmentLocation:
+    ApplicationMetaData:
       type: object
-      description: Maps the relationship between shipment and location
-      properties:
-        location:
-          $ref: '#/components/schemas/Location'
-        shipmentLocationTypeCode:
-          type: string
-          enum:
-            - POL
-            - POD
-        eventDateTime:
-            type: string
-            format: date-time
-            description: When the event happened
-    Transport:
-      type: object
-      properties:
-        transportPlanStage:
-          type: string
-          enum:
-            - PRC # Pre-Carriage
-            - MNC # Main Carriage Transport
-            - ONC # On-Carriage Transport
-        plannedArrivalDate:
-          type: string
-          format: date-time
-          description: Estimated time of arrival
-    TransportDocument:
-      type: object
-      description: Document that governs the terms of carriage between shipper and carrier for maritime transportation
-      properties:
-        shippingInstruction:
-          $ref: '#/components/schemas/ShippingInstruction'
-        transportDocumentCreatedDateTime:
-          type: string
-          format: date-time
-          description: When the document was created
-        transportDocumentUpdatedDateTime:
-          type: string
-          format: date-time
-          description: When the document was updated
-        shipmentLocations:
-          type: array
-          items:
-            $ref: '#/components/schemas/ShipmentLocation'
-        transports:
-          type: array
-          items:
-            $ref: '#/components/schemas/Transport'
+      description: Application specific metadata. It must be a valid JSON object.
+    # ShipmentLocation:
+    #   type: object
+    #   description: Maps the relationship between shipment and location
+    #   properties:
+    #     location:
+    #       $ref: '#/components/schemas/Location'
+    #     shipmentLocationTypeCode:
+    #       type: string
+    #       enum:
+    #         - POL
+    #         - POD
+    #     eventDateTime:
+    #         type: string
+    #         format: date-time
+    #         description: When the event happened
+    # Transport:
+    #   type: object
+    #   properties:
+    #     transportPlanStage:
+    #       type: string
+    #       enum:
+    #         - PRC # Pre-Carriage
+    #         - MNC # Main Carriage Transport
+    #         - ONC # On-Carriage Transport
+    #     plannedArrivalDate:
+    #       type: string
+    #       format: date-time
+    #       description: Estimated time of arrival
+    # TransportDocument:
+    #   type: object
+    #   description: Document that governs the terms of carriage between shipper and carrier for maritime transportation
+    #   properties:
+    #     shippingInstruction:
+    #       $ref: '#/components/schemas/ShippingInstruction'
+    #     transportDocumentCreatedDateTime:
+    #       type: string
+    #       format: date-time
+    #       description: When the document was created
+    #     transportDocumentUpdatedDateTime:
+    #       type: string
+    #       format: date-time
+    #       description: When the document was updated
+    #     shipmentLocations:
+    #       type: array
+    #       items:
+    #         $ref: '#/components/schemas/ShipmentLocation'
+    #     transports:
+    #       type: array
+    #       items:
+    #         $ref: '#/components/schemas/Transport'
     FileInfo:
       type: object
       description: Metadata of the uploaded document
@@ -1323,7 +1304,8 @@ components:
       description: Event of issuing the eB/L
       properties:
         bill_of_lading:
-          $ref: '#/components/schemas/TransportDocument'
+          # $ref: '#/components/schemas/TransportDocument'
+          $ref: 'https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0#/components/schemas/transportDocument'
         file:
           $ref: '#/components/schemas/FileInfo'
         doc_type:
@@ -1341,9 +1323,8 @@ components:
         note:
           type: string
           description: Optional note from the requester
-        meta_data:
-          type: string
-          description: All fully customized data.
+        metadata:
+          $ref: '#/components/schemas/ApplicationMetaData'
     Transfer:
       type: object
       description: Event of transferring the eB/L
@@ -1361,9 +1342,8 @@ components:
         note:
           type: string
           description: Optional note from the requester
-        meta_data:
-          type: string
-          description: All fully customized data.
+        metadata:
+          $ref: '#/components/schemas/ApplicationMetaData'
     Return:
       type: object
       description: Event of returning the eB/L
@@ -1381,9 +1361,8 @@ components:
         note:
           type: string
           description: Optional note from the requester
-        meta_data:
-          type: string
-          description: All fully customized data.
+        metadata:
+          $ref: '#/components/schemas/ApplicationMetaData'
     Surrender:
       type: object
       description: Event of surrendering the eB/L
@@ -1401,9 +1380,8 @@ components:
         note:
           type: string
           description: Optional note from the requester
-        meta_data:
-          type: string
-          description: All fully customized data.
+        metadata:
+          $ref: '#/components/schemas/ApplicationMetaData'
     AmendmentRequest:
       type: object
       description: Event of requesting amendment for the eB/L
@@ -1421,9 +1399,8 @@ components:
         note:
           type: string
           description: Optional note from the requester
-        meta_data:
-          type: string
-          description: All fully customized data.
+        metadata:
+          $ref: '#/components/schemas/ApplicationMetaData'
     PrintToPaper:
       type: object
       description: Event of printing the eB/L to paper
@@ -1438,9 +1415,8 @@ components:
         note:
           type: string
           description: Optional note from the requester
-        meta_data:
-          type: string
-          description: All fully customized data.
+        metadata:
+          $ref: '#/components/schemas/ApplicationMetaData'
     Accomplish:
       type: object
       description: Event of accomplishing the eB/L
@@ -1455,12 +1431,11 @@ components:
         note:
           type: string
           description: Optional note from the requester
-        meta_data:
-          type: string
-          description: All fully customized data.
+        metadata:
+          $ref: '#/components/schemas/ApplicationMetaData'
     BillOfLadingEvent:
       type: object
-      description: Event of the eB/L
+      description: Event of the eB/L. The properties are mutual exclusive. Only one of them can be present.
       properties:
         bill_of_lading:
           $ref: '#/components/schemas/BillOfLading'
@@ -1495,13 +1470,13 @@ components:
           description: DID of the current owner
         events:
           type: array
-          description: eB/L history event list
+          description: eB/L history event list. The order of events is from the oldest to the newest.
           items:
             $ref: '#/components/schemas/BillOfLadingEvent'
     BillOfLadingRecord:
       type: object
       properties:
-        allowed_actions:
+        allow_actions:
           type: array
           items:
             $ref: '#/components/schemas/BillOfLadingAction'
@@ -1565,6 +1540,9 @@ components:
           type: integer
           format: int64
           description: Version of the webhook
+        deleted:
+          type: boolean
+          description: Indicates if the webhook is deleted
         url:
           type: string
           description: The URL that should have the event issued to it
@@ -1596,6 +1574,9 @@ components:
         id:
           type: string
           description: Unique ID of the object that is the subject of the event trigger
+        url:
+          type: string
+          description: The URL the WebhookEvent is sent to
         type:
           $ref: '#/components/schemas/WebhookEventType'
         created_at:
@@ -1617,9 +1598,8 @@ components:
     BaseRequest:
       type: object
       properties:
-        meta_data:
-          type: string
-          description: All fully customized data.
+        metadata:
+          $ref: '#/components/schemas/ApplicationMetaData'
     UpdateBillOfLadingRequest:
       allOf:
         - $ref: '#/components/schemas/BaseRequest'

@@ -31,6 +31,7 @@ export const env = createEnv({
     BU_SERVER_URL: z.string().url(),
     BU_SERVER_API_KEY: z.string().min(1),
     NOTIFIER_POLL_INTERVAL: z.number().default(1000 * 60 * 5),
+    PORTAL_URL: z.string().min(1),
   },
 
   /**
@@ -59,6 +60,7 @@ export const env = createEnv({
     BU_SERVER_URL: process.env.BU_SERVER_URL,
     BU_SERVER_API_KEY: process.env.BU_SERVER_API_KEY,
     NOTIFIER_POLL_INTERVAL: process.env.NOTIFIER_POLL_INTERVAL,
+    PORTAL_URL: process.env.PORTAL_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

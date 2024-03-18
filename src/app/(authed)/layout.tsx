@@ -26,7 +26,6 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
     <html lang="en" suppressHydrationWarning={true}>
       <body>
         <NextTopLoader />
-        {/* <style dangerouslySetInnerHTML={{ __html: inter.style }}></style> */}
         <TRPCReactProvider cookies={cookies().toString()}>
           <OuterFrame session={session}>{children}</OuterFrame>
         </TRPCReactProvider>

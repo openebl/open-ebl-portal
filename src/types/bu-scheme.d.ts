@@ -4,6 +4,9 @@
  */
 
 
+/** WithRequired type helpers */
+type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
 export interface paths {
   "/business_unit": {
     /** List all business units */
@@ -1108,79 +1111,14 @@ export interface components {
      * @enum {string}
      */
     DocumentStatus: "DRFT" | "ISSU";
-    /** @description Refers to a company or a legal entity */
-    Party: {
-      /** @description Name of the party */
-      partyName?: string;
-      identifyingCodes?: components["schemas"]["IdentifyingCode"][];
-    };
-    /** Identifying Code */
-    IdentifyingCode: {
-      partyCode: components["schemas"]["partyCode"];
-    };
-    /** @description Code to identify the party as provided by the agency */
-    partyCode: string;
-    /** @description Party involved in the transport document */
-    DocumentParty: {
-      party?: components["schemas"]["Party"];
-      /**
-       * @description Role of the party
-       * @enum {string}
-       */
-      partyFunction?: "DDR" | "OS" | "CN" | "DDS";
-    };
-    /** @description Enrichment to the original booking shard by the shipper to the carrier */
-    ShippingInstruction: {
-      /** @description B/L Number */
-      shippingInstructionReference?: string;
-      documentStatus?: components["schemas"]["DocumentStatus"];
-      /** @description Indicate if the eB/L is negotiable */
-      isToOrder?: boolean;
-      /** @description Parties involved in the eB/L */
-      documentParties?: components["schemas"]["DocumentParty"][];
-    };
     Location: {
       /** @description Name of the location */
       locationName?: string;
       /** @description UN location code */
       UNLocationCode?: string;
     };
-    /** @description Maps the relationship between shipment and location */
-    ShipmentLocation: {
-      location?: components["schemas"]["Location"];
-      /** @enum {string} */
-      shipmentLocationTypeCode?: "POL" | "POD";
-      /**
-       * Format: date-time
-       * @description When the event happened
-       */
-      eventDateTime?: string;
-    };
-    Transport: {
-      /** @enum {string} */
-      transportPlanStage?: "PRC" | "MNC" | "ONC";
-      /**
-       * Format: date-time
-       * @description Estimated time of arrival
-       */
-      plannedArrivalDate?: string;
-    };
-    /** @description Document that governs the terms of carriage between shipper and carrier for maritime transportation */
-    TransportDocument: {
-      shippingInstruction?: components["schemas"]["ShippingInstruction"];
-      /**
-       * Format: date-time
-       * @description When the document was created
-       */
-      transportDocumentCreatedDateTime?: string;
-      /**
-       * Format: date-time
-       * @description When the document was updated
-       */
-      transportDocumentUpdatedDateTime?: string;
-      shipmentLocations?: components["schemas"]["ShipmentLocation"][];
-      transports?: components["schemas"]["Transport"][];
-    };
+    /** @description Application specific metadata. It must be a valid JSON object. */
+    ApplicationMetaData: Record<string, never>;
     /** @description Metadata of the uploaded document */
     FileInfo: {
       /** @description File name of the uploaded document */
@@ -1202,7 +1140,7 @@ export interface components {
     };
     /** @description Event of issuing the eB/L */
     BillOfLading: {
-      bill_of_lading?: components["schemas"]["TransportDocument"];
+      bill_of_lading?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["transportDocument"];
       file?: components["schemas"]["FileInfo"];
       doc_type?: components["schemas"]["BillOfLadingDocumentType"];
       /** @description DID of the next owner */
@@ -1216,8 +1154,7 @@ export interface components {
       created_at?: string;
       /** @description Optional note from the requester */
       note?: string;
-      /** @description All fully customized data. */
-      meta_data?: string;
+      metadata?: components["schemas"]["ApplicationMetaData"];
     };
     /** @description Event of transferring the eB/L */
     Transfer: {
@@ -1232,8 +1169,7 @@ export interface components {
       transfer_at?: string;
       /** @description Optional note from the requester */
       note?: string;
-      /** @description All fully customized data. */
-      meta_data?: string;
+      metadata?: components["schemas"]["ApplicationMetaData"];
     };
     /** @description Event of returning the eB/L */
     Return: {
@@ -1248,8 +1184,7 @@ export interface components {
       return_at?: string;
       /** @description Optional note from the requester */
       note?: string;
-      /** @description All fully customized data. */
-      meta_data?: string;
+      metadata?: components["schemas"]["ApplicationMetaData"];
     };
     /** @description Event of surrendering the eB/L */
     Surrender: {
@@ -1264,8 +1199,7 @@ export interface components {
       surrender_at?: string;
       /** @description Optional note from the requester */
       note?: string;
-      /** @description All fully customized data. */
-      meta_data?: string;
+      metadata?: components["schemas"]["ApplicationMetaData"];
     };
     /** @description Event of requesting amendment for the eB/L */
     AmendmentRequest: {
@@ -1280,8 +1214,7 @@ export interface components {
       request_at?: string;
       /** @description Optional note from the requester */
       note?: string;
-      /** @description All fully customized data. */
-      meta_data?: string;
+      metadata?: components["schemas"]["ApplicationMetaData"];
     };
     /** @description Event of printing the eB/L to paper */
     PrintToPaper: {
@@ -1294,8 +1227,7 @@ export interface components {
       print_at?: string;
       /** @description Optional note from the requester */
       note?: string;
-      /** @description All fully customized data. */
-      meta_data?: string;
+      metadata?: components["schemas"]["ApplicationMetaData"];
     };
     /** @description Event of accomplishing the eB/L */
     Accomplish: {
@@ -1308,10 +1240,9 @@ export interface components {
       accomplish_at?: string;
       /** @description Optional note from the requester */
       note?: string;
-      /** @description All fully customized data. */
-      meta_data?: string;
+      metadata?: components["schemas"]["ApplicationMetaData"];
     };
-    /** @description Event of the eB/L */
+    /** @description Event of the eB/L. The properties are mutual exclusive. Only one of them can be present. */
     BillOfLadingEvent: {
       bill_of_lading?: components["schemas"]["BillOfLading"];
       transfer?: components["schemas"]["Transfer"];
@@ -1334,11 +1265,11 @@ export interface components {
       parent_hash?: string;
       /** @description DID of the current owner */
       current_owner?: string;
-      /** @description eB/L history event list */
+      /** @description eB/L history event list. The order of events is from the oldest to the newest. */
       events?: components["schemas"]["BillOfLadingEvent"][];
     };
     BillOfLadingRecord: {
-      allowed_actions?: components["schemas"]["BillOfLadingAction"][];
+      allow_actions?: components["schemas"]["BillOfLadingAction"][];
       bl?: components["schemas"]["BillOfLadingPack"];
     };
     ListBillOfLadingReport: {
@@ -1385,6 +1316,8 @@ export interface components {
        * @description Version of the webhook
        */
       version?: number;
+      /** @description Indicates if the webhook is deleted */
+      deleted?: boolean;
       /** @description The URL that should have the event issued to it */
       url?: string;
       /**
@@ -1409,6 +1342,8 @@ export interface components {
     WebhookEvent: {
       /** @description Unique ID of the object that is the subject of the event trigger */
       id?: string;
+      /** @description The URL the WebhookEvent is sent to */
+      url?: string;
       type?: components["schemas"]["WebhookEventType"];
       /**
        * Format: int64
@@ -1425,8 +1360,7 @@ export interface components {
       records?: components["schemas"]["Webhook"][];
     };
     BaseRequest: {
-      /** @description All fully customized data. */
-      meta_data?: string;
+      metadata?: components["schemas"]["ApplicationMetaData"];
     };
     UpdateBillOfLadingRequest: components["schemas"]["BaseRequest"] & {
       /** @description The ID for authentication. The eB/L will be signed with the authentication. */
@@ -1544,6 +1478,2449 @@ export interface components {
 
 export type $defs = Record<string, never>;
 
-export type external = Record<string, never>;
+export interface external {
+  "https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3": {
+    paths: Record<string, never>;
+    webhooks: Record<string, never>;
+    components: {
+      schemas: {
+        /**
+         * @description A single address line to be used when a B/L needs to be printed.
+         *
+         * @example Kronprincessegade 54
+         */
+        addressLine: string;
+        /**
+         * Format: int32
+         * @description The order of items
+         * @example 1
+         */
+        addressLineNumber: number;
+        /**
+         * @description Name of the address
+         * @example Henrik
+         */
+        addressName: string;
+        /**
+         * Format: float
+         * @description Target value for the air exchange rate which is the rate at which outdoor air replaces indoor air within a Reefer container
+         *
+         * @example 15.4
+         */
+        airExchangeSetpoint: number;
+        /**
+         * @description The unit for `airExchangeSetpoin` in metrics- or imperial units- per hour
+         *
+         * - MQH (Cubic metre per hour)
+         * - FQH (Cubic foot per hour)
+         *
+         * @example MQH
+         * @enum {string}
+         */
+        airExchangeUnit: "MQH" | "FQH";
+        /**
+         * @description This field can be used to reference a Transport Document that is issued (documentStatus = `ISSU`) in order to amend changes.
+         *
+         * The field cannot be modified once set.
+         */
+        amendToTransportDocument: string;
+        /**
+         * Format: date
+         * @description Date when AMS filing should latest be done in the last port of call before visiting the first US port.
+         *
+         * @example 2021-09-03
+         */
+        amsFilingDueDate: string;
+        /**
+         * @description Identification number provided by the platform/channel used for booking request/confirmation, ex: Inttra booking reference, or GTNexus, other. Conditional on booking channel being used
+         *
+         * @example ABC12313
+         */
+        bookingChannelReference: string;
+        /**
+         * Format: date-time
+         * @description The date and time when the booking request was created
+         *
+         * @example 2021-11-03T09:41:00+08:30
+         */
+        bookingRequestCreatedDateTime: string;
+        /**
+         * Format: date-time
+         * @description Last date and time when the booking request was updated
+         *
+         * @example 2021-11-03T09:41:00+08:30
+         */
+        bookingRequestUpdatedDateTime: string;
+        /**
+         * @description Identifier of the booking request provided by the shipper.
+         *
+         * @example ABC12313
+         */
+        bookingRequestID: string;
+        /**
+         * @description The code specifying the measure unit used for the corresponding unit price for this cost, such as per day, per ton, per square metre.
+         * @example Per day
+         */
+        calculationBasis: string;
+        /**
+         * Format: float
+         * @description The grand total volume of the commodity
+         *
+         * @example 120
+         */
+        cargoGrossVolume: number;
+        /**
+         * Format: float
+         * @description The grand total weight of the cargo and weight per container(s) including packaging items being carried, which can be expressed in imperial or metric terms, as provided by the shipper. Excludes the tare weight of the container(s).'
+         *
+         * @example 12000
+         */
+        cargoGrossWeight: number;
+        /**
+         * Format: uuid
+         * @description Identifies the cargo item to be stuffed.
+         * @example 25b46d36-f091-4b27-a150-4d193a16ae6b
+         */
+        cargoItemID: string;
+        /** @description Identifies the cargo line item (package) within the cargo. The cargo line item ID is provided by the shipper and is used to define the stuffing. Cargo line items belonging to the same cargo items are stuffed in the same container. */
+        cargoLineItemID: string;
+        /**
+         * @description Refers to the shipment term at the loading of the cargo into the container. Options are defined in the Cargo Movement Type entity.
+         * - FCL (Full Container Load)
+         * - LCL (Less than Container Load)
+         * - BB (Break Bulk)
+         *
+         * @example FCL
+         * @enum {string}
+         */
+        cargoMovementTypeAtOrigin: "FCL" | "LCL" | "BB";
+        /**
+         * @description Refers to the shipment term at the unloading of the cargo out of the container. Options are defined in the Cargo Movement Type entity.
+         * - FCL (Full Container Load)
+         * - LCL (Less than Container Load)
+         * - BB (Break Bulk)
+         *
+         * @example FCL
+         * @enum {string}
+         */
+        cargoMovementTypeAtDestination: "FCL" | "LCL" | "BB";
+        /**
+         * @description A set of unique characters provided by carrier to identify a booking.
+         * @example ABC709951
+         */
+        carrierBookingReference: string;
+        /**
+         * @description A reference to the booking during the booking request phase
+         *
+         * @example 24595eb0-5cfc-4381-9c3a-cedc1975e9aa
+         */
+        carrierBookingRequestReference: string;
+        /**
+         * @description The code containing the SCAC and/or the SMDG code to specify the issuing carrier.  Details about the issuer can be given in the Document Parties entity using the party function code MS.
+         *
+         * @example MMCU
+         */
+        carrierCode: string;
+        /**
+         * @description The provider used for identifying the issuer Code
+         *
+         * @example NMFTA
+         * @enum {string}
+         */
+        carrierCodeListProvider: "SMDG" | "NMFTA";
+        /**
+         * @description The identifier of an export voyage. The vessel operator-specific identifier of the export Voyage.
+         *
+         * @example 2103S
+         */
+        carrierExportVoyageNumber: string;
+        /**
+         * Format: uuid
+         * @description Unique internal identifier for the carrier.
+         * @example fb4089dd-1889-485f-b1cc-e31f75568bb9
+         */
+        carrierID: string;
+        /**
+         * @description The identifier of an import voyage. The vessel operator-specific identifier of the import Voyage.
+         *
+         * @example 2103N
+         */
+        carrierImportVoyageNumber: string;
+        /**
+         * @description The Carrier specific code of the service for which the schedule details are published.
+         *
+         * @example FE1
+         */
+        carrierServiceCode: string;
+        /**
+         * @description The name of a service as specified by the carrier
+         *
+         * @example Great Lion Service
+         */
+        carrierServiceName: string;
+        /**
+         * @description The vessel operator-specific identifier of the Voyage.
+         * @example 2103S
+         */
+        carrierVoyageNumber: string;
+        /**
+         * @description The identifier of a charge.
+         * @example 123e4567-e89b-12d3-a456-426614174000
+         */
+        chargeID: string;
+        /** @description Free text field describing the charge type to apply */
+        chargeType: string;
+        /**
+         * @description Description of the charge type applied.
+         *
+         * @example DDF
+         * @enum {string}
+         */
+        chargeTypeCode: "OCFR" | "OTHC" | "DTHC" | "ODF" | "DDF";
+        /**
+         * @description The city name of the party’s address.
+         * @example København
+         */
+        cityName: string;
+        /**
+         * Format: uuid
+         * @description The identifier of a clause.
+         * @example c86138d6-804d-4aa5-b104-9fbbd194e401
+         */
+        clauseID: string;
+        /** @description The content of the clause. */
+        clauseContent: string;
+        /**
+         * Format: float
+         * @description The percentage of the controlled atmosphere CO<sub>2</sub> target value
+         *
+         * @example 25
+         */
+        co2Setpoint: number;
+        /**
+         * @description Link used to connect `commodity` to a `requestedEquipment`.
+         *
+         * @example 001
+         */
+        commodityRequestedEquipmentLink: string;
+        /**
+         * @description High-level description of goods to be shipped which allow the carrier to confirm acceptance and commercial terms. To be replaced by "description of goods" upon submission of shipping instruction
+         *
+         * @example Mobile phones
+         */
+        commodityType: string;
+        /**
+         * @description Specifying which communication channel is to be used for this booking e.g.
+         * - EI (EDI transmission)
+         * - EM (Email)
+         * - AO (API)
+         *
+         * @example AO
+         * @enum {string}
+         */
+        communicationChannelCode: "EI" | "EM" | "AO";
+        /**
+         * Format: int32
+         * @description Number of confirmed equipment units
+         *
+         * @example 3
+         */
+        confirmedEquipmentUnits: number;
+        /**
+         * @description Information provided by the shipper to identify whether pricing for the shipment has been agreed via a contract or a quotation reference. Mandatory if service contract (owner) is not provided.
+         *
+         * @example DKK
+         */
+        contractQuotationReference: string;
+        /**
+         * @description The country of the party’s address.
+         * @example Denmark
+         */
+        country: string;
+        /**
+         * Format: float
+         * @description The monetary value of all freight and other service charges for a transport document, with a maximum of 2-digit decimals.
+         * @example 1012.12
+         */
+        currencyAmount: number;
+        /**
+         * @description The currency for the charge, using a 3-character code (ISO 4217).
+         * @example DKK
+         */
+        currencyCode: string;
+        /**
+         * Format: date-time
+         * @description Actual cut-off time
+         *
+         * @example 2019-11-12T07:41:00+08:30
+         */
+        cutOffDateTime: string;
+        /**
+         * @description Code for the cut-off time
+         * - DCO (Documentation cut-off)
+         * - VCO (VGM cut-off)
+         * - FCO (FCL delivery cut-off)
+         * - LCO (LCL delivery cut-off)
+         * - ECP (Empty container pick-up date and time)
+         * - EFC (Earliest full-container delivery date)
+         * - AFD (AMS Filing Due date)
+         *
+         * @enum {string}
+         */
+        cutOffDateTimeCode: "DCO" | "VCO" | "FCO" | "LCO" | "ECP" | "EFC" | "AFD";
+        /**
+         * Format: iso8601
+         * @description The time period for which schedule information is sent. The duration is populated in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) Duration format.
+         *
+         * @example P4W
+         */
+        dateRange: string;
+        /**
+         * Format: float
+         * @description The value of the cargo that the shipper declares to avoid the carrier&apos;s limitation of liability and "Ad Valorem" freight, i.e. freight which is calculated based on the value of the goods declared by the shipper.
+         * @example 1231.1
+         */
+        declaredValue: number;
+        /**
+         * @description The currency used for the declared value, using the 3-character code defined by ISO 4217.
+         * @example DKK
+         */
+        declaredValueCurrency: string;
+        /**
+         * @description Reason code for the delay. See SMDG [Code list DELAY](https://smdg.org/documents/smdg-code-lists/delay-reason-and-port-call-activity/) for a list of valid codes to be used for this attribute.
+         *
+         * @example WEA
+         */
+        delayReasonCode: string;
+        /**
+         * @description Indicates the type of service offered at Destination. Options are defined in the Receipt/Delivery entity.
+         * - CY (Container yard (incl. rail ramp))
+         * - SD (Store Door)
+         * - CFS (Container Freight Station)
+         *
+         * @example CY
+         * @enum {string}
+         */
+        deliveryTypeAtDestination: "CY" | "SD" | "CFS";
+        /** @description The cargo description are details which accurately and properly describe the cargo being shipped in the container(s) as provided by the shipper. */
+        descriptionOfGoods: string;
+        /**
+         * @description The unit of measure which can be expressed in
+         * - MTR (Meter)
+         * - FOT (Foot)
+         *
+         * @example MTR
+         * @enum {string}
+         */
+        dimensionUnit: "MTR" | "FOT";
+        /** @description A line of the address to be displayed on the transport document. */
+        displayedName: string;
+        /** @description A unique number allocated by the shipping line to the transport document and the main number used for the tracking of the status of the shipment. */
+        documentReferenceNumber: string;
+        /**
+         * @description The status of the document in the process. Possible values are:
+         * - RECE (Received)
+         * - DRFT (Drafted)
+         * - PENA (Pending Approval)
+         * - PENU (Pending Update)
+         * - PENC (Pending Confirmation)
+         * - CONF (Confirmed)
+         * - REJE (Rejected)
+         * - APPR (Approved)
+         * - ISSU (Issued)
+         * - SURR (Surrendered)
+         * - SUBM (Submitted)
+         * - VOID (Void)
+         * - CANC (Cancelled)
+         * - CMPL (Completed)
+         *
+         * @example DRFT
+         * @enum {string}
+         */
+        documentStatus: "RECE" | "DRFT" | "PENA" | "PENU" | "PENC" | "CONF" | "REJE" | "APPR" | "ISSU" | "SURR" | "SUBM" | "VOID" | "CANC" | "CMPL";
+        /**
+         * @description E-mail address for the contact
+         * @example info@dcsa.org
+         */
+        email: string;
+        /**
+         * @description Code to denote whether the equipment is empty or laden.
+         * @example EMPTY
+         * @enum {string}
+         */
+        emptyIndicatorCode: "EMPTY" | "LADEN";
+        /**
+         * @description The unique identifier for the equipment, which should follow the BIC ISO Container Identification Number where possible.
+         * According to ISO 6346, a container identification code consists of a 4-letter prefix and a 7-digit number (composed of a 3-letter owner code, a category identifier, a serial number, and a check-digit). If a container does not comply with ISO 6346, it is suggested to follow Recommendation #2 “Container with non-ISO identification” from SMDG.
+         *
+         * @example APZU4812090
+         */
+        equipmentReference: string;
+        /**
+         * @description an additional Comment to a timestamp that can be shared with the receiver party.
+         * @example Delay due to bad weather
+         */
+        eventComment: string;
+        /**
+         * Format: date-time
+         * @description A date when the event is taking place at the location
+         *
+         * @example 2021-11-03T10:23:00+01:00
+         */
+        eventLocationDateTime: string;
+        /**
+         * Format: date
+         * @description The start date (provided as a range together with `expectedArrivalAtPlaceOfDeliveryEndDate`) for when the shipment is expected to arrive at final destination. If vessel/voyage or `expectedDepartureDate` is not provided, this is mandatory together with `expectedArrivalAtPlaceOfDeliveryEndDate`
+         *
+         * @example 2021-05-17
+         */
+        expectedArrivalAtPlaceOfDeliveryStartDate: string;
+        /**
+         * Format: date
+         * @description The end date (provided as a range together with `expectedArrivalAtPlaceOfDeliveryStartDate`) for when the shipment is expected to arrive at final destination. If vessel/voyage or `expectedDepartureDate` is not provided, this is mandatory together with `expectedArrivalAtPlaceOfDeliveryStartDate`
+         *
+         * @example 2021-05-19
+         */
+        expectedArrivalAtPlaceOfDeliveryEndDate: string;
+        /**
+         * Format: date
+         * @description The date when the shipment is expected to be loaded on board a vessel as provided by the shipper or its agent. If vessel/voyage or expected date of arrival is not provided, this is mandatory
+         *
+         * @example 2021-05-17
+         */
+        expectedDepartureDate: string;
+        /**
+         * @description A government document permitting designated goods to be shipped out of the country.  Reference number assigned by an issuing authority to an Export License. The export license must be valid at time of departure. Required if Export declaration required is ‘True’.
+         *
+         * @example ABC123123
+         */
+        exportDeclarationReference: string;
+        /**
+         * Format: date
+         * @description Issue date of the export license applicable to the booking. Mandatory to provide in booking request for specific commodities
+         *
+         * @example 2021-05-14
+         */
+        exportLicenseIssueDate: string;
+        /**
+         * Format: date
+         * @description Expiry date of the export license applicable to the booking.
+         *
+         * Mandatory to provide in booking request for specific commodities.
+         *
+         * @example 2021-05-21
+         */
+        exportLicenseExpiryDate: string;
+        /**
+         * @description The identifier of an export voyage. The vessel operator-specific identifier of the export Voyage.
+         *
+         * @example 2103S
+         */
+        exportVoyageNumber: string;
+        /**
+         * @description The code used for identifying the specific facility. This code does <b>not</b> include the UN Location Code.
+         *
+         * @example ADT
+         */
+        facilityCode: string;
+        /**
+         * @description The provider used for identifying the facility Code. Some facility codes are only defined in combination with an `UN Location Code`
+         * - BIC (Requires a UN Location Code)
+         * - SMDG (Requires a UN Location Code)
+         *
+         * @example SMDG
+         * @enum {string}
+         */
+        facilityCodeListProvider: "BIC" | "SMDG";
+        /**
+         * @description The code to identify the specific type of facility.
+         * - BORD (Border)
+         * - CLOC (Customer location)
+         * - COFS (Container freight station)
+         * - COYA (Deprecated - use OFFD intead)
+         * - OFFD (Off dock storage)
+         * - DEPO (Depot)
+         * - INTE (Inland terminal)
+         * - POTE (Port terminal)
+         * - PBPL (Pilot boarding place)
+         * - BRTH (Berth)
+         * - RAMP (Ramp)
+         * - WAYP (Waypoint)
+         *
+         * @example POTE
+         * @enum {string}
+         */
+        facilityTypeCode: "BORD" | "CLOC" | "COFS" | "COYA" | "OFFD" | "DEPO" | "INTE" | "POTE" | "PBPL" | "BRTH" | "RAMP" | "WAYP";
+        /**
+         * @description A specialized version of the facilityCode to be used in Operations events. The code to identify the specific type of facility.
+         * - PBPL (Pilot boarding place)
+         * - BRTH (Berth)
+         * - ANCH (Anchorage Location)
+         *
+         * @example BRTH
+         * @enum {string}
+         */
+        facilityTypeCodeOPR: "PBPL" | "BRTH" | "ANCH";
+        /**
+         * @description The code to identify the specific type of facility. The code indicates which role the facility plays during the `transportCall` or during *stuffing*\/*stipping*.
+         * - BORD (Border)
+         * - CLOC (Customer location)
+         * - COFS (Container freight station)
+         * - COYA (Deprecated - use OFFD intead)
+         * - OFFD (Off dock storage)
+         * - DEPO (Depot)
+         * - INTE (Inland terminal)
+         * - POTE (Port terminal)
+         * - RAMP (Ramp)
+         * - WAYP (Waypoint)
+         *
+         * @example POTE
+         * @enum {string}
+         */
+        facilityTypeCodeTRN: "BORD" | "CLOC" | "COFS" | "COYA" | "OFFD" | "DEPO" | "INTE" | "POTE" | "RAMP" | "WAYP";
+        /**
+         * Format: date
+         * @description The dates (provided as a range) for when the shipment is expected to arrive at final destination. If vessel/voyage or expected departure date or pick-up date at place of receipt is not provided, this field is mandatory
+         */
+        finalDestinationExpectedArrivalDate: string;
+        /**
+         * @description The floor of the party’s street number.
+         * @example 5. sal
+         */
+        floor: string;
+        /** @description Used by customs to classify the product being shipped. */
+        HSCode: string;
+        /**
+         * Format: float
+         * @description The percentage of the controlled atmosphere humidity target value
+         *
+         * @example 95.6
+         */
+        humiditySetpoint: number;
+        /**
+         * @description A certificate, issued by countries exercising import controls, that permits importation of the articles stated in the license. Reference number assigned by an issuing authority to an Import License. The import license number must be valid at time of arrival. Required if import license required is ‘True’.
+         *
+         * @example ABC123123
+         */
+        importLicenseReference: string;
+        /**
+         * @description The identifier of an import voyage. The vessel operator-specific identifier of the import Voyage.
+         *
+         * @example 2103N
+         */
+        importVoyageNumber: string;
+        /**
+         * @description Transport obligations, costs and risks as agreed between buyer and seller.
+         * - FCA (Free Carrier)
+         * - FOB (Free on Board)
+         *
+         * @example FCA
+         * @enum {string}
+         */
+        incoTerms: "FCA" | "FOB";
+        /**
+         * @description Customs filing for US (AMS) or Canadian (ACI) customs
+         *
+         * @example true
+         */
+        isAMSACIFilingRequired: boolean;
+        /**
+         * @description Is special container setting for handling flower bulbs active
+         *
+         * @default false
+         * @example false
+         */
+        isBulbMode: boolean;
+        /**
+         * @description Is `Cargo Probe 1 Required` enabled allowing the container to emit temperatures.
+         *
+         * @default false
+         * @example true
+         */
+        isCargoProbe1Required: boolean;
+        /**
+         * @description Is `Cargo Probe 2 Required` enabled allowing the container to emit temperatures.
+         *
+         * @default false
+         * @example true
+         */
+        isCargoProbe2Required: boolean;
+        /**
+         * @description Is `Cargo Probe 3 Required` enabled allowing the container to emit temperatures.
+         *
+         * @default false
+         * @example true
+         */
+        isCargoProbe3Required: boolean;
+        /**
+         * @description Is `Cargo Probe 4 Required` enabled allowing the container to emit temperatures.
+         *
+         * @default false
+         * @example true
+         */
+        isCargoProbe4Required: boolean;
+        /**
+         * @description Indicator whether cargo requires cold treatment prior to loading at origin or during transit, but prior arrival at POD
+         *
+         * @default false
+         * @example false
+         */
+        isColdTreatmentRequired: boolean;
+        /**
+         * @description Indicates whether the shipper will submit the destination customs filing directly. If `false` the shipper requests the carrier to submit the customs filing on their behalf. Mandatory if AMS/ACI filing is required
+         *
+         * @example true
+         */
+        isCustomsFilingSubmissionByShipper: boolean;
+        /**
+         * @description An indicator whether the transport document is electronically transferred.
+         * @example true
+         */
+        isElectronic: boolean;
+        /**
+         * @description Indicates if an alternate equipment type can be provided by the carrier.
+         *
+         * @example true
+         */
+        isEquipmentSubstitutionAllowed: boolean;
+        /**
+         * @description Information provided by the shipper whether an export declaration is required for this particular shipment/commodity/destination.
+         *
+         * @example true
+         */
+        isExportDeclarationRequired: boolean;
+        /**
+         * @description Indicator whether reefer container should have a generator set attached at time of release from depot
+         *
+         * @default false
+         * @example true
+         */
+        isGeneratorSetRequired: boolean;
+        /**
+         * @description Cargo value exceeds USD XXX K (carrier specific)
+         *
+         * @default false
+         * @example true
+         */
+        isHighValueCargo: boolean;
+        /**
+         * @description Information provided by the shipper whether an import permit or license is required for this particular shipment/commodity/destination.
+         *
+         * @example true
+         */
+        isImportLicenseRequired: boolean;
+        /**
+         * @description Unique code for the different equipment size/type used for transporting commodities. The code is a concatenation of ISO Equipment Size Code and ISO Equipment Type Code A and follows the ISO 6346 standard.
+         * @example 22GP
+         */
+        ISOEquipmentCode: string;
+        /**
+         * @description Indication whether the shipper agrees to load part of the shipment in case where not all of the cargo is delivered within cut-off.
+         *
+         * @example true
+         */
+        isPartialLoadAllowed: boolean;
+        /**
+         * @description Indicator whether reefer container should be pre-cooled to the temperature setting required at time of release from depot
+         *
+         * @default false
+         * @example true
+         */
+        isPreCoolingRequired: boolean;
+        /**
+         * @description Specifies whether the Transport document is a received for shipment, or shipped on board.
+         * @example true
+         */
+        isShippedOnBoardType: boolean;
+        /**
+         * @description Indicates whether the container is shipper owned (SOC).
+         * @example true
+         */
+        isShipperOwned: boolean;
+        /**
+         * Format: date
+         * @description Local date when the transport document has been issued
+         * @example 2020-12-12
+         */
+        issueDate: string;
+        /**
+         * @description Used to decide whether the party will be notified of the arrival of the cargo.
+         * @example true
+         */
+        isToBeNotified: boolean;
+        /**
+         * @description Indicates whether the transport document is issued `to order` or not
+         *
+         * @example false
+         */
+        isToOrder: boolean;
+        /**
+         * @description Indicator whether mode of transportation for pre-carriage (e.g. truck, barge, rail) is under shipper's responsibility
+         *
+         * @example false
+         */
+        isUnderShippersResponsibility: boolean;
+        /**
+         * @description If `true` the ventilation orifice is `Open` - if `false` the ventilation orifice is `closed`
+         *
+         * @default false
+         * @example true
+         */
+        isVentilationOpen: boolean;
+        /**
+         * @description Geographic coordinate that specifies the north–south position of a point on the Earth&apos;s surface.
+         *
+         * @example 48.858550
+         */
+        latitude: string;
+        /**
+         * @description The identifier for a location.
+         * @example 123e4567-e89b-12d3-a456-426614174000
+         */
+        locationID: string;
+        /**
+         * @description The name of the location.
+         * @example Port of Amsterdam
+         */
+        locationName: string;
+        /**
+         * @description The reference to a location.
+         * @example 123e4567-e89b-12d3-a456-426614174000
+         */
+        locationReference: string;
+        /**
+         * @description Geographic coordinate that specifies the east–west position of a point on the Earth&apos;s surface.
+         *
+         * @example 2.294492036
+         */
+        longitude: string;
+        /**
+         * @description The mode of transport as defined by DCSA.
+         *
+         * @enum {string}
+         */
+        modeOfTransport: "VESSEL" | "RAIL" | "TRUCK" | "BARGE";
+        /**
+         * @description Name of the contact
+         * @example Henrik
+         */
+        name: string;
+        /**
+         * Format: float
+         * @description The percentage of the controlled atmosphere nitrogen target value
+         *
+         * @example 25
+         */
+        nitrogenSetpoint: number;
+        /**
+         * @description The Standard Carrier Alpha Code (SCAC) provided by NMFTA.
+         * @example MMCU
+         */
+        nmftaCode: string;
+        /**
+         * Format: int32
+         * @description The requested number of copies of the Transport document to be issued by the carrier. Only applicable for physical documents
+         * @example 2
+         */
+        numberOfCopies: number;
+        /**
+         * Format: int32
+         * @description The requested number of copies of the Transport document to be issued by the carrier including charges. Only applicable for physical documents
+         * @example 2
+         */
+        numberOfCopiesWithCharges: number;
+        /**
+         * Format: int32
+         * @description The requested number of copies of the Transport document to be issued by the carrier **NOT** including charges. Only applicable for physical documents
+         * @example 2
+         */
+        numberOfCopiesWithoutCharges: number;
+        /**
+         * Format: int32
+         * @description Number of original copies of the negotiable bill of lading that has been requested by the customer with Charges.
+         *
+         * @example 1
+         */
+        numberOfOriginalsWithCharges: number;
+        /**
+         * Format: int32
+         * @description Number of original copies of the negotiable bill of lading that has been requested by the customer without Charges.
+         *
+         * @example 1
+         */
+        numberOfOriginalsWithoutCharges: number;
+        /**
+         * Format: int32
+         * @description Specifies the number of packages associated with this cargo item
+         * @example 18
+         */
+        numberOfPackages: number;
+        /**
+         * Format: int32
+         * @description The number of additional pages required to contain the goods description on a transport document. Only applicable for physical transport documents.
+         * @example 2
+         */
+        numberOfRiderPages: number;
+        /**
+         * Format: float
+         * @description The percentage of the controlled atmosphere O<sub>2</sub> target value
+         *
+         * @example 75.3
+         */
+        o2Setpoint: number;
+        /**
+         * @description An alternative way to capture the facility when no standardized DCSA facility code can be found.
+         * @example Depot location or address
+         */
+        otherFacility: string;
+        /**
+         * @description A unique code used to identify non-vessel operating common carriers (NVOCC) for ACI filing purposes if shipment is destined for USA and AMS/ACI filing is false.
+         *
+         * @example 234234
+         */
+        OTICarrierCode: string;
+        /**
+         * @description The unique identifier for the package type
+         * @example 5H4
+         */
+        packageCode: string;
+        /**
+         * @description To provide package description displayed on the BL
+         *
+         * @example Bags
+         */
+        packageNameOnBL: string;
+        /**
+         * @description Indication whether the shipper agrees to load part of the shipment in case where not all of the cargo is delivered within cut-off.
+         *
+         * @example true
+         */
+        partialLoadAllowed: boolean;
+        /**
+         * @description Specifies the role of the party in the context of the given Shipping Instruction.
+         * - OS (Original shipper)
+         * - CN (Consignee)
+         * - COW (Invoice payer on behalf of the consignor (shipper))
+         * - COX (Invoice payer on behalf of the consignee)
+         * - MS (Document/message issuer/sender)
+         * - N1 (First Notify Party)
+         * - N2 (Second Notify Party)
+         * - NI (Other Notify Party)
+         * - DDR (Consignor's freight forwarder)
+         * - DDS (Consignee's freight forwarder)
+         * - HE (Carrier booking office (transportation office))
+         * - SCO (Service contract owner - Defined by DCSA)
+         * - BA (Booking Agency)
+         * - ENR (Envelope Receiver)
+         *
+         * @example DDS
+         * @enum {string}
+         */
+        partyFunction: "OS" | "CN" | "COW" | "COX" | "MS" | "N1" | "N2" | "NI" | "DDR" | "DDS" | "HE" | "SCO" | "BA" | "ENR";
+        /**
+         * @description Identifier of a party.
+         * @example 123e4567-e89b-12d3-a456-426614174000
+         */
+        partyID: string;
+        /**
+         * @description Name of the party.
+         * @example Asseco Denmark
+         */
+        partyName: string;
+        /**
+         * @description Indicates whether freight & charges are due for payment before the shipment is effected, practically before the transport document is released to shipper (Prepaid) or before the shipment is finalized meaning cargo released to consignee (Collect)
+         * - PRE (Prepaid)
+         * - COL (Collect)
+         *
+         * @example PRE
+         * @enum {string}
+         */
+        paymentTermCode: "PRE" | "COL";
+        /**
+         * @description Phone number for the contact
+         * @example +45 33364660
+         */
+        phone: string;
+        /**
+         * Format: date
+         * @description The date when the shipment must be picked up by the carrier at place of receipt. Only applicable when carrier haulage is requested.
+         *
+         * @example 2021-05-17
+         */
+        placeOfReceiptPickupDate: string;
+        /**
+         * Format: date
+         * @description The planned date of arrival.
+         */
+        plannedArrivalDate: string;
+        /**
+         * Format: date
+         * @description The planned date of departure.
+         */
+        plannedDepartureDate: string;
+        /**
+         * @description The unique reference that can be used to link different `transportCallReferences` to the same port visit. The reference is provided by the port to uniquely identify a port call
+         *
+         * @example NLRTM1234589
+         */
+        portVisitReference: string;
+        /**
+         * @description The post code of the party’s address.
+         * @example 1306
+         */
+        postCode: string;
+        /**
+         * @description Mode of transportation for pre-carriage (e.g., truck, barge, rail), under shipper&apos;s responsibility
+         * @enum {string}
+         */
+        preCarriageUnderShippersResponsibility: "VESSEL" | "RAIL" | "TRUCK" | "BARGE";
+        /**
+         * @description The public key used for a digital signature.
+         * @example eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkFzaW
+         */
+        publicKey: string;
+        /**
+         * Format: float
+         * @description The amount of unit for this charge item.
+         * @example 34.4
+         */
+        quantity: number;
+        /**
+         * @description Indicates the type of service offered at Origin. Options are defined in the Receipt/Delivery entity.
+         * - CY (Container yard (incl. rail ramp))
+         * - SD (Store Door)
+         * - CFS (Container Freight Station)
+         *
+         * @example CY
+         * @enum {string}
+         */
+        receiptTypeAtOrigin: "CY" | "SD" | "CFS";
+        /**
+         * Format: date
+         * @description Date when the last container linked to the transport document is physically in the terminal (customers cleared against the intended vessel).
+         * @example 2020-12-12
+         */
+        receivedForShipmentDate: string;
+        /**
+         * @description spacers, filler, board or dunnage material used to stabilize cargo and ensure optimal airflow inside the Reefer container.
+         *
+         * @example spacers
+         */
+        reeferExtraMaterial: string;
+        /**
+         * @description Carrier specific commercial name indicating the technology service offered.
+         *
+         * @example FROZEN
+         */
+        readonly reeferProductName: string;
+        /**
+         * Format: uuid
+         * @description The unique identifier for a reference.
+         * @example a82eaf34-cf69-4be3-8df7-881349dde693
+         */
+        referenceID: string;
+        /**
+         * @description The reference type codes defined by DCSA.
+         * - FF (Freight Forwarder’s Reference)
+         * - SI (Shipper’s Reference)
+         * - PO (Purchase Order Reference)
+         * - CR (Customer’s Reference)
+         * - AAO (Consignee’s Reference)
+         * - ECR (Empty container release reference)
+         * - CSI (Customer shipment ID)
+         * - BPR (Booking party reference number)
+         * - BID (Booking Request ID)
+         * - EQ (Equipment Reference)
+         * - RUC (Registro Único del Contribuyente)
+         * - DUE (Declaração Única de Exportação)
+         * - CER (Canadian Export Reporting System)
+         * - AES (Automated Export System)
+         *
+         * More details can be found on <a href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/referencetypes.csv">GitHub</a>.
+         *
+         * @example FF
+         * @enum {string}
+         */
+        referenceType: "FF" | "SI" | "PO" | "CR" | "AAO" | "ECR" | "CSI" | "BPR" | "BID" | "EQ" | "RUC" | "DUE" | "CER" | "AES";
+        /** @description The actual value of the reference. */
+        referenceValue: string;
+        /**
+         * Format: int32
+         * @description Number of requested equipment units
+         *
+         * @example 3
+         */
+        requestedEquipmentUnits: number;
+        /**
+         * Format: int32
+         * @description Number of original copies of the negotiable bill of lading that has been requested by the customer.
+         *
+         * @example 4
+         */
+        requestedNumberOfOriginals: number;
+        /**
+         * Format: uuid
+         * @description ID uniquely identifying a schedule
+         * @example 9679a405-3316-42a5-8533-aba000f5689c
+         */
+        scheduleID: string;
+        /**
+         * Format: uuid
+         * @description The technical identifier of a seal.
+         * @example b80f1998-f4e0-4b5a-be57-c72ed6a4da76
+         */
+        sealID: string;
+        /** @description Identifies a seal affixed to the container. */
+        sealNumber: string;
+        /**
+         * @description The source of the seal, namely who has affixed the seal. This attribute links to the Seal Source ID defined in the Seal Source reference data entity.
+         * - CAR (Carrier)
+         * - SHI (Shipper)
+         * - PHY (Phytosanitary)
+         * - VET (Veterinary)
+         * - CUS (Customs)
+         *
+         * @example CUS
+         * @enum {string}
+         */
+        sealSource: "CAR" | "SHI" | "PHY" | "VET" | "CUS";
+        /**
+         * @description The type of seal. This attribute links to the Seal Type ID defined in the Seal Type reference data entity.
+         * - KLP (Keyless padlock)
+         * - BLT (Bolt)
+         * - WIR (Wire)
+         *
+         * @example WIR
+         * @enum {string}
+         */
+        sealType: "KLP" | "BLT" | "WIR";
+        /** @description Reference number for agreement between shipper and carrier through which the shipper commits to provide a certain minimum quantity of cargo over a fixed period, and the carrier commits to a certain rate or rate schedule. */
+        serviceContractReference: string;
+        /**
+         * Format: uuid
+         * @description The identifier of the Service.
+         *
+         * @example 9aaf6a7c-23b1-4ed3-91ad-8245b4c33ee5
+         */
+        serviceID: string;
+        /**
+         * Format: date-time
+         * @description The date and time when the shipment was created (equivalent to when the Booking was confirmed).
+         *
+         * @example 2021-09-03T09:03:00+02:00
+         */
+        shipmentCreatedDateTime: string;
+        /**
+         * Format: uuid
+         * @description The identifier for a shipment equipment
+         * @example 5e8770bf-7cb8-4d40-a176-42d24f7156db
+         */
+        shipmentEquipmentID: string;
+        /**
+         * Format: uuid
+         * @description The identifier for a shipment
+         * @example c32d56f3-a4a5-4964-bb49-abd168b06160
+         */
+        shipmentID: string;
+        /**
+         * @description Links to the Location Type Code defined by DCSA.
+         * - PRE (Place of Receipt)
+         * - POL (Port of Loading)
+         * - POD (Port of Discharge)
+         * - PDE (Place of Delivery)
+         * - PCF (Pre-carriage From)
+         * - PSR (Pre-carriage under shipper’s responsibility)
+         * - OIR (Onward In-land Routing)
+         * - DRL (Depot release location)
+         * - ORI (Origin of goods)
+         * - IEL (Container intermediate export stop off location)
+         * - PTP (Prohibited transshipment port)
+         * - RTP (Requested transshipment port)
+         * - FCD (Full container drop-off location)
+         * - ECP (Empty container pick-up location)
+         *
+         * @example PRE
+         * @enum {string}
+         */
+        shipmentLocationTypeCode: "PRE" | "POL" | "POD" | "PDE" | "PCF" | "PSR" | "OIR" | "DRL" | "ORI" | "IEL" | "PTP" | "RTP" | "FCD" | "ECP";
+        /**
+         * Format: date-time
+         * @description Last date and time when the Shipment was updated.
+         *
+         * @example 2021-09-03T09:03:00+02:00
+         */
+        shipmentUpdatedDateTime: string;
+        /**
+         * Format: date
+         * @description Date when the last container that is linked to the transport document is physically loaded onboard the vessel indicated on the transport document.
+         * @example 2020-12-12
+         */
+        shippedOnBoardDate: string;
+        /**
+         * Format: date-time
+         * @description Date and time when the ShippingInstruction was created
+         *
+         * @example 2019-11-12T07:41:00+08:30
+         */
+        shippingInstructionCreatedDateTime: string;
+        /**
+         * Format: date-time
+         * @description Date and time when the ShippingInstruction was updated
+         *
+         * @example 2019-11-12T07:41:00+08:30
+         */
+        shippingInstructionUpdatedDateTime: string;
+        /**
+         * @description The identifier for a shipping instruction provided by the carrier for system purposes.
+         *
+         * @example e0559d83-00e2-438e-afd9-fdd610c1a008
+         */
+        shippingInstructionReference: string;
+        /** @description The identifying details of a package or the actual markings that appear on the package(s). This information is provided by the shipper. */
+        shippingMarks: string;
+        /**
+         * Format: date
+         * @description The start date of the period for which schedule information is sent. The value is populated in [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) Date format.
+         * @example 2020-04-06
+         */
+        startDate: string;
+        /**
+         * @description The state/region of the party’s address.
+         * @example N/A
+         */
+        stateRegion: string;
+        /**
+         * @description The name of the street of the party’s address.
+         * @example Kronprinsessegade
+         */
+        streetName: string;
+        /**
+         * @description The number of the street of the party’s address.
+         * @example 54
+         */
+        streetNumber: string;
+        /**
+         * Format: date-time
+         * @description Date and time of submitting the relevant document and attributes
+         *
+         * @example 2019-11-12T07:41:00+08:30
+         */
+        submissionDateTime: string;
+        /**
+         * Format: float
+         * @description The weight of an empty container (gross container weight).
+         * @example 4800
+         */
+        tareWeight: number;
+        /**
+         * @description The identifying number of the consignee or shipper (Individual or entity) used for tax purposes.
+         * @example CVR-25645774
+         */
+        taxReference1: string;
+        /**
+         * @description Optional second identifying number of the consignee or shipper (Individual or entity) used for tax purposes.
+         * @example CVR-25645774
+         */
+        taxReference2: string;
+        /**
+         * @description Target value of the temperature for the Reefer based on the cargo requirement.
+         *
+         * @example -15
+         */
+        temperatureSetpoint: number;
+        /**
+         * @description Celsius (CEL) or Fahrenheit (FAH).
+         * @example CEL
+         * @enum {string}
+         */
+        temperatureUnit: "CEL" | "FAH";
+        /**
+         * @description A carrier definied reference to a TransportCall.
+         *
+         * In the case the Means of Transport is a `Vessel` and the facility is a `Port`/`Terminal` - this reference should be considered a **Terminal Call Reference**
+         *
+         * @example 987e4567
+         */
+        transportCallReference: string;
+        /** @description Carrier general terms and conditions for the booking. */
+        termsAndConditions: string;
+        /**
+         * @description The unique identifier for a transport call
+         * @example 123e4567-e89b-12d3-a456-426614174000
+         */
+        transportCallID: string;
+        /**
+         * Format: int32
+         * @description Transport operator&apos;s key that uniquely identifies each individual call. This key is essential to distinguish between two separate calls at the same location within one voyage.
+         *
+         * @example 2
+         */
+        transportCallSequenceNumber: number;
+        /**
+         * Format: date-time
+         * @description Date and time when the TransportDocument was created
+         *
+         * @example 2019-11-12T07:41:00+08:30
+         */
+        transportDocumentCreatedDateTime: string;
+        /**
+         * Format: date-time
+         * @description Date and time when the TransportDocument was updated
+         *
+         * @example 2019-11-12T07:41:00+08:30
+         */
+        transportDocumentUpdatedDateTime: string;
+        /** @description A unique number allocated by the shipping line to the transport document and the main number used for the tracking of the status of the shipment. */
+        transportDocumentReference: string;
+        /**
+         * @description Specifies the type of the transport document
+         * - BOL (Bill of Lading)
+         * - SWB (Sea Waybill)
+         *
+         * @example SWB
+         * @enum {string}
+         */
+        transportDocumentTypeCode: "BOL" | "SWB";
+        /**
+         * Format: uuid
+         * @description The unique identifier for the transport.
+         * @example 89e21d41-369f-41e4-bf55-41a6830df346
+         */
+        transportID: string;
+        /**
+         * @description Code of a location to which a certain transport event is corresponding (Berth, Pilot Boarding Place)
+         * @example BERTH
+         * @enum {string}
+         */
+        transportLocationType: "BERTH" | "PBP";
+        /**
+         * @description Code qualifying a specific stage of transport e.g. pre-carriage, main carriage transport or on-carriage transport
+         * - PRC (Pre-Carriage)
+         * - MNC (Main Carriage Transport)
+         * - ONC (On-Carriage Transport)
+         *
+         * @example PRC
+         * @enum {string}
+         */
+        transportPlanStage: "PRC" | "MNC" | "ONC";
+        /**
+         * Format: int32
+         * @description Sequence number of the transport plan stage
+         *
+         * @example 5
+         */
+        transportPlanStageSequenceNumber: number;
+        /**
+         * Format: float
+         * @description The unit price of this charge item in the currency of the charge.
+         * @example 3456.6
+         */
+        unitPrice: number;
+        /**
+         * @description A global unique service reference, as per DCSA standard, agreed by VSA partners for the service. The service reference must match the regular expression pattern: `SR\d{5}[A-Z]`. The letters `SR` followed by `5 digits`, followed by a checksum-character as a capital letter from `A to Z`.
+         *
+         * @example SR12345A
+         */
+        universalServiceReference: string;
+        /**
+         * @description A global unique voyage reference for the export Voyage, as per DCSA standard, agreed by VSA partners for the voyage. The voyage reference must match the regular expression pattern: `\d{2}[0-9A-Z]{2}[NEWS]`
+         * - `2 digits` for the year
+         * - `2 alphanumeric characters` for the sequence number of the voyage
+         * - `1 character` for the direction/haul (`N`orth, `E`ast, `W`est or `S`outh).
+         *
+         * @example 2103N
+         */
+        universalExportVoyageReference: string;
+        /**
+         * @description A global unique voyage reference for the import Voyage, as per DCSA standard, agreed by VSA partners for the voyage. The voyage reference must match the regular expression pattern: `\d{2}[0-9A-Z]{2}[NEWS]`
+         * - `2 digits` for the year
+         * - `2 alphanumeric characters` for the sequence number of the voyage
+         * - `1 character` for the direction/haul (`N`orth, `E`ast, `W`est or `S`outh).
+         *
+         * @example 2103N
+         */
+        universalImportVoyageReference: string;
+        /**
+         * @description A global unique voyage reference, as per DCSA standard, agreed by VSA partners for the voyage. The voyage reference must match the regular expression pattern: `\d{2}[0-9A-Z]{2}[NEWS]`
+         * - `2 digits` for the year
+         * - `2 alphanumeric characters` for the sequence number of the voyage
+         * - `1 character` for the direction/haul (`N`orth, `E`ast, `W`est or `S`outh).
+         *
+         * @example 2201N
+         */
+        universalVoyageReference: string;
+        /**
+         * @description The UN Location code specifying where the place is located.
+         * @example FRPAR
+         */
+        UNLocationCode: string;
+        /**
+         * @description The name of the UN Location identified by the UN location code above.
+         * @example New York
+         */
+        UNLocationName: string;
+        /**
+         * @description URL for the contact
+         * @example https://www.dcsa.org
+         */
+        url: string;
+        /**
+         * @description Code of the value added service
+         * - SCON (Smart containers)
+         * - CINS (Cargo insurance)
+         * - SIOT (Smart IoT devices)
+         * - CDECL (Customs declaration)
+         * - SGUAR (Shipping guarantee)
+         * - UPPY (Upfront payment)
+         *
+         * @enum {string}
+         */
+        valueAddedServiceCode: "SCON" | "CINS" | "SIOT" | "CDECL" | "SGUAR" | "UPPY";
+        /**
+         * Format: float
+         * @description Indicates the maximum ventilation setting on the container in MTQ/Hr.
+         * @example 296
+         */
+        ventilationMax: number;
+        /**
+         * Format: float
+         * @description Indicates the minimum ventilation setting on the container in MTQ/Hr.
+         * @example 266
+         */
+        ventilationMin: number;
+        /**
+         * @description The flag of the nation whose laws the vessel is registered under. This is the ISO 3166 two-letter country code
+         *
+         * @example DE
+         */
+        vesselFlag: string;
+        /**
+         * @description A unique alphanumeric identity that belongs to the vessel and is assigned by the International Telecommunication Union (ITU). It consists of a threeletter alphanumeric prefix that indicates nationality, followed by one to four characters to identify the individual vessel. For instance, vessels registered under Denmark are assigned the prefix ranges 5PA-5QZ, OUAOZZ, and XPA-XPZ. The Call Sign changes whenever a vessel changes its flag.
+         *
+         * @example NCVV
+         */
+        vesselCallSign: string;
+        /**
+         * @description A unique alphanumeric identity that belongs to the vessel and is assigned by the International Telecommunication Union (ITU). It consists of a threeletter alphanumeric prefix that indicates nationality, followed by one to four characters to identify the individual vessel. For instance, vessels registered under Denmark are assigned the prefix ranges 5PA-5QZ, OUAOZZ, and XPA-XPZ. The Call Sign changes whenever a vessel changes its flag.
+         *
+         * @example NCVV
+         */
+        vesselCallSignNumber: string;
+        /**
+         * Format: float
+         * @description The actual draft of the vessel.
+         *
+         * If the draft is specified in feet (`FOT`) then the decimal part should be concidered as a fraction of a foot and **not** as a number of inches. E.g. 120.5 feet means 120 and a half foot (which would be 120'6")
+         *
+         * @example 12.5
+         */
+        vesselDraft: number;
+        /**
+         * @description The unique reference for a registered Vessel. The reference is the International Maritime Organisation (IMO) number, also sometimes known as the Lloyd&apos;s register code, which does not change during the lifetime of the vessel
+         *
+         * @example 9321483
+         */
+        vesselIMONumber: string;
+        /**
+         * Format: float
+         * @description The maximum length of a ship's hull measured parallel to the waterline (Length OverAll).
+         *
+         * If the length is specified in feet (`FOT`) then the decimal part should be concidered as a fraction of a foot and **not** as a number of inches. E.g. 120.5 feet means 120 and a half foot (which would be 120'6")
+         *
+         * @example 245.45
+         */
+        vesselLOA: number;
+        /**
+         * @description The name of the Vessel given by the Vessel Operator and registered with IMO.
+         *
+         * @example King of the Seas
+         */
+        vesselName: string;
+        /**
+         * @description The carrier who is in charge of the vessel operation based on either the SMDG or SCAC code lists
+         *
+         * @example MAEU
+         */
+        vesselOperatorCarrierCode: string;
+        /**
+         * @description Identifies the code list provider used for the operator and partner carriercodes.
+         * @example NMFTA
+         * @enum {string}
+         */
+        vesselOperatorCarrierCodeListProvider: "SMDG" | "NMFTA";
+        /**
+         * @description The carrier who is in charge of the vessel operation based on the SMDG code
+         *
+         * @example HLC
+         */
+        vesselOperatorSMDGLinerCode: string;
+        /**
+         * @description The identifier of the vessel partner for which the current message is intended. This field allows specifying multiple, `,` (comma) separated values if there is more than one vessel partner involved.
+         *
+         * @example MSCU,HLCU
+         */
+        vesselPartnerCarrierCode: string;
+        /**
+         * @description Identifies the code list provider used for the vessel operator and partner carrier codes. If `vesselPartnerCarrierCode` is populated, the code list provider field is to be populated as well.
+         *
+         * @example NMFTA
+         * @enum {string}
+         */
+        vesselPartnerCarrierCodeListProvider: "SMDG" | "NMFTA";
+        /**
+         * @description Categorization of ocean-going vessels distinguished by the main cargo the vessel carries. Possible values:
+         * - GCGO (General cargo)
+         * - CONT (Container)
+         * - RORO (RoRo)
+         * - CARC (Car carrier)
+         * - PASS (Passenger)
+         * - FERY (Ferry)
+         * - BULK (Bulk)
+         * - TANK (Tanker)
+         * - LGTK (Liquefied gas tanker)
+         * - ASSI (Assistance)
+         * - PILO (Pilot boat)
+         *
+         * @example CONT
+         * @enum {string}
+         */
+        vesselType: "GCGO" | "CONT" | "RORO" | "CARC" | "PASS" | "FERY" | "BULK" | "TANK" | "LGTK" | "ASSI" | "PILO";
+        /**
+         * Format: float
+         * @description Overall width of the ship measured at the widest point of the nominal waterline.
+         *
+         * If the width is specified in feet (`FOT`) then the decimal part should be concidered as a fraction of a foot and **not** as a number of inches. E.g. 120.5 feet means 120 and a half foot (which would be 120'6")
+         *
+         * @example 37.33
+         */
+        vesselWidth: number;
+        /**
+         * Format: float
+         * @description Calculated by multiplying the width, height, and length of the packed cargo.
+         *
+         * @example 12
+         */
+        volume: number;
+        /**
+         * @description The unit of measure which can be expressed in either imperial or metric terms
+         * - FTQ (Cubic meter)
+         * - MTQ (Cubic foot)
+         *
+         * @example MTQ
+         * @enum {string}
+         */
+        volumeUnit: "MTQ" | "FTQ";
+        /**
+         * Format: uuid
+         * @description The identifier of the Voyage.
+         *
+         * @example de9723e1-7f5a-48e0-a56b-e9533cd5366b
+         */
+        voyageID: string;
+        /**
+         * Format: float
+         * @description The total weight of the cargo including packaging items being carried in the container(s). Excludes the tare weight of the container(s).
+         *
+         * @example 13000.3
+         */
+        weight: number;
+        /**
+         * @description The unit of measure which can be expressed in imperial or metric terms
+         * - KGM (Kilograms)
+         * - LBR (Pounds)
+         *
+         * @example KGM
+         * @enum {string}
+         */
+        weightUnit: "KGM" | "LBR";
+      };
+      responses: never;
+      parameters: {
+        /** @description An API-Version header **MAY** be added to the request (optional); if added it **MUST** only contain **MAJOR** version. API-Version header **MUST** be aligned with the URI version. */
+        "Api-Version-Major"?: string;
+        /**
+         * @description A server generated value to specify a specific point in a collection result, used for `cursor`/`keyset`/`seek` based pagination.
+         *
+         * **NB**: Cannot be used in combination with the `offset` parameter
+         *
+         * @example fE9mZnNldHw9MTAmbGltaXQ9MTA=
+         */
+        cursor?: string;
+        /**
+         * @description Maximum number of items to return.
+         *
+         * @example 100
+         */
+        limit?: number;
+        /**
+         * @description A value indicating the number of records that should be skipped when getting a result. To be used with `offset` based pagination.
+         *
+         * **NB**: Cannot be used in combination with the `cursor` parameter
+         *
+         * @example 20
+         */
+        offset?: number;
+        /**
+         * @description A `,` (comma) separated list of field names to define the sort order. Field names should be suffixed by a `:` (colon) followed by either the keyword `ASC` (for ascending order) or `DESC` (for descening order) to specify direction. `:ASC` may be omitted, in which case ascending order will be used.
+         *
+         * @example carrierBookingReference:DESC
+         */
+        sort?: string;
+      };
+      requestBodies: never;
+      headers: {
+        /**
+         * @description The `Current-Page` header is optional to implement. If provided it **MUST** link to the current page. The queryParameter(s) used (can be `offset` or `keyset` based) to specify the current page **MUST** be accepted when used.
+         *
+         * The example represents a link to a `cursor` based pagination
+         */
+        "Current-Page": string;
+        /**
+         * @description The `Next-Page` header is mandatory to implement but **MAY** be omitted in case there are not any more items in the collection for a next page. If provided it **MUST** link to the next page. The queryParameter(s) used (can be `offset` or `keyset` based) to specify the next page **MUST** be accepted when used.
+         *
+         * The example represents a `cursor` based pagination
+         */
+        "Next-Page": string;
+        /**
+         * @description The `Prev-Page` header is optional to implement. If provided it **MUST** link to the previous page. The queryParameter(s) used (can be `offset` or `keyset` based) to specify the previous page **MUST** be accepted when used.
+         *
+         * The example represents a `cursor` based pagination
+         */
+        "Prev-Page": string;
+        /**
+         * @description The `Last-Page` header is optional to implement. If provided it **MUST** link to the last page. The queryParameter(s) used (can be `offset` or `keyset` based) to specify the last page **MUST** be accepted when used.
+         *
+         *
+         * The example represents a `cursor` based pagination
+         */
+        "Last-Page": string;
+        /**
+         * @description The `First-Page` header is optional to implement. If provided it **MUST** link to the first page. The queryParameter(s) used (can be `offset` or `keyset` based) to specify the first page **MUST** be accepted when used.
+         *
+         * The example represents a `cursor` based pagination
+         */
+        "First-Page": string;
+        /** @description SemVer used to indicate the version of the contract (API version) returned. */
+        "API-Version": string;
+      };
+      pathItems: never;
+    };
+    $defs: Record<string, never>;
+  };
+  "https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0": {
+    paths: Record<string, never>;
+    webhooks: Record<string, never>;
+    components: {
+      schemas: {
+        /** @description Fields needed in both `Booking` and `TransportDocument` */
+        bookingShallowCore: {
+          receiptTypeAtOrigin?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["receiptTypeAtOrigin"];
+        } & {
+          deliveryTypeAtDestination?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["deliveryTypeAtDestination"];
+        } & {
+          cargoMovementTypeAtOrigin?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cargoMovementTypeAtOrigin"];
+        } & {
+          cargoMovementTypeAtDestination?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cargoMovementTypeAtDestination"];
+        } & {
+          serviceContractReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["serviceContractReference"];
+        } & {
+          vesselName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselName"];
+        } & {
+          carrierServiceName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierServiceName"];
+        } & {
+          carrierServiceCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierServiceCode"];
+        } & {
+          universalServiceReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["universalServiceReference"];
+        } & {
+          carrierExportVoyageNumber?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierExportVoyageNumber"];
+        } & {
+          universalExportVoyageReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["universalExportVoyageReference"];
+        } & {
+          declaredValue?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["declaredValue"];
+        } & {
+          declaredValueCurrency?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["declaredValueCurrency"];
+        };
+        /** @description Fields needed in both `Booking` and `TransportDocument` */
+        bookingCore: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingShallowCore"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["transports"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shipmentLocations"];
+        /** @description The shallow structure of the booking */
+        bookingShallow: WithRequired<external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingShallowCore"] & {
+          paymentTermCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["paymentTermCode"];
+        } & {
+          isPartialLoadAllowed?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isPartialLoadAllowed"];
+        } & {
+          isExportDeclarationRequired?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isExportDeclarationRequired"];
+        } & {
+          exportDeclarationReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["exportDeclarationReference"];
+        } & {
+          isImportLicenseRequired?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isImportLicenseRequired"];
+        } & {
+          importLicenseReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["importLicenseReference"];
+        } & {
+          isCustomsFilingSubmissionByShipper?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isCustomsFilingSubmissionByShipper"];
+        } & {
+          contractQuotationReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["contractQuotationReference"];
+        } & {
+          expectedDepartureDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["expectedDepartureDate"];
+        } & {
+          expectedArrivalAtPlaceOfDeliveryStartDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["expectedArrivalAtPlaceOfDeliveryStartDate"];
+        } & {
+          expectedArrivalAtPlaceOfDeliveryEndDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["expectedArrivalAtPlaceOfDeliveryEndDate"];
+        } & {
+          transportDocumentTypeCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportDocumentTypeCode"];
+        } & {
+          transportDocumentReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportDocumentReference"];
+        } & {
+          /** @description A reference for a `TransportDocument` already provided by the shipping line to the Shipper. This field is to be used for prerequired transportDocumentReferences. */
+          transportDocumentReference?: unknown;
+        } & {
+          bookingChannelReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["bookingChannelReference"];
+        } & {
+          incoTerms?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["incoTerms"];
+        } & {
+          communicationChannelCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["communicationChannelCode"];
+        } & {
+          isEquipmentSubstitutionAllowed?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isEquipmentSubstitutionAllowed"];
+        } & {
+          vesselIMONumber?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselIMONumber"];
+        } & {
+          preCarriageModeOfTransportCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["modeOfTransport"];
+        }, "receiptTypeAtOrigin" | "deliveryTypeAtDestination" | "cargoMovementTypeAtOrigin" | "cargoMovementTypeAtDestination" | "isPartialLoadAllowed" | "isExportDeclarationRequired" | "isImportLicenseRequired" | "communicationChannelCode" | "isEquipmentSubstitutionAllowed">;
+        /**
+         * @description Customs filing that needs to be done. The filing system needs to be specified together with the country code. Eg `ACI_CA` for the **Advance Commercial Information** used in Canada, `ACI_EG` for the **Advance Cargo Information** used in Egypt.
+         *
+         * Validation is done backEnd. For a complete list of supported Filing System please visit [GitHub](https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/filingsystems.csv). A subset can be seen here:
+         * - ACI_CA (Advance Commercial Information in Canada)
+         * - ACI_EG (Advance Cargo Information in Egypt)
+         * - AMS_US (Automated Manifest System in the United States)
+         * - AFR_JP (Advance Filing Rule in Japan)
+         *
+         * @example AMS_US
+         */
+        customsFilingSystem: string;
+        /** @description The deep structure of the booking */
+        bookingDeep: WithRequired<({
+          invoicePayableAt?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["addressLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["unLocationLocation"];
+        }) & {
+          /**
+           * @description General purpose object to capture `Invoice Payable At` location. The location can be specified in **any** of the following ways: `UN Location Code` and/or an `Address`.
+           *
+           * @example {
+           *   "locationName": "Eiffel Tower",
+           *   "UNLocationCode": "FRPAR"
+           * }
+           */
+          invoicePayableAt?: unknown;
+        } & ({
+          placeOfBLIssue?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["addressLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["unLocationLocation"];
+        }) & {
+          /**
+           * @description General purpose object to capture `Place of B/L Issue` location. The location can be specified in **any** of the following ways: `UN Location Code` and/or an `Address`.
+           *
+           * The location where the original transport document (`Bill of Lading`) will be issued.
+           *
+           * @example {
+           *   "locationName": "DCSA Headquarters",
+           *   "UNLocationCode": "NLAMS"
+           * }
+           */
+          placeOfBLIssue?: unknown;
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["commodities"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["valueAddedServices"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["references"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["requestedEquipments"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["documentParties"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shipmentLocations"], "commodities">;
+        /** @description Includes the information requested in a booking, service terms and types as well as the assigned booking reference by the carrier. */
+        bookingSummary: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingRefStatus"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingShallow"] & {
+          isAMSACIFilingRequired?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isAMSACIFilingRequired"];
+        };
+        /** @description includes the information requested in a booking, service terms and types as well as the assigned booking reference by the carrier. */
+        bookingRequest: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingShallow"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingDeep"];
+        /** @description A list of bookings. */
+        bookings: {
+          bookings?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["booking"][];
+        };
+        /** @description includes the information requested in a booking, service terms and types as well as the assigned booking reference by the carrier. */
+        booking: WithRequired<{
+          carrierBookingRequestReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierBookingRequestReference"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingShallow"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingDeep"], "carrierBookingRequestReference">;
+        /** @description includes the information requested in a booking, service terms and types as well as the assigned booking reference by the carrier. */
+        bookingResponse: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingSummary"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingDeep"];
+        /** @description The `carrierBookingRequestReference` along with the `documentStatus` is returned */
+        bookingRefStatus: WithRequired<{
+          carrierBookingRequestReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierBookingRequestReference"];
+        } & {
+          documentStatus?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingDocumentStatus"];
+        } & {
+          bookingRequestCreatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["bookingRequestCreatedDateTime"];
+        } & {
+          bookingRequestUpdatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["bookingRequestUpdatedDateTime"];
+        }, "carrierBookingRequestReference" | "documentStatus" | "bookingRequestCreatedDateTime" | "bookingRequestUpdatedDateTime">;
+        /** @description Shipment 'metadata' */
+        shipmentSummaryCore: WithRequired<{
+          carrierBookingReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierBookingReference"];
+        } & {
+          shipmentCreatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shipmentCreatedDateTime"];
+        } & {
+          shipmentUpdatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shipmentUpdatedDateTime"];
+        } & {
+          termsAndConditions?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["termsAndConditions"];
+        }, "carrierBookingReference" | "shipmentCreatedDateTime">;
+        /** @description Shipment 'metadata' */
+        shipmentSummary: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shipmentSummaryCore"] & {
+          carrierBookingRequestReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierBookingRequestReference"];
+        } & {
+          documentStatus?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingDocumentStatus"];
+        };
+        /** @description A list of Shipments */
+        shipments: {
+          shipments?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shipment"][];
+        };
+        /** @description Shipment */
+        shipment: WithRequired<external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shipmentSummaryCore"] & {
+          booking?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingResponse"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["transports"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shipmentCutOffTimes"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shipmentLocations"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["confirmedEquipments"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["charges"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["carrierClauses"], "booking" | "transports">;
+        commodities: {
+          commodities?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["commodity"][];
+        };
+        /** @description Type of goods in the booking, defined by its commodity type */
+        commodity: WithRequired<{
+          commodityType?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["commodityType"];
+        } & {
+          HSCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["HSCode"];
+        } & {
+          cargoGrossWeight?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cargoGrossWeight"];
+        } & {
+          cargoGrossWeightUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["weightUnit"];
+        } & {
+          cargoGrossVolume?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cargoGrossVolume"];
+        } & {
+          cargoGrossVolumeUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["volumeUnit"];
+        } & {
+          numberOfPackages?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["numberOfPackages"];
+        } & {
+          exportLicenseIssueDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["exportLicenseIssueDate"];
+        } & {
+          exportLicenseExpiryDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["exportLicenseExpiryDate"];
+        } & {
+          commodityRequestedEquipmentLink?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["commodityRequestedEquipmentLink"];
+        }, "commodityType" | "cargoGrossWeight" | "cargoGrossWeightUnit">;
+        valueAddedServices: {
+          valueAddedServices?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["valueAddedService"][];
+        };
+        /** @description Type of goods in the booking, defined by its commodity type */
+        valueAddedService: WithRequired<{
+          valueAddedServiceCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["valueAddedServiceCode"];
+        }, "valueAddedServiceCode">;
+        /** @description describes a floating, sea going structure (mother vessels and feeder vessels) with either an internal or external mode of propulsion designed for the transport of cargo and/or passengers. Ocean vessels are uniquely identified by an IMO number consisting of 7 digits, or alternatively by their AIS signal with an MMSI number. */
+        vessel: WithRequired<{
+          vesselIMONumber?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselIMONumber"];
+        } & {
+          vesselName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselName"];
+        } & {
+          vesselFlag?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselFlag"];
+        } & {
+          vesselCallSignNumber?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselCallSignNumber"];
+        } & {
+          vesselOperatorCarrierCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselOperatorCarrierCode"];
+        } & {
+          vesselOperatorCarrierCodeListProvider?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselOperatorCarrierCodeListProvider"];
+        }, "vesselIMONumber">;
+        requestedEquipments: {
+          requestedEquipments?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["requestedEquipment"][];
+        };
+        /** @description The requested equipments for the booking. */
+        requestedEquipment: WithRequired<{
+          ISOEquipmentCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["ISOEquipmentCode"];
+        } & {
+          tareWeight?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["tareWeight"];
+        } & {
+          tareWeightUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["weightUnit"];
+        } & {
+          units?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["requestedEquipmentUnits"];
+        } & {
+          /** @description A list of equipments to be used by the shipper if known at the time of booking */
+          equipmentReferences?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["equipmentReference"][];
+        } & {
+          isShipperOwned?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isShipperOwned"];
+        } & {
+          commodityRequestedEquipmentLink?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["commodityRequestedEquipmentLink"];
+        }, "ISOEquipmentCode" | "units" | "isShipperOwned">;
+        confirmedEquipments: {
+          confirmedEquipments?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["confirmedEquipment"][];
+        };
+        /** @description The confirmed equipments for the booking */
+        confirmedEquipment: WithRequired<{
+          ISOEquipmentCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["ISOEquipmentCode"];
+        } & {
+          units?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["confirmedEquipmentUnits"];
+        }, "confirmedEquipmentSizeType" | "confirmedEquipmentUnits">;
+        shipmentCutOffTimes: {
+          shipmentCutOffTimes?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shipmentCutOffTime"][];
+        };
+        /** @description Cut off times */
+        shipmentCutOffTime: WithRequired<{
+          cutOffDateTimeCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cutOffDateTimeCode"];
+        } & {
+          cutOffDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cutOffDateTime"];
+        }, "cutOffDateTimeCode" | "cutOffDateTime">;
+        /** @description The part of the ShippingInstruction that contains simple fields (no nested objects) */
+        shippingInstructionShallow: WithRequired<{
+          amendToTransportDocument?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["amendToTransportDocument"];
+        } & {
+          transportDocumentTypeCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportDocumentTypeCode"];
+        } & {
+          isShippedOnBoardType?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isShippedOnBoardType"];
+        } & {
+          numberOfCopiesWithCharges?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["numberOfCopiesWithCharges"];
+        } & {
+          numberOfCopiesWithoutCharges?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["numberOfCopiesWithoutCharges"];
+        } & {
+          numberOfOriginalsWithCharges?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["numberOfOriginalsWithCharges"];
+        } & {
+          numberOfOriginalsWithoutCharges?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["numberOfOriginalsWithoutCharges"];
+        } & {
+          isElectronic?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isElectronic"];
+        } & {
+          isToOrder?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isToOrder"];
+        } & {
+          /** @description The address of the `Place of Receipt` to be displayed on the transport document. */
+          displayedNameForPlaceOfReceipt?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["displayedName"][];
+        } & {
+          /** @description The address of the `Port of Load` to be displayed on the transport document. */
+          displayedNameForPortOfLoad?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["displayedName"][];
+        } & {
+          /** @description The address of the `Port of Discharge` to be displayed on the transport document. */
+          displayedNameForPortOfDischarge?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["displayedName"][];
+        } & {
+          /** @description The address of the `Place of Delivery` to be displayed on the transport document. */
+          displayedNameForPlaceOfDelivery?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["displayedName"][];
+        }, "isShippedOnBoardType" | "isElectronic" | "isToOrder">;
+        /** @description The part of the ShippingInstruction that contains the nested objects. */
+        shippingInstructionDeep: WithRequired<({
+          placeOfIssue?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["addressLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["unLocationLocation"];
+        }) & {
+          /**
+           * @description General purpose object to capture where the original Transport Document (`Bill of Lading`) will be issued. The location can be specified in **any** of the following ways: `UN Location Code` and/or an `Address`.
+           *
+           * @example {
+           *   "locationName": "DCSA Headquarters",
+           *   "UNLocationCode": "NLAMS"
+           * }
+           */
+          placeOfIssue?: unknown;
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["consignmentItems"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["utilizedTransportEquipments"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["documentParties"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["references"], "consignmentItems" | "utilizedTransportEquipments">;
+        /** @description A 'shallow' representation of the Shipping Instruction. This version of the Shipping Instruction does not contain nested objects. For a 'rich' version of the Shipping Instruction please use the `GET` endPoint. */
+        shippingInstructionSummary: WithRequired<external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shippingInstructionRefStatus"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shippingInstructionShallow"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["carrierBookingReferences"], "shippingInstructionReference">;
+        /** @description The Shipping Instruction is an enrichment to the original booking shared by the shipper to the carrier. The shipping instruction includes volume or weight, cargo items, shipping dates, origin, destination, and other special instructions. The information given by the shipper through the shipping instruction is the information required to create a Transport Document. */
+        shippingInstructionRequest: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shippingInstructionShallow"] & {
+          carrierBookingReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierBookingReference"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shippingInstructionDeep"];
+        /** @description The Shipping Instruction is an enrichment to the original booking shared by the shipper to the carrier. The shipping instruction includes volume or weight, cargo items, shipping dates, origin, destination, and other special instructions. The information given by the shipper through the shipping instruction is the information required to create a Transport Document. */
+        shippingInstruction: {
+          shippingInstructionReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shippingInstructionReference"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shippingInstructionRequest"];
+        /** @description The entire Shipping Instruction object with all nested objects including the confirmed booking(s). */
+        shippingInstructionResponse: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shippingInstructionRefStatus"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shippingInstructionRequest"];
+        /** @description The `shippingInstructionReference` along with the `documentStatus`, created and updated timestamps is returned */
+        shippingInstructionRefStatus: WithRequired<{
+          shippingInstructionReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shippingInstructionReference"];
+        } & {
+          documentStatus?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["eblDocumentStatus"];
+        } & {
+          shippingInstructionCreatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shippingInstructionCreatedDateTime"];
+        } & {
+          shippingInstructionUpdatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shippingInstructionUpdatedDateTime"];
+        }, "shippingInstructionReference" | "documentStatus" | "shippingInstructionCreatedDateTime" | "shippingInstructionUpdatedDateTime">;
+        cargoItems: {
+          cargoItems?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["cargoItem"][];
+        };
+        /** @description A `cargoItem` is the smallest unit used by stuffing. A `cargoItem` cannot be split across containers. */
+        cargoItem: WithRequired<external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["cargoLineItems"] & {
+          equipmentReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["equipmentReference"];
+        } & {
+          weight?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["weight"];
+        } & {
+          volume?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["volume"];
+        } & {
+          weightUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["weightUnit"];
+        } & {
+          volumeUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["volumeUnit"];
+        } & {
+          numberOfPackages?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["numberOfPackages"];
+        } & {
+          packageCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["packageCode"];
+        } & {
+          packageNameOnBL?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["packageNameOnBL"];
+        }, "equipmentReference" | "weight" | "weightUnit" | "numberOfPackages" | "packageCode">;
+        cargoLineItems: {
+          cargoLineItems?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["cargoLineItem"][];
+        };
+        /** @description identifies the specific details of packages within a cargo item. */
+        cargoLineItem: WithRequired<{
+          cargoLineItemID?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cargoLineItemID"];
+        } & {
+          shippingMarks?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shippingMarks"];
+        }, "cargoLineItemID" | "shippingMarks">;
+        consignmentItems: {
+          consignmentItems?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["consignmentItem"][];
+        };
+        /** @description Defines a list of `CargoItems` belonging together and the associated `Booking`. A `ConsignmentItem` can be split across multiple containers (`UtilizedTransportEquipment`) by referencing multiple `CargoItems` */
+        consignmentItem: WithRequired<{
+          carrierBookingReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierBookingReference"];
+        } & {
+          weight?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["weight"];
+        } & {
+          volume?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["volume"];
+        } & {
+          weightUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["weightUnit"];
+        } & {
+          volumeUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["volumeUnit"];
+        } & {
+          descriptionOfGoods?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["descriptionOfGoods"];
+        } & {
+          HSCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["HSCode"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["cargoItems"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["references"], "descriptionOfGoods" | "HSCode" | "cargoItems">;
+        utilizedTransportEquipments: {
+          utilizedTransportEquipments?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["utilizedTransportEquipment"][];
+        };
+        /** @description Specifies the container (`equipment`), the total weight and the `seals` used */
+        utilizedTransportEquipment: WithRequired<{
+          equipment?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["equipment"];
+        } & {
+          cargoGrossWeight?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cargoGrossWeight"];
+        } & {
+          cargoGrossWeightUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["weightUnit"];
+        } & {
+          cargoGrossVolume?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cargoGrossVolume"];
+        } & {
+          /** @description The grand total volume of the cargo per container, which can be expressed in imperial or metric terms, as provided by the carrier. */
+          cargoGrossVolume?: unknown;
+        } & {
+          cargoGrossVolumeUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["volumeUnit"];
+        } & {
+          numberOfPackages?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["numberOfPackages"];
+        } & {
+          /** @description Specifies the number of packages associated with an equipment (container) */
+          numberOfPackages?: unknown;
+        } & {
+          isShipperOwned?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isShipperOwned"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["seals"], "equipment" | "cargoGrossWeightUnit" | "cargoGrossWeight" | "isShipperOwned">;
+        seals: {
+          seals?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["seal"][];
+        };
+        /** @description addresses the seal-related information associated with the shipment equipment. A seal is put on a shipment equipment once it is loaded. This seal is meant to stay on until the shipment equipment reaches its final destination. */
+        seal: WithRequired<{
+          number?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["sealNumber"];
+        } & {
+          source?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["sealSource"];
+        } & {
+          type?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["sealType"];
+        }, "number">;
+        documentParties: {
+          documentParties?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["documentParty"][];
+        };
+        /** @description stores the parties involved in the transport document. */
+        documentParty: WithRequired<{
+          party?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["party"];
+        } & {
+          partyFunction?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["partyFunction"];
+        } & {
+          /** @description If switch to paper is needed then the `displayedAddress` object **MUST** be provided. In case it is missing it is not possible to switch the B/L to paper later in the process. */
+          displayedAddress?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["addressLine"][];
+        } & {
+          isToBeNotified?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isToBeNotified"];
+        }, "party" | "partyFunction" | "isToBeNotified">;
+        /** @description Contact information for a Party */
+        partyContactDetail: WithRequired<{
+          name?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["name"];
+        } & {
+          phone?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["phone"];
+        } & {
+          email?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["email"];
+        } & {
+          url?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["url"];
+        }, "name">;
+        /**
+         * @description A DCSA provided code for [UN/CEFACT](https://unece.org/fileadmin/DAM/trade/untdid/d16b/tred/tred3055.htm) code list providers:
+         * - ISO (International Standards Organization)
+         * - UNECE (United Nations Economic Commission for Europe)
+         * - LLOYD (Lloyd's register of shipping)
+         * - BIC (Bureau International des Containeurs)
+         * - IMO (International Maritime Organization)
+         * - SCAC (Standard Carrier Alpha Code)
+         * - ITIGG (International Transport Implementation Guidelines Group)
+         * - ITU (International Telecommunication Union)
+         * - SMDG (Shipplanning Message Development Group)
+         * - EXIS (Exis Technologies Ltd.)
+         * - FMC (Federal Maritime Commission)
+         * - CBSA (Canada Border Services Agency)
+         * - DID (Decentralized Identifier)
+         * - LEI (Legal Entity Identifier)
+         * - EPI (EBL Platform Identifier)
+         * - ZZZ (Mutually defined)
+         *
+         * More details can be found on [GitHub](https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/codelistresponsibleagencycodes.csv).
+         *
+         * @example SMDG
+         * @enum {string}
+         */
+        DCSAResponsibleAgencyCode: "ISO" | "UNECE" | "LLOYD" | "BIC" | "IMO" | "SCAC" | "ITIGG" | "ITU" | "SMDG" | "EXIS" | "FMC" | "CBSA" | "DID" | "LEI" | "EPI" | "ZZZ";
+        /**
+         * @description Code to identify the party as provided by the agency
+         *
+         * @example MSK
+         */
+        partyCode: string;
+        /**
+         * @description The name of the list, provided by the responsible agency
+         *
+         * @example LCL
+         */
+        codeListName: string;
+        /** @description refers to a company or a legal entity. */
+        party: WithRequired<{
+          partyName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["partyName"];
+        } & {
+          taxReference1?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["taxReference1"];
+        } & {
+          taxReference2?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["taxReference2"];
+        } & {
+          publicKey?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["publicKey"];
+        } & {
+          address?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["address"];
+        } & {
+          /** @description A list of contact details - the list cannot be empty */
+          partyContactDetails?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["partyContactDetail"][];
+        } & {
+          identifyingCodes?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["identifyingCode"][];
+        }, "partyName" | "partyContactDetails">;
+        identifyingCode: WithRequired<{
+          DCSAResponsibleAgencyCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["DCSAResponsibleAgencyCode"];
+        } & {
+          partyCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["partyCode"];
+        } & {
+          codeListName?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["codeListName"];
+        }, "DCSAResponsibleAgencyCode" | "partyCode">;
+        /** @description refers to a company or a legal entity. */
+        partyWithID: {
+          partyID?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["partyID"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["party"];
+        shipmentLocations: {
+          shipmentLocations?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shipmentLocation"][];
+        };
+        /** @description maps the relationship between Shipment and Location, e.g., the `Place of Receipt` and the `Place of Delivery` for a specific shipment. This is a reusable object between `Booking` and `Transport Document` */
+        shipmentLocation: WithRequired<({
+          location?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["addressLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["unLocationLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["facilityLocation"];
+        }) & {
+          /**
+           * @description General purpose object to capture the location in the `ShipmentLocation`. The location can be specified in **any** of the following ways: `UN Location Code`, `Facility` and/or an `Address`.
+           *
+           * @example {
+           *   "locationName": "CMP Container Terminal Copenhagen",
+           *   "UNLocationCode": "DKCPH",
+           *   "facilityCode": "CMPDK",
+           *   "facilityCodeListProvider": "SMDG"
+           * }
+           */
+          location?: unknown;
+        } & {
+          shipmentLocationTypeCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shipmentLocationTypeCode"];
+        } & {
+          eventDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["eventLocationDateTime"];
+        }, "location" | "shipmentLocationTypeCode">;
+        references: {
+          references?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["reference"][];
+        };
+        /** @description references provided by the shipper or freight forwarder at the time of booking or at the time of providing shipping instruction. Carriers share it back when providing track and trace event updates, some are also printed on the B/L. Customers can use these references to track shipments in their internal systems. */
+        reference: WithRequired<{
+          type?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["referenceType"];
+        } & {
+          value?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["referenceValue"];
+        }, "type" | "value">;
+        /**
+         * @description The reference type codes defined by DCSA.
+         * - FF (Freight Forwarder’s Reference)
+         * - SI (Shipper’s Reference)
+         * - PO (Purchase Order Reference)
+         * - CR (Customer’s Reference)
+         * - AAO (Consignee’s Reference)
+         * - ECR (Empty container release reference)
+         * - CSI (Customer shipment ID)
+         * - BPR (Booking party reference number)
+         * - BID (Booking Request ID)
+         * - RUC (Registro Único del Contribuyente)
+         * - DUE (Declaração Única de Exportação)
+         * - CER (Canadian Export Reporting System)
+         * - AES (Automated Export System)
+         *
+         * More details can be found on [GitHub](https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/referencetypes.csv). Be aware that the list is a subset of the possible values.
+         *
+         * @example FF
+         * @enum {string}
+         */
+        referenceType: "FF" | "SI" | "PO" | "CR" | "AAO" | "ECR" | "CSI" | "BPR" | "BID" | "RUC" | "DUE" | "CER" | "AES";
+        transportDocumentRefStatus: {
+          transportDocumentReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportDocumentReference"];
+        } & {
+          transportDocumentCreatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportDocumentCreatedDateTime"];
+        } & {
+          transportDocumentUpdatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportDocumentUpdatedDateTime"];
+        } & {
+          documentStatus?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["eblDocumentStatus"];
+        };
+        transportDocumentRoot: WithRequired<{
+          transportDocumentReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportDocumentReference"];
+        } & {
+          transportDocumentCreatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportDocumentCreatedDateTime"];
+        } & {
+          transportDocumentUpdatedDateTime?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportDocumentUpdatedDateTime"];
+        } & {
+          issueDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["issueDate"];
+        } & {
+          shippedOnBoardDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shippedOnBoardDate"];
+        } & {
+          receivedForShipmentDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["receivedForShipmentDate"];
+        } & {
+          carrierCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierCode"];
+        } & {
+          carrierCodeListProvider?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierCodeListProvider"];
+        } & {
+          issuingParty?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["party"];
+        } & {
+          numberOfRiderPages?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["numberOfRiderPages"];
+        }, "transportDocumentReference" | "carrierCode" | "carrierCodeListProvider" | "issuingParty">;
+        /** @description A 'shallow' representation of the Transport Document. This version of the Transport Document does not contain nested objects. For a 'rich' version of the Transport Document please use the `GET` endPoint. */
+        transportDocumentSummary: WithRequired<external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["transportDocumentRoot"] & {
+          shippingInstructionReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["shippingInstructionReference"];
+        } & {
+          documentStatus?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["eblDocumentStatus"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["carrierBookingReferences"], "shippingInstructionReference">;
+        /**
+         * @description The document that governs the terms of carriage between shipper and carrier for maritime transportation. Two distinct types of transport documents exist:
+         * - Bill of Lading
+         * - Sea Waybill.
+         */
+        transportDocument: WithRequired<external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["transportDocumentRoot"] & {
+          termsAndConditions?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["termsAndConditions"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["bookingCore"] & ({
+          invoicePayableAt?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["addressLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["unLocationLocation"];
+        }) & {
+          /**
+           * @description General purpose object to capture `Invoice Payable At` location. The location can be specified in **any** of the following ways: `UN Location Code` and/or an `Address`.
+           *
+           * @example {
+           *   "locationName": "Eiffel Tower",
+           *   "UNLocationCode": "FRPAR"
+           * }
+           */
+          invoicePayableAt?: unknown;
+        } & ({
+          placeOfIssue?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["addressLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["unLocationLocation"];
+        }) & {
+          /**
+           * @description General purpose object to capture where the original Transport Document (`Bill of Lading`) will be issued. The location can be specified in **any** of the following ways: `UN Location Code` and/or an `Address`.
+           *
+           * @example {
+           *   "locationName": "DCSA Headquarters",
+           *   "UNLocationCode": "NLAMS"
+           * }
+           */
+          placeOfIssue?: unknown;
+        } & {
+          shippingInstruction?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["shippingInstructionResponse"];
+        } & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["charges"] & external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["carrierClauses"], "shippingInstruction">;
+        charges: {
+          charges?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["charge"][];
+        };
+        /** @description addresses the monetary value of freight and other service charges for a transport document. */
+        charge: WithRequired<{
+          chargeType?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["chargeType"];
+        } & {
+          currencyAmount?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["currencyAmount"];
+        } & {
+          currencyCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["currencyCode"];
+        } & {
+          paymentTermCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["paymentTermCode"];
+        } & {
+          calculationBasis?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["calculationBasis"];
+        } & {
+          unitPrice?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["unitPrice"];
+        } & {
+          quantity?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["quantity"];
+        }, "chargeType" | "currencyAmount" | "currencyCode" | "paymentTermCode" | "calculationBasis" | "unitPrice" | "quantity">;
+        carrierClauses: {
+          carrierClauses?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["carrierClause"][];
+        };
+        /** @description comprises clauses, added by the carrier to the Transport Document, which are subject to local rules/guidelines or certain mandatory information required to be shared with the customer. Usually printed below the cargo description. */
+        carrierClause: {
+          clauseContent?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["clauseContent"];
+        };
+        transports: {
+          transports?: external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["transport"][];
+        };
+        /** @description A list of transports sorted by ShipmentTransport sequenceNumber */
+        transport: WithRequired<{
+          transportPlanStage?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportPlanStage"];
+        } & {
+          transportPlanStageSequenceNumber?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["transportPlanStageSequenceNumber"];
+        } & ({
+          loadLocation?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["addressLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["unLocationLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["facilityLocation"];
+        }) & {
+          /**
+           * @description General purpose object to capture the `Load Location`. The location can be specified in **any** of the following ways: `UN Location Code`, `Facility` and/or an `Address`.
+           *
+           * @example {
+           *   "locationName": "Shanghai Shengdong International Container Terminal",
+           *   "UNLocationCode": "CNSGH",
+           *   "facilityCode": "SHENG",
+           *   "facilityCodeListProvider": "SMDG"
+           * }
+           */
+          loadLocation?: unknown;
+        } & ({
+          dischargeLocation?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["addressLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["unLocationLocation"] | external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["facilityLocation"];
+        }) & {
+          /**
+           * @description General purpose object to capture the `Discharge Location`. The location can be specified in **any** of the following ways: `UN Location Code`, `Facility` and/or an `Address`.
+           *
+           * @example {
+           *   "locationName": "Transnet Port Terminals Cape Town",
+           *   "UNLocationCode": "ZACPT",
+           *   "facilityCode": "TNCT",
+           *   "facilityCodeListProvider": "SMDG"
+           * }
+           */
+          dischargeLocation?: unknown;
+        } & {
+          plannedDepartureDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["plannedDepartureDate"];
+        } & {
+          plannedArrivalDate?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["plannedArrivalDate"];
+        } & {
+          modeOfTransport?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["modeOfTransport"];
+        } & {
+          vesselName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselName"];
+        } & {
+          vesselIMONumber?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["vesselIMONumber"];
+        } & {
+          carrierImportVoyageNumber?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierImportVoyageNumber"];
+        } & {
+          universalImportVoyageReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["universalImportVoyageReference"];
+        } & {
+          carrierExportVoyageNumber?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierExportVoyageNumber"];
+        } & {
+          universalExportVoyageReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["universalExportVoyageReference"];
+        } & {
+          isUnderShippersResponsibility?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["isUnderShippersResponsibility"];
+        }, "transportPlanStage" | "transportPlanStageSequenceNumber" | "loadLocation" | "dischargeLocation" | "plannedDepartureDate" | "plannedArrivalDate">;
+        /** @description used for storing cargo in/on during transport. The equipment size/type is defined by the ISO 6346 code. The most common equipment size/type is 20'/40'/45' Dry Freight Container, but several different versions exist. */
+        equipment: WithRequired<{
+          equipmentReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["equipmentReference"];
+        } & {
+          ISOEquipmentCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["ISOEquipmentCode"];
+        } & {
+          tareWeight?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["tareWeight"];
+        } & {
+          weightUnit?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["weightUnit"];
+        }, "equipmentReference">;
+        carrierBookingReferences: {
+          /** @description A list of all `carrierBookingReferences` used. The `carrierBookingReferences` are sourced from the `CargoItems` or the root object of the SI. */
+          carrierBookingReferences?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["carrierBookingReference"][];
+        };
+        /**
+         * @description The status of the booking. Possible values are:
+         * - RECE (Received)
+         * - PENU (Pending Update)
+         * - PENC (Pending Confirmation)
+         * - CONF (Confirmed)
+         * - REJE (Rejected)
+         * - CANC (Cancelled)
+         * - CMPL (Completed)
+         *
+         * More details can be found on <a href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/shipmenteventtypecodes.csv">GitHub</a>. Be aware that the list linked to is the `ShipmentEventTypeCodes` which is equivalent to `documentStatus`, the list is a subset of the possible values.
+         *
+         * @example RECE
+         * @enum {string}
+         */
+        bookingDocumentStatus: "RECE" | "PENU" | "PENC" | "CONF" | "REJE" | "CANC" | "CMPL";
+        /**
+         * @description The code to identify the type of information `documentID` points to. Can be one of the following values
+         * - CBR (Carrier Booking Request Reference)
+         * - BKG (Booking)
+         *
+         * More details can be found on <a href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/documenttypecodes.csv">GitHub</a>. Be aware that the list provided here is a subset of the possible values.
+         *
+         * @example CBR
+         * @enum {string}
+         */
+        bookingDocumentTypeCode: "CBR" | "BKG";
+        /**
+         * @description The status of the booking in the process. Possible values are
+         * - RECE (Received)
+         * - PENU (Pending Update)
+         * - PENC (Pending Confirmation)
+         * - CONF (Confirmed)
+         * - REJE (Rejected)
+         * - CANC (Cancelled)
+         * - CMPL (Completed)
+         *
+         * More details can be found on <a href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/shipmenteventtypecodes.csv">GitHub</a>. Be aware that the list provided here is a subset of the possible values.
+         *
+         * @example CONF
+         * @enum {string}
+         */
+        bookingShipmentEventTypeCode: "RECE" | "PENU" | "PENC" | "CONF" | "REJE" | "CANC" | "CMPL";
+        /**
+         * @description The status of the Bill of Lading. Possible values are:
+         * - RECE (Received)
+         * - PENU (Pending Update)
+         * - DRFT (Draft)
+         * - PENA (Pending Approval)
+         * - APPR (Approved)
+         * - ISSU (Issued)
+         * - SURR (Surrendered)
+         * - VOID (Void)
+         *
+         * More details can be found on <a href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/shipmenteventtypecodes.csv">GitHub</a>. Be aware that the list linked to is the `ShipmentEventTypeCodes` which is equivalent to `documentStatus`, the list is a subset of the possible values.
+         *
+         * @example RECE
+         * @enum {string}
+         */
+        eblDocumentStatus: "RECE" | "PENU" | "DRFT" | "PENA" | "APPR" | "ISSU" | "SURR" | "VOID";
+        /**
+         * @description The code to identify the type of information `documentID` points to. Can be one of the following values
+         * - SHI (Shipping Instruction)
+         * - TRD (Transport Document)
+         *
+         * More details can be found on <a href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/documenttypecodes.csv">GitHub</a>. Be aware that the list provided here is a subset of the possible values.
+         *
+         * @example SHI
+         * @enum {string}
+         */
+        eblDocumentTypeCode: "SHI" | "TRD";
+        /**
+         * @description The status of the booking in the process. Possible values are
+         * - RECE (Received)
+         * - PENU (Pending Update)
+         * - DRAFT (Draft)
+         * - PENA (Pending Approval)
+         * - APPR (Approved)
+         * - ISSU (Issued)
+         * - SURR (Surrendered)
+         * - VOID (Void)
+         *
+         * More details can be found on <a href="https://github.com/dcsaorg/DCSA-Information-Model/blob/master/datamodel/referencedata.d/shipmenteventtypecodes.csv">GitHub</a>. Be aware that the list provided here is a subset of the possible values.
+         *
+         * @example RECE
+         * @enum {string}
+         */
+        eblShipmentEventTypeCode: "RECE" | "PENU" | "DRFT" | "PENA" | "APPR" | "ISSU" | "SURR" | "VOID";
+      };
+      responses: never;
+      parameters: never;
+      requestBodies: never;
+      headers: never;
+      pathItems: never;
+    };
+    $defs: Record<string, never>;
+  };
+  "https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3": {
+    paths: Record<string, never>;
+    webhooks: Record<string, never>;
+    components: {
+      schemas: {
+        /**
+         * @description General purpose object to capture location-related data, the location can be specified in **any** of the following ways: `geoLocation` (lat+long), `UN Location Code`, a `Facility` or an `Address`.
+         *
+         * If multiple ways are used - then they all have to point to the same location!
+         */
+        location: {
+          locationName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["locationName"];
+        } & {
+          latitude?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["latitude"];
+        } & {
+          longitude?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["longitude"];
+        } & {
+          UNLocationCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["UNLocationCode"];
+        } & {
+          facilityCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["facilityCode"];
+        } & {
+          facilityCodeListProvider?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["facilityCodeListProvider"];
+        } & {
+          /** @description Address related information */
+          address?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["address"];
+        };
+        /**
+         * @description An interface used to express a location using a reference (`locationReference`)
+         *
+         * **NB**: This interface has not been agreed
+         */
+        referenceLocation: WithRequired<{
+          locationName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["locationName"];
+        } & {
+          locationReference?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["locationReference"];
+        }, "locationReference">;
+        /** @description An interface used to express a location using an `Address` object */
+        addressLocation: WithRequired<{
+          locationName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["locationName"];
+        } & {
+          /** @description Address related information */
+          address?: external["https://api.swaggerhub.com/domains/dcsaorg/LOCATION_DOMAIN/2.0.3"]["components"]["schemas"]["address"];
+        }, "address">;
+        /** @description An interface used to express a location using a `Facility`. The facility can either be expressed using a `BIC` code or a `SMDG` code. The `facilityCode` does not contain the `UNLocationCode` - this should be provided in the `UnLocationCode` attribute. */
+        facilityLocation: WithRequired<{
+          locationName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["locationName"];
+        } & {
+          UNLocationCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["UNLocationCode"];
+        } & {
+          facilityCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["facilityCode"];
+        } & {
+          facilityCodeListProvider?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["facilityCodeListProvider"];
+        }, "facilityCode" | "facilityCodeListProvider">;
+        /** @description An interface used to express a location using a `Facility` by the `SMDG` code list. The `facilitySMDGCode` does not contain the `UNLocationCode` - this should be provided in the `UnLocationCode` attribute. */
+        facilitySMDGLocation: WithRequired<{
+          locationName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["locationName"];
+        } & {
+          UNLocationCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["UNLocationCode"];
+        } & {
+          facilitySMDGCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["facilityCode"];
+        }, "facilitySMDGCode" | "UNLocationCode">;
+        /** @description An interface used to express a location using `latitude` and `longitude` */
+        geoLocation: WithRequired<{
+          locationName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["locationName"];
+        } & {
+          latitude?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["latitude"];
+        } & {
+          longitude?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["longitude"];
+        }, "latitude" | "longitude">;
+        /** @description An interface used to express a location using a `Un Location Code` */
+        unLocationLocation: WithRequired<{
+          locationName?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["locationName"];
+        } & {
+          UNLocationCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["UNLocationCode"];
+        }, "UNLocationCode">;
+        /** @description An object for storing address related information */
+        address: {
+          name?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["addressName"];
+        } & {
+          street?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["streetName"];
+        } & {
+          streetNumber?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["streetNumber"];
+        } & {
+          floor?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["floor"];
+        } & {
+          postCode?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["postCode"];
+        } & {
+          city?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["cityName"];
+        } & {
+          stateRegion?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["stateRegion"];
+        } & {
+          country?: external["https://api.swaggerhub.com/domains/dcsaorg/DCSA_DOMAIN/2.0.3"]["components"]["schemas"]["country"];
+        };
+      };
+      responses: never;
+      parameters: never;
+      requestBodies: never;
+      headers: never;
+      pathItems: never;
+    };
+    $defs: Record<string, never>;
+  };
+}
 
 export type operations = Record<string, never>;

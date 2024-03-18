@@ -8,6 +8,7 @@ import { db } from "@/server/db";
 import { type components, type paths } from "@/types/bu-scheme";
 import { Prisma, type EBlStash, type Platform } from "@prisma/client";
 import { performEmailNotifiers } from "./email-notifiers";
+import { SmtpEmailService } from "@/server/services/email-service";
 
 type EBlRecordType = components["schemas"]["BillOfLadingRecord"];
 
@@ -36,13 +37,13 @@ import("@/env.js")
             const stash = stashes[rec.bl.id];
             const status = currentStatus(rec);
 
-            // check if bl status or owner has changed
-            if (
-              stash?.status === status ||
-              stash?.currentOwner === rec.bl?.current_owner
-            ) {
-              continue; // no change. ignore it
-            }
+        // check if bl status or owner has changed
+        if (
+          stash?.status === status ||
+          stash?.currentOwner === rec.bl?.current_owner
+        ) {
+          continue; // no change. ignore it
+        }
 
             // process changed eBl through email notifiers
             logger.info(
@@ -60,10 +61,17 @@ import("@/env.js")
               },
             });
 
-            await performEmailNotifiers({ platform, rec, stash, newStash });
-          }
-        }
+        await performEmailNotifiers({
+          db,
+          service: SmtpEmailService,
+          platform,
+          rec,
+          stash,
+          newStash,
+        });
       }
+    }
+  }
 
       await sleep(env.NOTIFIER_POLL_INTERVAL);
     };
