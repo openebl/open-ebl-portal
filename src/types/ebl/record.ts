@@ -1,5 +1,6 @@
+// TODO: to be deleted and use bu-scheme.d.ts
 import { z } from "zod";
-import { EBlDocTypeSchema, EBlAllowActionTypeSchema } from "./common";
+import { EBlDocTypeSchema, EBlAllowActionTypeSchema, EBlMetadataSchema } from "./common";
 import { BusinessUnitID, Base64EncodedString, NullableString, MaybeString, ISOTimestamp } from "../common";
 
 const identifyingCodesSchema = z.object({
@@ -71,53 +72,53 @@ const EBlRecordEventSchema = z.object({
     created_by: BusinessUnitID,
     created_at: ISOTimestamp,
     note: MaybeString,
-    meta_data: MaybeString,
+    metadata: EBlMetadataSchema,
   }).optional(),
   transfer: z.object({ // transfer eBL event
     transfer_by: BusinessUnitID,
     transfer_to: BusinessUnitID,
     transfer_at: ISOTimestamp,
     note: MaybeString,
-    meta_data: MaybeString,
+    metadata: EBlMetadataSchema,
   }).optional(),
   return: z.object({ // return eBL event
     return_by: BusinessUnitID,
     return_to: BusinessUnitID,
     return_at: ISOTimestamp,
     note: MaybeString,
-    meta_data: MaybeString,
+    metadata: EBlMetadataSchema,
   }).optional(),
   surrender: z.object({ // surrender eBL event
     surrender_by: BusinessUnitID,
     surrender_to: BusinessUnitID,
     surrender_at: ISOTimestamp,
     note: MaybeString,
-    meta_data: MaybeString,
+    metadata: EBlMetadataSchema,
   }).optional(),
   amendment_request: z.object({ // amend eBL event
     request_by: BusinessUnitID,
     request_to: BusinessUnitID,
     request_at: ISOTimestamp,
     note: MaybeString,
-    meta_data: MaybeString,
+    metadata: EBlMetadataSchema,
   }).optional(),
   print_to_paper: z.object({ // print eBL event
     print_by: BusinessUnitID,
     print_at: ISOTimestamp,
     note: MaybeString,
-    meta_data: MaybeString,
+    metadata: EBlMetadataSchema,
   }).optional(),
   accomplish: z.object({ // accomplish eBL event
     accomplish_by: BusinessUnitID,
     accomplish_at: ISOTimestamp,
     note: MaybeString,
-    meta_data: MaybeString,
+    metadata: EBlMetadataSchema,
   }).optional(),
   delete: z.object({ // delete eBL event
     delete_by: BusinessUnitID,
     delete_at: ISOTimestamp,
     note: MaybeString,
-    meta_data: MaybeString,
+    metadata: EBlMetadataSchema,
   }).optional(),
 });
 

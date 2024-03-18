@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MaybeString } from "../common";
 
 enum EBlDocType {
   MasterBillOfLading = "MasterBillOfLading",
@@ -26,10 +27,15 @@ enum EBlAllowAction {
 
 const EBlDocTypeSchema = z.enum(Object.keys(EBlDocType) as [keyof typeof EBlDocType]);
 const EBlAllowActionTypeSchema = z.nativeEnum(EBlAllowAction);
+const EBlMetadataSchema = z.object({
+  username: z.string(),
+  docHash: MaybeString,
+})
 
 export {
   EBlDocTypeSchema,
   EBlAllowActionTypeSchema,
+  EBlMetadataSchema,
   EBlDocType,
   EBlFilter,
   EBlAllowAction,

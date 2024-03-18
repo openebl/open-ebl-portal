@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { EBlDocTypeSchema } from "./common";
+import { EBlDocTypeSchema, EBlMetadataSchema } from "./common";
 import { BusinessUnitID, Base64EncodedString } from "../common";
 
 export const EBlRequestSchema = z.object({
-  meta_data: z.string(),
+  metadata: EBlMetadataSchema,
   authentication_id: z.string(),
   file: z.object({
     name: z.string(),

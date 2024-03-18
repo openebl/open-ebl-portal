@@ -4,6 +4,7 @@ import ErrorPage from "@/app/_components/ebl-detail/error-page";
 import MainSection from "@/app/_components/edit-ebl/main-section";
 import { readRequestBodyToBuffer } from "@/server/fx/streram";
 import { api } from "@/trpc/server";
+import { type EBlFormType } from "@/types/ebl";
 import { TRPCClientError } from "@trpc/client";
 import { isEmpty } from "remeda";
 
@@ -28,7 +29,7 @@ export default async function Page({
     }
 
     const [extraction, images, contentResult] = await Promise.all([
-      api.docExtreaction.get.query({uuid}),
+      api.docExtreaction.get.query({ uuid }),
       api.docImage.getUrls.query({ docFileId: docFile.id }),
       docFile.contentUrl ? fetch(docFile.contentUrl) : Promise.resolve(null),
     ]);
@@ -41,8 +42,12 @@ export default async function Page({
     const content = await readRequestBodyToBuffer(contentResult?.body)
     const contentBase64 = Buffer.from(content).toString('base64');
 
-    const request = {
+    const eblForm: EBlFormType = {
       ...extraction,
+      metadata: {
+        username: "",
+        docHash: hash!,
+      },
       file: {
         name: docFile.filename ?? "(unknown)",
         type: contentType ?? 'binary/octet-stream',
@@ -52,7 +57,7 @@ export default async function Page({
       draft: true,
     };
 
-    return <MainSection ebl={request} images={images} />;
+    return <MainSection ebl={eblForm} images={images} />;
   };
 
   return execution().catch((err) => {

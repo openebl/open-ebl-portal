@@ -13,7 +13,7 @@ import { useGetShipper } from "@/app/_hooks/shippers-filter";
 import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
-import { type EBlFormType, EBlRequestSchema, type EBlRequestType, EBlFormSchema } from "@/types/ebl";
+import { type EBlFormType, EBlFormSchema } from "@/types/ebl";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
 import type { ImageType } from "@/app/_components/common/props/types";
@@ -57,7 +57,7 @@ const MainSection = ({
     const formData = form.getValues()
     formData.pol.locationName = portName(formData.pol.UNLocationCode) ?? formData.pol.locationName;
     formData.pod.locationName = portName(formData.pod.UNLocationCode) ?? formData.pod.locationName;
-    const body = EBlRequestSchema.omit({ meta_data: true, authentication_id: true }).parse({ ...formData, draft: payload.isDraft });
+    const body = EBlFormSchema.parse({ ...formData, draft: payload.isDraft });
     issue.mutate(body);
   };
 

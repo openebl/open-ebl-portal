@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { EBlFilter, EBlAllowAction } from "./common";
+import { EBlFilter, EBlAllowAction, EBlMetadataSchema } from "./common";
 import { EBlRequestSchema } from "./request";
 import { EBlRecordSchema, EBlRecordListSchema } from "./record";
 import { EBlFormSchema, type EBlFormType } from "./form";
@@ -7,6 +7,7 @@ import { EBlFormSchema, type EBlFormType } from "./form";
 type EBlRequestType = z.infer<typeof EBlRequestSchema>;
 type EBlRecordType = z.infer<typeof EBlRecordSchema>;
 type EBlRecordListType = z.infer<typeof EBlRecordListSchema>;
+type EBlMetadataType = z.infer<typeof EBlMetadataSchema>;
 
 const eBlIdGenerator = () =>
   `${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random().toString(36).slice(2, 8)}`;
@@ -16,6 +17,7 @@ export {
   EBlRecordSchema,
   EBlRecordListSchema,
   EBlFormSchema,
+  EBlMetadataSchema,
   eBlIdGenerator,
   EBlFilter,
   EBlAllowAction,
@@ -25,4 +27,5 @@ export type {
   EBlRecordType,
   EBlRecordListType,
   EBlFormType,
+  EBlMetadataType,
 };
