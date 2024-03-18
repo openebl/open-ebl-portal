@@ -13,6 +13,10 @@ export const useTestDocExtraction = () => {
 
     getExtraction: (uuid: string) => {
       return Promise.resolve({
+        metadata: {
+          username: "",
+          docHash: "",
+        },
         file: {
           name: 'bill_of_lading.pdf',
           type: 'bill_of_lading.',

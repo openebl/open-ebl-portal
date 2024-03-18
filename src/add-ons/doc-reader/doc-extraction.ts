@@ -72,6 +72,10 @@ const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (
   );
 
   return {
+    metadata: {
+      username: "",
+      docHash: "",
+    },
     bl_number:
       docInfo.originEntities.find((e) => e.label === "BlNumber")?.value ?? "",
     bl_doc_type: EBlDocType.HouseBillOfLading,
