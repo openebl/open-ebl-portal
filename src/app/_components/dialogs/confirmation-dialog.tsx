@@ -96,32 +96,31 @@ export const ConfirmationDialog = ({
   onConfirm: () => void;
 }) => {
   const transitions = useTransition(state, {
-    from: { position: "absolute", opacity: 0 },
+    from: { opacity: 0 },
     enter: { opacity: 1 },
-    leave: { opacity: 0 },
+    leave: { position: "absolute", opacity: 0 },
   });
 
   return (
     <AlertDialog open={open}>
       <AlertDialogContent className="min-h-[220px] min-w-[500px]">
-        {transitions((style, item) => (
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
-          <animated.div style={{ ...style }}>
-            {item === "confirm" ? (
-              <ConfirmContent
-                content={content}
-                onCancel={onCancel}
-                // onConfirm={onConfirm}
-                onConfirm={onConfirm}
-              />
-            ) : item === "waiting" ? (
-              <WaitingContent content={content} />
-            ) : (
-              <CompletedContent content={content} onConfirm={onConfirm} />
-            )}
-          </animated.div>
-        ))}
+        <div className="relative">
+          {transitions((style, item) => (
+            <animated.div style={{ ...style }}>
+              {item === "confirm" ? (
+                <ConfirmContent
+                  content={content}
+                  onCancel={onCancel}
+                  onConfirm={onConfirm}
+                />
+              ) : item === "waiting" ? (
+                <WaitingContent content={content} />
+              ) : (
+                <CompletedContent content={content} onConfirm={onConfirm} />
+              )}
+            </animated.div>
+          ))}
+        </div>
       </AlertDialogContent>
     </AlertDialog>
   );

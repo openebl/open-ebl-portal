@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { isEmpty } from "remeda";
 
 import AmendIcon from "@/app/_icons/amend-icon";
-import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
 import PrinterIcon from "@/app/_icons/printer-icon";
 import ReturnIcon from "@/app/_icons/return-icon";
 import SendIcon from "@/app/_icons/send-icon";
@@ -22,9 +21,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
 import { EBlAllowAction, type EBlRecordType } from "@/types/ebl";
-import { ConfirmationDialog, type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
+import { type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type AppRouter } from "@/server/api/root";
+import { type ActionType, EBlConfirmationDialog } from "../dialogs/ebl-confirmation-dialog";
 
 const ActionPanel = ({
   ebl,
@@ -127,6 +127,9 @@ const ActionPanel = ({
     },
   };
 
+  const handleDialogCanceled = () => {
+    setDialogOpen(false)
+  }
   const handleDialogConfirmed = () => {
     if (dialogState === "confirm") {
       setDialogState("waiting");
@@ -142,13 +145,6 @@ const ActionPanel = ({
   const handleClick = () => {
     setDialogOpen(true);
   };
-
-  const nextPlatformName = 'nextPlatformName' // TODO
-  const confirmMessage = action === EBlAllowAction.Transfer ? `Are you sure you want to transfer this eBL to ${nextPlatformName}?` : 'Are you sure you want to accomplish this eBL?'
-  const transferringMessage = !nextPlatformName ? "The eBL is transferring..." : `The eBL is transferring to ${nextPlatformName}...`
-  const transferredMessage = !nextPlatformName ? "The eBL has been transferred" : `The eBL has been transferred to ${nextPlatformName}.`
-  const progressMessage = action === EBlAllowAction.Transfer ? transferringMessage : "The eBL is accomplishing..."
-  const completedMessage = action === EBlAllowAction.Transfer ? transferredMessage : "The eBL has been accomplished."
 
   return (
     <>
@@ -197,23 +193,11 @@ const ActionPanel = ({
         </DropdownMenu>
       </div>
 
-      <ConfirmationDialog
+      <EBlConfirmationDialog
         open={dialogOpen}
         state={dialogState}
-        content={{
-          confirm: {
-            title: confirmMessage,
-          },
-          waiting: {
-            icon: <PaperPlaneIcon />,
-            message: progressMessage,
-          },
-          completed: {
-            icon: <PaperPlaneIcon />,
-            message: completedMessage,
-          },
-        }}
-        onCancel={() => setDialogOpen(false)}
+        action={action as ActionType}
+        onCancel={handleDialogCanceled}
         onConfirm={handleDialogConfirmed}
       />
     </>
