@@ -107,7 +107,7 @@ export function NotificationTemplate({
             width: "100%",
             maxWidth: "600px",
             backgroundColor: "#1F2A3B",
-            padding: "8px",
+            padding: "30px",
             paddingTop: "1.25rem",
             paddingBottom: "1.25rem",
             color: "#fff",
