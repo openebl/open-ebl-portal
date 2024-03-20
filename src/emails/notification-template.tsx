@@ -43,10 +43,10 @@ export function NotificationTemplate({
           width: "100%",
           maxWidth: "600px",
           backgroundColor: "#0A35A2",
-          padding: "8px",
+          padding: '25px 50px',
         }}
       >
-        <Row style={{ height: "0.5rem", margin: "0" }}>
+        <Row style={{ margin: "0" }}>
           <Column width="82px">
             <Img width="82" height="20" alt="BlueX" src={logoUrl} />
           </Column>
@@ -66,8 +66,8 @@ export function NotificationTemplate({
         </Row>
       </Section>
 
-      <Section style={{ width: "100%", maxWidth: "600px", padding: "0" }}>
-        {headerUrl && <Img alt="" src={headerUrl} />}
+      <Section style={{ width: "100%", maxWidth: "600px", padding: "0", marginTop: '40px', marginBottom: '20px' }}>
+        {headerUrl && <Img alt="" src={headerUrl} style={{ margin: "0 auto"}} />}
       </Section>
 
       <Container

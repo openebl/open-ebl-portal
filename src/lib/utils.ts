@@ -1,8 +1,10 @@
 import { clsx, type ClassValue } from "clsx";
 import crypto from "crypto";
+import { readFileSync } from "fs";
 import { twMerge } from "tailwind-merge";
-import type { Platforms } from "@/types/platform";
+
 import { type EBlRecordType } from "@/types/ebl";
+import type { Platforms } from "@/types/platform";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -48,10 +50,18 @@ export const getLatestBillOfLading = (record: EBlRecordType) => {
   }
 }
 
-export function platformsToDropdownOptionList(platforms: Platforms | null | undefined) {
+export const platformsToDropdownOptionList = (platforms: Platforms | null | undefined) => {
   if (!platforms) return [];
   return Object.entries(platforms).map(([id, platform]) => ({
     label: platform.name,
     value: id,
   }));
+}
+
+export const imageFileToBase64DataUrl = (filename: string) => {
+  const contents = readFileSync(filename)
+  const b64 = contents.toString('base64')
+  const type = 'image/png'
+
+  return `data:${type};base64,${b64}`
 }

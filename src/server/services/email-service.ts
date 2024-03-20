@@ -2,11 +2,13 @@ import { createTransport } from "nodemailer";
 import { type Address, type Attachment } from "nodemailer/lib/mailer";
 
 import { env } from "@/env";
+import { getLogger } from "@/lib/logger";
 
 export type SendEmailProps = {
-  receivers: Address | Array<string | Address>;
+  to: Address | Array<string | Address>;
   subject: string;
-  content: string;
+  html: string;
+  text?: string;
   attachments: Attachment[];
 };
 
@@ -16,6 +18,7 @@ export type EmailServiceType = {
 
 
 const send = async (props: SendEmailProps) => {
+  getLogger().info(`Sending email to ${JSON.stringify(props.to)}`);
   const transporter = createTransport({
     url: env.EMAIL_SERVER,
   });

@@ -1,7 +1,7 @@
 import React from "react";
 import { Column, Row, Text } from "@react-email/components";
-import { NotificationTemplate } from "./notification-template";
 import { ActionButton } from "./components";
+import { NotificationTemplate } from "./notification-template";
 
 interface EmailProps {
   headerUrl: string;
@@ -13,29 +13,28 @@ interface EmailProps {
   viewEblLink: string;
 }
 
-export default function TransferNotification(props: EmailProps) {
+export default function AccomplishNotification(props: EmailProps) {
   return (
     <NotificationTemplate
       headerUrl={props.headerUrl}
       logoUrl={props.logoUrl}
-      title="eBL has been transferred"
-      preview="eBL has been transferred"
+      title="eBL has been accomplished"
+      preview="eBL has been accomplished"
     >
       <Row>
         <Text style={{ margin: "0", fontSize: "0.875rem" }}>
           Hi {props.companyName},
           <br />
           <br />
-          {`${props.sender} has transferred eBL `}
+          {`${props.sender} has accomplished eBL No. `}
           <strong>{props.eBlNo}</strong>
-          {` to your company.`}
           <br />
           <br />
           Note:&nbsp;
           <strong>{props.note}</strong>
           <br />
           <br />
-          Please review the eBL via the link below.
+          The eBL has been archived and can be accessed via the link below.
         </Text>
       </Row>
       <Row>

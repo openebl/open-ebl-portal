@@ -1,10 +1,10 @@
 import { imageFileToBase64DataUrl } from "@/lib/utils";
-import TransferNotification from "./transfer-notification";
+import AccomplishNotification from "./accomplish-notification";
 
 export default function TransferNotificationEmailSample() {
   return (
-    <TransferNotification
-      headerUrl={imageFileToBase64DataUrl("./public/email-transferred.png")}
+    <AccomplishNotification
+      headerUrl={imageFileToBase64DataUrl("./public/email-accomplished.png")}
       logoUrl={imageFileToBase64DataUrl("./public/bxwlogo.png")}
       companyName="BlueX"
       sender="DEF Forwarder"

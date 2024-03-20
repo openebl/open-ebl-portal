@@ -1,4 +1,4 @@
-import TransferNotification from "@/emails/transfer-notification";
+import AccomplishNotification from "@/emails/accomplish-notification";
 import { env } from "@/env";
 import { currentStatus, lastEvent, latestBillOfLading } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
@@ -7,14 +7,14 @@ import { render } from "@react-email/render";
 import { type EmailNotifier } from ".";
 import { touchAndSendEmailToPlatformUsers } from "./utils";
 
-export const transferEmailNotifier: EmailNotifier = async ({
+export const accomplishEmailNotifier: EmailNotifier = async ({
   db,
   service,
   platform,
   rec,
   newStash,
 }) => {
-  if (!["TRANSFER", "SURRENDER"].includes(currentStatus(rec))) {
+  if (currentStatus(rec) !== 'ACCOMPLISH') {
     return;
   }
 
@@ -22,15 +22,15 @@ export const transferEmailNotifier: EmailNotifier = async ({
   if (platform.platformId !== rec.bl?.current_owner) {
     return;
   }
-  getLogger().info(`Send transferred email to platform ${platform.id} users`);
+  getLogger().info(`Send accomplished email to platform ${platform.id} users`);
 
   const event = lastEvent(rec);
   const latestBl = latestBillOfLading(rec);
   const logoCid = "bxlogo";
   const headerCid = "header";
-  const sender = platforms[event?.transfer?.transfer_by ?? ""]?.name ?? "";
+  const sender = platforms[event?.accomplish?.accomplish_by ?? ""]?.name ?? "";
   const html = render(
-    TransferNotification({
+    AccomplishNotification({
       headerUrl: `cid:${headerCid}`,
       logoUrl: `cid:${logoCid}`,
       companyName: platform.name,
@@ -44,10 +44,10 @@ export const transferEmailNotifier: EmailNotifier = async ({
   await touchAndSendEmailToPlatformUsers({
     db,
     service,
-    notificationName: "transferred",
+    notificationName: "accomplished",
     platformId: platform.id,
     stash: newStash,
-    subject: `${sender} has transferred eBL ${latestBl?.transportDocumentReference} to your company`,
+    subject: `${sender} has accomplished eBL ${latestBl?.transportDocumentReference}`,
     html,
     attachments: [
       {
@@ -56,7 +56,7 @@ export const transferEmailNotifier: EmailNotifier = async ({
         cid: logoCid,
       },
       {
-        path: "./public/email-transferred.png",
+        path: "./public/email-accomplished.png",
         contentType: "image/png",
         cid: headerCid,
       },

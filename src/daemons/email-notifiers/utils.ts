@@ -1,7 +1,9 @@
 import nodemailer from "nodemailer";
 
 import { env } from "@/env";
-import { type DatabaseType, db } from "@/server/db";
+import { getLogger } from "@/lib/logger";
+import { type DatabaseType } from "@/server/db";
+import { type EmailServiceType } from "@/server/services/email-service";
 import { type EBlStash } from "@prisma/client";
 import { type Address, type Attachment } from "nodemailer/lib/mailer";
 
@@ -35,4 +37,65 @@ export const touchEmailNotification = async ({
       eBlStashId: stash.id,
     },
   });
+};
+
+export const touchAndSendEmailToPlatformUsers = async ({
+  db,
+  service,
+  notificationName,
+  platformId,
+  stash,
+  subject,
+  html,
+  text,
+  attachments,
+}: {
+  db: DatabaseType;
+  service: EmailServiceType;
+  notificationName: string;
+  platformId: bigint;
+  stash: EBlStash;
+  subject: string;
+  html: string;
+  text?: string;
+  attachments: Attachment[];
+}) => {
+  const platform = await db.platform.findUnique({
+    where: {
+      id: platformId,
+    },
+    include: {
+      activeUsers: true,
+    },
+  });
+
+  const receivers = platform?.activeUsers
+    ?.filter((u) => u.email)
+    ?.map((u) => ({ address: u.email!, name: u.name ?? "" }));
+
+    const touching = touchEmailNotification({
+      db,
+      name: notificationName,
+      stash,
+    }).catch((err) =>
+      getLogger().error(`Failed to touch eBlNotification: ${err}`),
+    );
+
+  const sending =
+    receivers &&
+    receivers.length > 0 &&
+    service
+      .send({
+        to: receivers,
+        subject,
+        html,
+        text,
+        attachments,
+      })
+      .catch((err) =>
+        getLogger().error(`Failed to send notification email: ${err}`),
+      )
+
+
+  return Promise.all([touching, sending]);
 };
