@@ -35,10 +35,15 @@ const MainSection = ({
         <EblSection
           filter={filter}
           recordList={recordList}
-          stats={{ action_needed: 1, upcoming: 1, sent: 1, archive: 1 }} // TODO
+          stats={{
+            action_needed: recordList.report?.action_needed ?? 0,
+            upcoming: recordList.report?.upcoming ?? 0,
+            sent: recordList.report?.sent ?? 0,
+            archive: recordList.report?.archive ?? 0
+          }}
         />
         <PaginatorSection
-          total={recordList.total}
+          total={recordList.total ?? 0}
           currentPage={page}
           filter={filter}
         />

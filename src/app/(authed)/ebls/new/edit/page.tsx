@@ -57,7 +57,7 @@ export default async function Page({
       draft: true,
     };
 
-    return <MainSection ebl={eblForm} images={images} />;
+    return <MainSection eblForm={eblForm} eblRecord={undefined} images={images} />;
   };
 
   return execution().catch((err) => {

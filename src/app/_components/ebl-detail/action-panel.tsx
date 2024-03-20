@@ -20,33 +20,31 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
-import { EBlAllowAction, type EBlRecordType } from "@/types/ebl";
+import { type EBlAllowAction, type EBlRecordType } from "@/types/ebl";
 import { type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type AppRouter } from "@/server/api/root";
-import { type ActionType, EBlConfirmationDialog } from "../dialogs/ebl-confirmation-dialog";
+import { type DialogActionType, EBlConfirmationDialog } from "../dialogs/ebl-confirmation-dialog";
+import PrinterWhiteIcon from "@/app/_icons/printer-white-icon";
+import { getNextPartyIDByAction } from "@/lib/ebl";
 
 const ActionPanel = ({
   ebl,
 }: {
   ebl: EBlRecordType;
 }) => {
-  const defaultAction = ebl.allow_actions.includes(EBlAllowAction.Transfer)
-    ? EBlAllowAction.Transfer
-    : ebl.allow_actions.includes(EBlAllowAction.Surrender)
-      ? EBlAllowAction.Surrender
-      : ebl.allow_actions.includes(EBlAllowAction.Accomplish)
-        ? EBlAllowAction.Accomplish
-        : ebl.allow_actions?.[0] ?? null;
-  const [action, setAction] = useState<EBlAllowAction | null>(defaultAction);
+  const defaultActionList: EBlAllowAction[] = ['TRANSFER', 'SURRENDER', 'ACCOMPLISH']
+  const defaultAction = defaultActionList.find(action => ebl.allow_actions?.includes(action)) ?? ebl.allow_actions?.[0];
+  const [action, setAction] = useState<EBlAllowAction | undefined>(defaultAction);
   const [note, setNote] = useState<string>("");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogState, setDialogState] = useState<DialogState>("confirm");
   const [isLoading, setLoading] = useState(false);
-
-  const disabled = isEmpty(ebl.allow_actions);
   const router = useRouter();
+
+  const { data: party } = api.platform.getById.useQuery(getNextPartyIDByAction(ebl, action!))
+  const nextPartyName = party?.name ?? ""
 
   const actionHandlerCallback = (action: EBlAllowAction) => ({
     onSuccess: () => {
@@ -60,67 +58,74 @@ const ActionPanel = ({
       toast.error(`Failed to ${action} eBL: ` + error.message);
     },
   })
-  const requestAmendEBl = api.ebl.amendment_request.useMutation(actionHandlerCallback(EBlAllowAction.RequestAmend));
-  const printEBl = api.ebl.print_to_paper.useMutation(actionHandlerCallback(EBlAllowAction.Print));
-  const transferEBl = api.ebl.transfer.useMutation(actionHandlerCallback(EBlAllowAction.Transfer));
-  const returnEBl = api.ebl.return.useMutation(actionHandlerCallback(EBlAllowAction.Return));
-  const surrenderEBl = api.ebl.surrender.useMutation(actionHandlerCallback(EBlAllowAction.Surrender));
-  const accomplishEBl = api.ebl.accomplish.useMutation(actionHandlerCallback(EBlAllowAction.Accomplish));
+  const requestAmendEBl = api.ebl.amendment_request.useMutation(actionHandlerCallback("REQUEST_AMEND"));
+  const printEBl = api.ebl.print_to_paper.useMutation(actionHandlerCallback("PRINT"));
+  const transferEBl = api.ebl.transfer.useMutation(actionHandlerCallback("TRANSFER"));
+  const returnEBl = api.ebl.return.useMutation(actionHandlerCallback("RETURN"));
+  const surrenderEBl = api.ebl.surrender.useMutation(actionHandlerCallback("SURRENDER"));
+  const accomplishEBl = api.ebl.accomplish.useMutation(actionHandlerCallback("ACCOMPLISH"));
 
-  const allowActions = {
-    [EBlAllowAction.UpdateDraft]: {
+  const allowActions: Record<EBlAllowAction, { icon: JSX.Element, label: string, handler: (id: string, note: string) => void }> = {
+    "UPDATE_DRAFT": {
       icon: <AmendIcon />,
       label: "Update Draft",
       handler: () => null,
     },
-    [EBlAllowAction.Amend]: {
+    "AMEND": {
       icon: <AmendIcon />,
       label: "Amend",
       handler: () => null,
     },
-    [EBlAllowAction.RequestAmend]: {
+    "REQUEST_AMEND": {
       icon: <AmendIcon />,
       label: "Request Amendment",
       handler: (id: string, note: string) => {
+        if (note.length === 0) {
+          setDialogState("confirm");
+          setDialogOpen(false);
+          setLoading(false);
+          toast.error("Please leave a note.");
+          return
+        }
         requestAmendEBl.mutate({ id, note });
       },
     },
-    [EBlAllowAction.Print]: {
-      icon: <PrinterIcon />,
+    "PRINT": {
+      icon: action === "PRINT" ? <PrinterWhiteIcon /> : <PrinterIcon />,
       label: "Print to Paper",
       handler: (id: string, note: string) => {
         printEBl.mutate({ id, note });
       },
     },
-    [EBlAllowAction.Transfer]: {
+    "TRANSFER": {
       icon: <SendIcon />,
       label: "Transfer",
       handler: (id: string, note: string) => {
         transferEBl.mutate({ id, note });
       },
     },
-    [EBlAllowAction.Return]: {
+    "RETURN": {
       icon: <ReturnIcon />,
       label: "Return eBL to Requestor",
       handler: (id: string, note: string) => {
         returnEBl.mutate({ id, note });
       },
     },
-    [EBlAllowAction.Surrender]: {
+    "SURRENDER": {
       icon: <SendIcon />,
       label: "Surrender",
       handler: (id: string, note: string) => {
         surrenderEBl.mutate({ id, note });
       },
     },
-    [EBlAllowAction.Accomplish]: {
+    "ACCOMPLISH": {
       icon: <AccomplishIcon />,
       label: "Accomplish",
       handler: (id: string, note: string) => {
         accomplishEBl.mutate({ id, note });
       },
     },
-    [EBlAllowAction.Delete]: {
+    "DELETE": {
       icon: <></>,
       label: "Delete",
       handler: () => null,
@@ -134,7 +139,7 @@ const ActionPanel = ({
     if (dialogState === "confirm") {
       setDialogState("waiting");
       setLoading(true);
-      action && allowActions[action].handler(ebl.bl.id, note);
+      action && allowActions[action].handler(ebl.bl?.id ?? "", note);
     } else {
       setDialogOpen(false);
       router.push("/ebls", { scroll: true });
@@ -143,8 +148,11 @@ const ActionPanel = ({
   }
 
   const handleClick = () => {
-    setDialogOpen(true);
+    if (action === "AMEND") router.push(`/ebls/${ebl.bl?.id}/edit`);
+    else setDialogOpen(true);
   };
+
+  if (isEmpty(ebl.allow_actions ?? [])) return null;
 
   return (
     <>
@@ -152,7 +160,6 @@ const ActionPanel = ({
         <Textarea
           placeholder="Leave notes"
           className="h-[7.5rem]"
-          disabled={disabled}
           value={note}
           onChange={(event) => setNote(event.target.value)}
         />
@@ -160,7 +167,6 @@ const ActionPanel = ({
       <div className="flex w-full items-center justify-end px-[1.875rem]">
         <Button
           className="flex h-[2.75rem] select-none items-center justify-start gap-2.5 rounded-none rounded-l-md bg-[#F86919] px-[1.25rem] text-white hover:bg-[#FF965C] focus-visible:ring-[#F86919]/30 active:bg-[#D24B00] disabled:border-[1px] disabled:border-[#CAD2E0] disabled:bg-[#F1F0F0] disabled:text-disabled"
-          disabled={disabled}
           loading={isLoading}
           onClick={handleClick}
         >
@@ -170,13 +176,12 @@ const ActionPanel = ({
           <DropdownMenuTrigger asChild>
             <Button
               className="flex h-[2.75rem] w-[2.5rem] select-none items-center justify-center rounded-none rounded-r-md bg-[#F86919] px-0 py-0 text-white hover:bg-[#FF965C] focus-visible:ring-0 active:bg-[#D24B00] disabled:border-[1px] disabled:border-[#CAD2E0] disabled:bg-[#F1F0F0] disabled:text-disabled"
-              disabled={disabled}
             >
               <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-[15rem] font-header" align="end">
-            {ebl.allow_actions.map((act) => {
+            {ebl.allow_actions?.map((act) => {
               if (act === action) return null;
               const block = allowActions[act];
               return (
@@ -196,7 +201,8 @@ const ActionPanel = ({
       <EBlConfirmationDialog
         open={dialogOpen}
         state={dialogState}
-        action={action as ActionType}
+        action={action as DialogActionType}
+        nextPartyName={nextPartyName}
         onCancel={handleDialogCanceled}
         onConfirm={handleDialogConfirmed}
       />

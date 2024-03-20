@@ -4,13 +4,12 @@ import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { HblNonNegotiableBadge } from "@/app/_components/common/ebl-badges";
-import CalendarIcon from "@/app/_icons/calendar-icon";
 import LocationIcon from "@/app/_icons/location-icon";
 import PdfIcon from "@/app/_icons/pdf-icon";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { type EBlRecordType } from "@/types/ebl";
-import { getLatestBillOfLading } from "@/lib/utils";
+import { latestBillOfLadingEvent } from "@/lib/ebl";
 
 const FileDetailsLine = ({
   title,
@@ -27,16 +26,16 @@ const FileDetailsLine = ({
   </div>
 );
 
-const getBLContent = (ebl: EBlRecordType) => getLatestBillOfLading(ebl)?.bill_of_lading
-
 const FileDetails = ({ ebl }: { ebl: EBlRecordType }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
+  const event = latestBillOfLadingEvent(ebl)
+  const content = event?.bill_of_lading
   return (
     <section className="flex flex-col items-start rounded-lg border border-solid border-[#DFE4E9] bg-white p-[1.875rem] shadow-lg">
       <div className="flex items-center gap-2.5">
         <div className="grow whitespace-nowrap text-[1.375rem] font-semibold leading-8 text-main">
-          {getBLContent(ebl)?.transportDocumentReference}
+          {content?.transportDocumentReference}
         </div>
         <HblNonNegotiableBadge />
       </div>
@@ -54,25 +53,25 @@ const FileDetails = ({ ebl }: { ebl: EBlRecordType }) => {
           <div className="ml-[3.75rem] flex flex-col items-start text-[.8125rem] leading-[1.125rem]">
             <div className="flex flex-col items-start justify-start gap-[.875rem]">
               <FileDetailsLine title="File Name">
-                <div className="font-semibold text-main">{getLatestBillOfLading(ebl)?.file.name}</div>
+                <div className="font-semibold text-main">{event?.file?.name}</div>
               </FileDetailsLine>
 
               <FileDetailsLine title="File Type">
                 <PdfIcon className="h-[18px] w-[18px]" />
-                <div className="ml-2.5 font-semibold text-main">{getLatestBillOfLading(ebl)?.file.file_type}</div>
+                <div className="ml-2.5 font-semibold text-main">{event?.file?.file_type}</div>
               </FileDetailsLine>
 
               <FileDetailsLine title="Port of Loading">
                 <LocationIcon />
                 <div className="ml-2.5 font-semibold text-main">
-                  {getBLContent(ebl)?.shipmentLocations[0]?.location.locationName}
+                  {content?.shipmentLocations?.[0]?.location?.locationName}
                 </div>
               </FileDetailsLine>
 
               <FileDetailsLine title="Port of Discharge">
                 <LocationIcon />
                 <div className="ml-2.5 font-semibold text-main">
-                  {getBLContent(ebl)?.shipmentLocations[1]?.location.locationName}
+                  {content?.shipmentLocations?.[1]?.location?.locationName}
                 </div>
               </FileDetailsLine>
             </div>

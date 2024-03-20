@@ -1,10 +1,22 @@
-import { type z } from "zod";
-import { EBlRequestSchema } from "./request";
+import { z } from "zod";
+import { EBlRequestSchema, EBlRequestAmendSchema } from "./request";
 
 const EBlFormSchema = EBlRequestSchema.omit({
   authentication_id: true,
 });
 
-type EBlFormType = z.infer<typeof EBlFormSchema>;
+const EBlFormUpdateSchema = EBlFormSchema.extend({
+  ebl_id: z.string(),
+})
 
-export { type EBlFormType, EBlFormSchema }
+const EBlFormAmendSchema = EBlRequestAmendSchema.omit({
+  authentication_id: true,
+}).extend({
+  ebl_id: z.string(),
+})
+
+export {
+  EBlFormSchema,
+  EBlFormUpdateSchema,
+  EBlFormAmendSchema
+}

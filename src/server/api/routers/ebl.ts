@@ -4,10 +4,13 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
   EBlFilter,
   EBlFormSchema,
+  EBlFormUpdateSchema,
+  EBlFormAmendSchema,
   EBlMetadataSchema,
   type EBlRecordListType,
   type EBlRecordType,
-  type EBlRequestType
+  type EBlRequestType,
+  type EBlRequestAmendType,
 } from "@/types/ebl";
 import { z } from "zod";
 
@@ -43,7 +46,7 @@ export const eBlRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const res = await fetch(`${env.BU_SERVER_URL}/ebl?offset=${input.offset}&limit=${input.limit}&status=${input.filter}`, {
+      const res = await fetch(`${env.BU_SERVER_URL}/ebl?offset=${input.offset}&limit=${input.limit}&status=${input.filter}&report=true`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -91,6 +94,56 @@ export const eBlRouter = createTRPCRouter({
         return await res.json() as EBlRecordType
       } else {
         throw new Error(`Failed to create EBL: ${await res.text()}`)
+      }
+    }),
+
+  updateDraft: protectedProcedure
+    .input(EBlFormUpdateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { ebl_id: id, ...rest } = input;
+      const request: EBlRequestType = { ...rest, authentication_id: ctx.session.authentication_id }
+      request.metadata.username = ctx.session.user.name ?? ''
+      getLogger().info('send issue request to Doc Engine', request)
+      const res = await fetch(`${env.BU_SERVER_URL}/ebl/${id}/update`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
+          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
+        },
+        body: JSON.stringify(request),
+        cache: 'no-store'
+      })
+      if (res.status === 200) {
+        return await res.json() as EBlRecordType
+      } else {
+        throw new Error(`Failed to update EBL: ${await res.text()}`)
+      }
+    }),
+
+  amend: protectedProcedure
+    .input(EBlFormAmendSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { ebl_id: id, ...rest } = input;
+      const request: EBlRequestAmendType = { ...rest, authentication_id: ctx.session.authentication_id }
+      request.metadata.username = ctx.session.user.name ?? ''
+      getLogger().info('send issue request to Doc Engine', request)
+      const res = await fetch(`${env.BU_SERVER_URL}/ebl/${id}/amend`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
+          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
+        },
+        body: JSON.stringify(request),
+        cache: 'no-store'
+      })
+      if (res.status === 200) {
+        return await res.json() as EBlRecordType
+      } else {
+        throw new Error(`Failed to update EBL: ${await res.text()}`)
       }
     }),
 

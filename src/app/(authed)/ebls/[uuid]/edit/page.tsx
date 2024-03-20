@@ -2,61 +2,59 @@
 
 import MainSection from "@/app/_components/edit-ebl/main-section";
 import ErrorPage from "@/app/_components/ebl-detail/error-page";
-import { getLatestBillOfLading } from "@/lib/utils";
 import { getLogger } from "@/lib/logger";
 import { api } from "@/trpc/server";
 import { TRPCClientError } from "@trpc/client";
 import { type EBlFormType } from "@/types/ebl";
+import { eblParties, latestBillOfLadingEvent } from "@/lib/ebl";
 
 export default async function Page({ params }: { params: { uuid: string } }) {
   const execution = async () => {
     const ebl = await api.ebl.getByID.query(params.uuid);
     getLogger().info(`Got eBL from Server: ${JSON.stringify(ebl)}`);
 
-    const eblContent = getLatestBillOfLading(ebl)
+    const documentParties = eblParties(ebl, false)
+    const eblEvent = latestBillOfLadingEvent(ebl)
+    const eblContent = eblEvent?.bill_of_lading
     if (!eblContent) {
       throw new TRPCClientError("EBl NOT_FOUND");
     }
 
-    const hash = eblContent.metadata.docHash
-    if (!hash) {
-      throw new TRPCClientError("EBl File Hash NOT_FOUND");
-    }
-
+    const hash = String(eblEvent?.metadata?.docHash)
     const docFile = await api.docFile.findByUuid.query(hash);
-    if (!docFile) {
-      throw new TRPCClientError("docFile NOT_FOUND");
-    }
+    const images = docFile ? await api.docImage.getUrls.query({ docFileId: docFile.id }) : []
 
-    const images = await api.docImage.getUrls.query({ docFileId: docFile.id })
+    // TODO: wait for openAPI documentation to update
+    const polLocation = eblContent?.shipmentLocations?.[0]?.location as { locationName: string, UNLocationCode: string }
+    const podLocation = eblContent?.shipmentLocations?.[1]?.location as { locationName: string, UNLocationCode: string }
     const eblForm: EBlFormType = {
       metadata: {
         username: "",
         docHash: hash,
       },
       file: {
-        name: eblContent?.file.name ?? "",
-        type: eblContent?.file.file_type ?? "",
+        name: eblEvent?.file?.name ?? "",
+        type: eblEvent?.file?.file_type ?? "",
         content: "",
       },
-      bl_number: eblContent?.bill_of_lading.transportDocumentReference ?? "",
-      bl_doc_type: eblContent?.doc_type ?? "HouseBillOfLading",
+      bl_number: eblContent?.transportDocumentReference ?? "",
+      bl_doc_type: eblEvent?.doc_type ?? "HouseBillOfLading",
       to_order: false,
       pol: {
-        locationName: eblContent?.bill_of_lading.shipmentLocations[0]?.location.locationName ?? "",
-        UNLocationCode: eblContent?.bill_of_lading.shipmentLocations[0]?.location.UNLocationCode ?? "",
+        locationName: polLocation?.locationName ?? "",
+        UNLocationCode: polLocation?.UNLocationCode ?? "",
       },
       pod: {
-        locationName: eblContent?.bill_of_lading.shipmentLocations[1]?.location.locationName ?? "",
-        UNLocationCode: eblContent?.bill_of_lading.shipmentLocations[1]?.location.UNLocationCode ?? "",
+        locationName: podLocation?.locationName ?? "",
+        UNLocationCode: podLocation?.UNLocationCode ?? "",
       },
-      shipper: eblContent?.bill_of_lading.shippingInstruction.documentParties[1]?.party.identifyingCodes[0]?.partyCode ?? "",
-      consignee: eblContent?.bill_of_lading.shippingInstruction.documentParties[2]?.party.identifyingCodes[0]?.partyCode ?? "",
-      release_agent: eblContent?.bill_of_lading.shippingInstruction.documentParties[3]?.party.identifyingCodes[0]?.partyCode ?? "",
-      note: eblContent?.note,
+      shipper: documentParties?.shipper ?? "",
+      consignee: documentParties?.consignee ?? "",
+      release_agent: documentParties?.releaser ?? "",
+      note: eblEvent?.note,
       draft: false,
     }
-    return <MainSection ebl={eblForm} images={images} />;
+    return <MainSection eblForm={eblForm} eblRecord={ebl} images={images} />;
   };
 
   return execution().catch((err) => {

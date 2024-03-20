@@ -5,6 +5,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { EBlFilter, type EBlRecordListType } from "@/types/ebl";
 import TableRow from "./table-row";
+import { api } from "@/trpc/server";
 
 const FilterGroupItem = ({
   className,
@@ -130,7 +131,7 @@ const EmptyList = ({ filter }: { filter: EBlFilter | null | undefined }) => {
   );
 };
 
-const EblTable = ({
+const EblTable = async ({
   recordList,
   filter,
 }: {
@@ -139,10 +140,11 @@ const EblTable = ({
 }) => {
   if (recordList.total === 0) return <EmptyList filter={filter} />;
 
+  const platforms = await api.platform.list.query();
   return (
     <div className="text-content flex min-h-[28rem] w-full flex-col justify-start">
-      {recordList.records.map((row, index) => (
-        <TableRow key={index} row={row} filter={filter} />
+      {recordList.records?.map((row, index) => (
+        <TableRow key={index} row={row} filter={filter} platforms={platforms} />
       ))}
     </div>
   );

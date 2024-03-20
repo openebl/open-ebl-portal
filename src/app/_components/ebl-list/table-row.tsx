@@ -7,9 +7,10 @@ import GoalFlagIcon from "@/app/_icons/goal-flag-icon";
 import MailIcon from "@/app/_icons/mail-icon";
 import PrintedIcon from "@/app/_icons/printed-icon";
 import { TimeLabel } from "@/components/ui/time-label";
-import { getLatestBillOfLading } from "@/lib/utils";
+import { currentStatus, getPreviousPartyID, latestBillOfLadingEvent } from "@/lib/ebl";
 import { cn } from "@/lib/utils";
 import { EBlFilter, type EBlRecordType } from "@/types/ebl";
+import { type Platforms } from "@/types/platform";
 import Link from "next/link";
 import React from "react";
 
@@ -95,32 +96,42 @@ const EBlProgressBar = ({ row }: { row: EBlRecordType }) => {
   );
 };
 
-const getBLContent = (row: EBlRecordType) => getLatestBillOfLading(row)?.bill_of_lading
-
 const TableRow = ({
   row,
   filter,
+  platforms,
 }: {
   row: EBlRecordType;
   filter: EBlFilter | null | undefined;
+  platforms: Platforms;
 }) => {
-  const filterType = filter ?? EBlFilter.ACTION_NEEDED
-  const isDraft = getBLContent(row)?.shippingInstruction.documentStatus === "DRFT"
-  const lastEvent = row.bl.events[row.bl.events.length - 1]
-  const isEditable = filterType === EBlFilter.ACTION_NEEDED && (isDraft || lastEvent?.amendment_request != null)
-  const detailLink = isEditable ? `/ebls/${row.bl.id}/edit` : `/ebls/${row.bl.id}`; // TODO: update draft
+  const event = latestBillOfLadingEvent(row);
+  const content = event?.bill_of_lading;
+  const status = currentStatus(row)
+  const isEditable = row.allow_actions?.includes("UPDATE_DRAFT");
+  const detailLink = isEditable ? `/ebls/${row.bl?.id}/edit` : `/ebls/${row.bl?.id}`;
+  let description = ""
+  if (!isEditable) {
+    if (!filter || filter === EBlFilter.ACTION_NEEDED) {
+      description = `From: ${platforms[getPreviousPartyID(row)]?.name}`
+    } else if (filter === EBlFilter.UPCOMING || filter === EBlFilter.SENT) {
+      description = `Current Owner: ${platforms[row.bl?.current_owner ?? ""]?.name}`
+    } else if (filter === EBlFilter.ARCHIVE) {
+      description = status === "ACCOMPLISH" ? "This eBL was accomplished." : "This eBL was printed to paper."
+    }
+  }
   return (
     <Link href={detailLink}>
       <div className="border-b-bolder-light flex w-full items-center justify-center border-b border-solid text-main hover:bg-border-light hover:bg-opacity-20">
-        {(filterType === EBlFilter.ACTION_NEEDED && isDraft) && <DraftStamp />}
-        {(filterType === EBlFilter.UPCOMING || (filterType !== EBlFilter.ARCHIVE && !isDraft)) && <InProgessStamp />}
-        {(filterType === EBlFilter.ARCHIVE && lastEvent?.accomplish) && <CompletedStamp />}
-        {(filterType === EBlFilter.ARCHIVE && lastEvent?.print_to_paper) && <PrintedStamp />}
+        {isEditable && <DraftStamp />}
+        {(!isEditable && status !== "ACCOMPLISH" && status !== "PRINT") && <InProgessStamp />}
+        {status === "ACCOMPLISH" && <CompletedStamp />}
+        {status === "PRINT" && <PrintedStamp />}
 
         <div className="flex w-full flex-col items-stretch py-5 pr-8">
           <span className="flex w-full items-center justify-between gap-5">
             <div className="text-sm font-bold leading-5">
-              {getBLContent(row)?.transportDocumentReference}
+              {content?.transportDocumentReference}
             </div>
 
             <EBlProgressBar row={row} />
@@ -128,15 +139,15 @@ const TableRow = ({
           <span className="mt-[5px] flex w-full items-center justify-between gap-5">
             <div className="flex gap-2 pr-2">
               <HblNonNegotiableBadge />
-              <FourPBadge title={`POL: ${getBLContent(row)?.shipmentLocations[0]?.location.locationName}`} />
-              <FourPBadge title={`POD: ${getBLContent(row)?.shipmentLocations[1]?.location.locationName}`} />
+              <FourPBadge title={`POL: ${content?.shipmentLocations?.[0]?.location.locationName}`} />
+              <FourPBadge title={`POD: ${content?.shipmentLocations?.[1]?.location.locationName}`} />
               <div className="flex items-center gap-x-1 text-xs font-normal">
-                {'TODO: sender'}
+                {description}
               </div>
             </div>
             <div className="my-auto text-right text-xs leading-5">
               <span>Last updated on </span>
-              <TimeLabel time={getLatestBillOfLading(row)?.created_at ?? ''} formatStr={'MMM d'} />
+              <TimeLabel time={event?.created_at ?? ''} formatStr={'MMM d'} />
             </div>
           </span>
         </div>

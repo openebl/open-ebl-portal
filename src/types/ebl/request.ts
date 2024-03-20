@@ -27,3 +27,10 @@ export const EBlRequestSchema = z.object({
   note: z.string().max(1500).optional().nullable(),
   draft: z.boolean(),
 });
+
+export const EBlRequestAmendSchema = EBlRequestSchema.omit({
+  shipper: true,
+  consignee: true,
+  release_agent: true,
+  draft: true,
+});

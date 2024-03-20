@@ -1,8 +1,7 @@
-import { type components, type external } from "@/types/bu-scheme";
+import { type external } from "@/types/bu-scheme";
+import type { EBlAllowAction, EBlRecordType, EBlEventType } from "@/types/ebl";
 import { findLast, last } from "remeda";
 
-type EBlRecordType = components["schemas"]["BillOfLadingRecord"];
-type EBlEventType = components["schemas"]["BillOfLadingEvent"];
 type PartyType =
   external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["party"];
 
@@ -31,7 +30,7 @@ export function lastEvent(record: EBlRecordType) {
   return last(record.bl?.events);
 }
 
-export function latestBillOfLading(record: EBlRecordType) {
+export function latestBillOfLadingEvent(record: EBlRecordType) {
   if (!record.bl?.events) return undefined;
 
   // find the last ISSUED event
@@ -40,30 +39,40 @@ export function latestBillOfLading(record: EBlRecordType) {
     (event) => !!event.bill_of_lading?.bill_of_lading?.shippingInstruction,
   );
 
-  return event?.bill_of_lading?.bill_of_lading;
+  return event?.bill_of_lading;
+}
+
+export function latestBillOfLading(record: EBlRecordType) {
+  return latestBillOfLadingEvent(record)?.bill_of_lading;
 }
 
 export function currentStatus(record: EBlRecordType): EBlStatusType {
   if (!record.bl?.events) return "UNKNOWN";
 
-  const lastEvent = last(record.bl?.events);
-  return statusFilters.find(([pred]) => pred(lastEvent))?.[1] ?? "UNKNOWN";
+  const lastEBlEvent = lastEvent(record);
+  return statusFilters.find(([pred]) => pred(lastEBlEvent))?.[1] ?? "UNKNOWN";
 }
 
 export function eblParties(
   record: EBlRecordType,
+  excludeDraft = true
 ): EBlPartiesType | undefined {
   if (!record?.bl?.events) return undefined;
 
-  // find the last ISSUED event
-  const issueEvent = findLast(
-    record.bl.events,
-    (event) =>
-      event.bill_of_lading?.bill_of_lading?.shippingInstruction
-        ?.documentStatus === "ISSU",
-  );
+  let billOfLadingEvent: EBlEventType["bill_of_lading"] | undefined;
+  if (excludeDraft) {
+    // find the last ISSUED event
+    billOfLadingEvent = findLast(
+      record.bl.events,
+      (event) =>
+        event.bill_of_lading?.bill_of_lading?.shippingInstruction
+          ?.documentStatus === "ISSU",
+    )?.bill_of_lading;
+  } else {
+    billOfLadingEvent = latestBillOfLadingEvent(record)
+  }
 
-  return issueEvent?.bill_of_lading?.bill_of_lading?.shippingInstruction?.documentParties?.reduce(
+  return billOfLadingEvent?.bill_of_lading?.shippingInstruction?.documentParties?.reduce(
     (acc, party) => {
       if (!party.partyFunction) return acc;
 
@@ -72,6 +81,49 @@ export function eblParties(
     },
     {} as EBlPartiesType,
   );
+}
+
+export const getPreviousPartyID = (record: EBlRecordType): string => {
+  const lastEBlEvent = lastEvent(record);
+  if (lastEBlEvent?.transfer) return lastEBlEvent?.transfer?.transfer_by ?? "";
+  if (lastEBlEvent?.surrender) return lastEBlEvent?.surrender?.surrender_by ?? "";
+  if (lastEBlEvent?.return) return lastEBlEvent?.return?.return_by ?? "";
+  if (lastEBlEvent?.amendment_request) return lastEBlEvent?.amendment_request?.request_by ?? "";
+  return "";
+}
+
+export const getNextPartyIDByAction = (record: EBlRecordType, action: EBlAllowAction): string => {
+  const documentParties = eblParties(record)
+  const lastEBlEvent = lastEvent(record);
+  const issuerID = documentParties?.issuer ?? "";
+  const consigneeID = documentParties?.consignee ?? "";
+  const releaseAgentID = documentParties?.releaser ?? "";
+  if (action === "TRANSFER") return consigneeID;
+  if (action === "SURRENDER") return releaseAgentID;
+  if (action === "REQUEST_AMEND") return issuerID;
+  if (action === "AMEND" && lastEBlEvent?.amendment_request) return lastEBlEvent?.amendment_request?.request_by ?? "";
+  if (action === "RETURN") { // to previous owner
+    let previousOwnerID = ""
+    if (lastEBlEvent?.transfer) previousOwnerID = lastEBlEvent?.transfer?.transfer_by ?? "";
+    else if (lastEBlEvent?.surrender) previousOwnerID = lastEBlEvent?.surrender?.surrender_by ?? "";
+    else if (lastEBlEvent?.amendment_request) previousOwnerID = lastEBlEvent?.amendment_request?.request_by ?? "";
+    return previousOwnerID;
+  }
+  return ""
+}
+
+export const getNextPartyIDByCurrentStatus = (record: EBlRecordType, status: EBlStatusType): string => {
+  const documentParties = eblParties(record)
+  const lastEBlEvent = lastEvent(record);
+  const shipperID = documentParties?.shipper ?? "";
+  const consigneeID = documentParties?.consignee ?? "";
+  const releaseAgentID = documentParties?.releaser ?? "";
+  if (status === "TRANSFER") {
+    return lastEBlEvent?.transfer?.transfer_to === shipperID ? consigneeID : releaseAgentID;
+  }
+  if (status === "REQUEST_AMEND") return lastEBlEvent?.amendment_request?.request_by ?? "";
+  if (status === "RETURN") return lastEBlEvent?.return?.return_by ?? "";
+  return ""
 }
 
 const statusFilters: [(e?: EBlEventType) => boolean, EBlStatusType][] = [

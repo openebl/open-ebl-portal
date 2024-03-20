@@ -1124,7 +1124,12 @@ export interface components {
       /** @description File name of the uploaded document */
       name?: string;
       /** @description MIME type of the uploaded document */
-      type?: string;
+      file_type?: string;
+      /**
+       * Format: date-time
+       * @description When the document was created.
+       */
+      created_date?: string;
     };
     /** @description Metadata of the uploaded document */
     File: {
@@ -1370,7 +1375,7 @@ export interface components {
       /** @description The bill of lading number */
       bl_number: string;
       /** @description The type of the bill of lading document */
-      bl_doc_type?: components["schemas"]["BillOfLadingDocumentType"];
+      bl_doc_type: components["schemas"]["BillOfLadingDocumentType"];
       /** @description Indicates if the request is to order. */
       to_order?: boolean;
       /** @description The port of loading. It's optional when draft is true. */
@@ -1434,14 +1439,16 @@ export interface components {
       authentication_id: string;
       /** @description The file associated with the request */
       file: components["schemas"]["File"];
-      /** @description B/L number */
-      number: string;
-      document_type: components["schemas"]["BillOfLadingDocumentType"];
-      bl_type: components["schemas"]["BillOfLadingType"];
-      /** @description Port of loading */
-      pol: string;
-      /** @description Port of discharge */
-      pod: string;
+      /** @description The bill of lading number */
+      bl_number: string;
+      /** @description The type of the bill of lading document */
+      bl_doc_type: components["schemas"]["BillOfLadingDocumentType"];
+      /** @description Indicates if the request is to order */
+      to_order?: boolean;
+      /** @description The port of loading. It's optional when draft is true. */
+      pol: components["schemas"]["Location"];
+      /** @description The port of discharge. It's optional when draft is true. */
+      pod: components["schemas"]["Location"];
       /**
        * Format: date-time
        * @description Estimate time of arrival

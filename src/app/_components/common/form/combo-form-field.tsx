@@ -21,6 +21,7 @@ type ComboboxFieldProps<
   required?: boolean;
   control: Control<TFieldValues>;
   name: TName;
+  disabled?: boolean;
   placeholder?: string;
   searchPlaceholder?: string;
   noResultsMsg?: string;
@@ -45,6 +46,7 @@ const ComboboxField = <
   required,
   control,
   name,
+  disabled = false,
   placeholder = "Select",
   searchPlaceholder = "Type in Keyword",
   noResultsMsg = "No results found",
@@ -75,6 +77,7 @@ const ComboboxField = <
             onSelect={field.onChange}
             items={renderItems}
             loading={loading}
+            disabled={disabled}
             placeholder={placeholder}
             searchPlaceholder={searchPlaceholder}
             noResultsMsg={noResultsMsg}

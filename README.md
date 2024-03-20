@@ -61,7 +61,7 @@ In the .env file
 
 * S3_BUCKET: bluex-ebl-static-files-dev
 
-* EMAIL_SERVER / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY: login to AWS EKS `devbxebl` pod and `cat /vault/secrets/config`
+* EMAIL_SERVER / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY: login to AWS EKS `devbxebl` pod and `cat /vault/secrets/config`, EMAIL_SERVER username is in the pod's environment variable.
 
 * BU_SERVER_API_KEY: ask Wesley to provide bu server api key
 
