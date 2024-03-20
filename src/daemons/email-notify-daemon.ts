@@ -5,37 +5,61 @@ import { currentStatus } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
 import { sleep } from "@/lib/utils";
 import { db } from "@/server/db";
+import { SmtpEmailService } from "@/server/services/email-service";
 import { type components, type paths } from "@/types/bu-scheme";
 import { Prisma, type EBlStash, type Platform } from "@prisma/client";
 import { performEmailNotifiers } from "./email-notifiers";
-import { SmtpEmailService } from "@/server/services/email-service";
 
 type EBlRecordType = components["schemas"]["BillOfLadingRecord"];
+
+const logger = getLogger();
 
 dotenv.config();
 import("@/env.js")
   .then(({ env }) => {
-    const logger = getLogger();
+    logger.info("Email Notify Daemon started");
 
-    const emailNotifyDaemon = async () => {
-      logger.info("Email Notify Daemon started");
+    emailNotifyDaemon({
+      serverUrl: env.BU_SERVER_URL,
+      serverApiKey: env.BU_SERVER_API_KEY,
+      notifierPollInterval: env.NOTIFIER_POLL_INTERVAL,
+    }).catch((err) => logger.error(`Email notify daemon error: ${err}`));
 
-      for await (const platform of fetchPlatforms()) {
-        logger.info(`Processing platform ${platform.id}`);
-        for await (const chunk of fetchEBlInChunk({
-          buUrl: env.BU_SERVER_URL,
-          buKey: env.BU_SERVER_API_KEY,
-          platform})) {
-          const stashes = await latestEBlStashesByPlatformAndEBl(
-            chunk,
-            platform,
-          );
+    return null;
+  })
+  .catch((err) => logger.error(`Failed to start email notify daemon: ${err}`));
 
-          for (const rec of chunk) {
-            if (!rec?.bl?.id) continue;
+type DaemonArgs = {
+  serverUrl: string;
+  serverApiKey: string;
+  notifierPollInterval: number;
+};
 
-            const stash = stashes[rec.bl.id];
-            const status = currentStatus(rec);
+async function emailNotifyDaemon(args: DaemonArgs) {
+  while (true) {
+    await pollingEBls(args).catch((err) =>
+      logger.error(`Polling EBls error: ${err}`),
+    );
+    await sleep(args.notifierPollInterval);
+  }
+}
+
+async function pollingEBls(args: DaemonArgs) {
+  logger.info("Polling EBls");
+  for await (const platform of fetchPlatforms()) {
+    logger.info(`Processing platform ${platform.id}`);
+    for await (const chunk of fetchEBlInChunk({
+      buUrl: args.serverUrl,
+      buKey: args.serverApiKey,
+      platform,
+    })) {
+      const stashes = await latestEBlStashesByPlatformAndEBl(chunk, platform);
+
+      for (const rec of chunk) {
+        if (!rec?.bl?.id) continue;
+
+        const stash = stashes[rec.bl.id];
+        const status = currentStatus(rec);
 
         // check if bl status or owner has changed
         if (
@@ -45,21 +69,21 @@ import("@/env.js")
           continue; // no change. ignore it
         }
 
-            // process changed eBl through email notifiers
-            logger.info(
-              `Processing changed eBl ${rec.bl?.id}. status: ${stash?.status ?? "-"} => ${status}, owner: ${stash?.currentOwner ?? "-"} => ${rec.bl?.current_owner ?? ""}`,
-            );
+        // process changed eBl through email notifiers
+        logger.info(
+          `Processing changed eBl ${rec.bl?.id}. status: ${stash?.status ?? "-"} => ${status}, owner: ${stash?.currentOwner ?? "-"} => ${rec.bl?.current_owner ?? ""}`,
+        );
 
-            // create a new stash record
-            const newStash = await db.eBlStash.create({
-              data: {
-                eBlId: rec.bl.id,
-                platformId: platform.id,
-                status,
-                version: rec.bl.version ?? 0,
-                currentOwner: rec.bl.current_owner ?? "",
-              },
-            });
+        // create a new stash record
+        const newStash = await db.eBlStash.create({
+          data: {
+            eBlId: rec.bl.id,
+            platformId: platform.id,
+            status,
+            version: rec.bl.version ?? 0,
+            currentOwner: rec.bl.current_owner ?? "",
+          },
+        });
 
         await performEmailNotifiers({
           db,
@@ -72,15 +96,7 @@ import("@/env.js")
       }
     }
   }
-
-      await sleep(env.NOTIFIER_POLL_INTERVAL);
-    };
-
-    emailNotifyDaemon().catch(console.error);
-
-    return null;
-  })
-  .catch(console.error);
+}
 
 async function latestEBlStashesByPlatformAndEBl(
   chunk: EBlRecordType[],
@@ -125,7 +141,11 @@ async function* fetchPlatforms() {
   }
 }
 
-async function* fetchEBlInChunk(args:{buUrl:string, buKey:string, platform: Platform}) {
+async function* fetchEBlInChunk(args: {
+  buUrl: string;
+  buKey: string;
+  platform: Platform;
+}) {
   let offset = 0;
   const limit = 50;
   const client = createClient<paths>({ baseUrl: args.buUrl });
