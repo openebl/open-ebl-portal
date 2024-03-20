@@ -30,7 +30,7 @@ export const env = createEnv({
     S3_BUCKET: z.string().min(1),
     BU_SERVER_URL: z.string().url(),
     BU_SERVER_API_KEY: z.string().min(1),
-    NOTIFIER_POLL_INTERVAL: z.number().default(1000 * 60 * 5),
+    NOTIFIER_POLL_INTERVAL: z.coerce.number().default(1000 * 60 * 5),
     PORTAL_URL: z.string().min(1),
   },
 
