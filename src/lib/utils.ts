@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
 import crypto from "crypto";
-import { readFileSync } from "fs";
 import { twMerge } from "tailwind-merge";
 
 import { type EBlRecordType } from "@/types/ebl";
@@ -56,12 +55,4 @@ export const platformsToDropdownOptionList = (platforms: Platforms | null | unde
     label: platform.name,
     value: id,
   }));
-}
-
-export const imageFileToBase64DataUrl = (filename: string) => {
-  const contents = readFileSync(filename)
-  const b64 = contents.toString('base64')
-  const type = 'image/png'
-
-  return `data:${type};base64,${b64}`
 }

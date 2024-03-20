@@ -1,5 +1,5 @@
-import { imageFileToBase64DataUrl } from "@/lib/utils";
 import AccomplishNotification from "./accomplish-notification";
+import { imageFileToBase64DataUrl } from "./helper";
 
 export default function TransferNotificationEmailSample() {
   return (

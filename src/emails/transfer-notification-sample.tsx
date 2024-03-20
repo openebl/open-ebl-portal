@@ -1,4 +1,4 @@
-import { imageFileToBase64DataUrl } from "@/lib/utils";
+import { imageFileToBase64DataUrl } from "./helper";
 import TransferNotification from "./transfer-notification";
 
 export default function TransferNotificationEmailSample() {

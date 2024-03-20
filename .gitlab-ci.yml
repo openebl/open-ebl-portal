@@ -86,6 +86,16 @@ unittest:
   rules:
     - !reference [ .default_rules, rules ]
 
+try_build:
+  stage: test
+  image:
+    name: $AWS_ECR_REGISTRY/aws-cli-docker
+    entrypoint: [""]
+  script:
+    - docker build .
+  rules:
+    - !reference [ .default_rules, rules ]
+
 build_image:
   stage: package
   image:
