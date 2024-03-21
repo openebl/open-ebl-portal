@@ -11,17 +11,17 @@ import { type EmailNotifier } from ".";
 import {
   activePlatformUsers,
   sendStandardNotification,
-  touchEmailNotification
+  touchEmailNotification,
 } from "./utils";
 
-export const accomplishEmailNotifier: EmailNotifier = async ({
+export const returnEmailNotifier: EmailNotifier = async ({
   db,
   service,
   platform,
   rec,
   newStash,
 }) => {
-  if (currentStatus(rec) !== "ACCOMPLISH") {
+  if (currentStatus(rec) !== "RETURN") {
     return;
   }
 
@@ -35,12 +35,17 @@ export const accomplishEmailNotifier: EmailNotifier = async ({
     return;
   }
 
-  getLogger().info(`Send accomplished email to platform ${platform.id} users`);
+  // check if the platform is the current owner of the eBl
+  if (platform.platformId !== rec.bl?.current_owner) {
+    return;
+  }
 
-  const notificationName = "accomplished";
+  getLogger().info(`Send returned email to platform ${platform.id} users`);
+
+  const notificationName = "returned";
   const event = lastEvent(rec);
   const latestBl = latestBillOfLading(rec);
-  const sender = platforms[event?.accomplish?.accomplish_by ?? ""]?.name ?? "";
+  const sender = platforms[event?.return?.return_by ?? ""]?.name ?? "";
 
   await Promise.all([
     touchEmailNotification({
@@ -53,11 +58,11 @@ export const accomplishEmailNotifier: EmailNotifier = async ({
       template: notificationName,
       service,
       receivers: (await activePlatformUsers(db, platform.id)) ?? [],
-      subject: `${sender} has accomplished eBL ${latestBl?.transportDocumentReference}`,
+      subject: `${sender} has returned eBL ${latestBl?.transportDocumentReference} to you`,
       companyName: platform.name,
       sender,
       eBlNo: latestBl?.transportDocumentReference ?? "",
-      note: event?.accomplish?.note ?? "",
+      note: event?.return?.note ?? "",
       url: new URL(`/ebls/${rec.bl?.id}`, env.PORTAL_URL).toString(),
     }),
   ]);

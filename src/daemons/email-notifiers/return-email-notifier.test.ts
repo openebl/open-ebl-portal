@@ -1,17 +1,18 @@
 import { describe } from "vitest";
 
 import {
-  type TestDbType,
   testWithDb,
+  type TestDbType,
 } from "@/test/integration/fixtures/db-fixtures";
-import { accomplishedEBlRecord } from "@/test/integration/fixtures/test-accomplished-ebl";
+import { returnedEBlRecord } from "@/test/integration/fixtures/test-returned-ebl";
 import { useTestEmailService } from "@/test/integration/helpers/test-email";
-import { accomplishEmailNotifier } from "./accomplish-email-notifier";
+import { returnEmailNotifier } from "./return-email-notifier";
 
 describe.concurrent("Email notification", () => {
-  describe("Send accomplished notification", () => {
+  describe("Send returned notification", () => {
     const eBlId = "d571ec58-2a50-4708-9eeb-43e276f08065";
-    const currentDid = "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614";
+    const currentDid = "did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9";
+    const anotherDid = "did:openebl:0158341d-5c6b-4121-bfe4-535c7606bbd5";
 
     const createPlatformAndUsers = async (db: TestDbType, did: string) => {
       const platform = await db.platform.create({
@@ -43,14 +44,14 @@ describe.concurrent("Email notification", () => {
         data: {
           eBlId: eBlId,
           platformId,
-          status: "ACCOMPLISH",
+          status: "RETURN",
           version: 6,
           currentOwner: did,
         },
       });
 
     testWithDb(
-      "when eBL's current owner is the given platform, it should send accomplished email to the platform users",
+      "when eBL's current owner is the given platform, it should send returned email to the platform users",
       async ({ expect, db }) => {
         const { emailService, watcher } = useTestEmailService();
         const { platform } = await createPlatformAndUsers(db, currentDid);
@@ -59,17 +60,17 @@ describe.concurrent("Email notification", () => {
           platform.id,
           currentDid,
         );
-        await accomplishEmailNotifier({
+        await returnEmailNotifier({
           db,
           service: emailService,
           platform,
-          rec: accomplishedEBlRecord,
+          rec: returnedEBlRecord,
           newStash,
         });
 
         expect(watcher).toHaveLength(1);
         expect(watcher[0]?.subject).toEqual(
-          "A Factory Co., Ltd has accomplished eBL BL-001",
+          "A Factory Co., Ltd has returned eBL BL-001 to you",
         );
         expect(watcher[0]?.to).toEqual([
           {
@@ -82,10 +83,7 @@ describe.concurrent("Email notification", () => {
           },
         ]);
         expect(watcher[0]?.html).toContain(
-          "A Factory Co., Ltd has accomplished eBL No. <strong>BL-001</strong>",
-        );
-        expect(watcher[0]?.html).toContain(
-          `<strong>accomplished by XXX</strong>`,
+          "A Factory Co., Ltd has returned eBL <strong>BL-001</strong> to you.",
         );
         expect(watcher[0]?.attachments).toEqual([
           {
@@ -96,13 +94,13 @@ describe.concurrent("Email notification", () => {
           {
             cid: "header",
             contentType: "image/png",
-            path: "./public/email-accomplished.png",
+            path: "./public/email-returned.png",
           },
         ]);
 
         expect(
           await db.eBlNotification.count({
-            where: { name: "accomplished", eBlStashId: newStash.id },
+            where: { name: "returned", eBlStashId: newStash.id },
           }),
         ).toEqual(1);
       },
@@ -120,60 +118,26 @@ describe.concurrent("Email notification", () => {
           platform.id,
           currentDid,
         );
-        await accomplishEmailNotifier({
+        await returnEmailNotifier({
           db,
           service: emailService,
           platform,
-          rec: accomplishedEBlRecord,
+          rec: returnedEBlRecord,
           newStash,
         });
 
         expect(watcher).toHaveLength(0);
         expect(
           await db.eBlNotification.count({
-            where: { name: "accomplished", eBlStashId: newStash.id },
+            where: { name: "returned", eBlStashId: newStash.id },
           }),
         ).toEqual(1);
       },
     );
 
-    [
-      "did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9",
-      "did:openebl:0158341d-5c6b-4121-bfe4-535c7606bbd5",
-      "did:openebl:66c71465-3d0b-43d8-9e1b-c88c7a7634ca",
-    ].forEach((did) => {
-      testWithDb(
-        "when eBL's issuer, shipper, consignee, or releaser is the given platform, it should sending email",
-        async ({ expect, db }) => {
-          const { emailService, watcher } = useTestEmailService();
-          const { platform } = await createPlatformAndUsers(db, did);
-          const newStash = await createTransferEBlStash(db, platform.id, did);
-          await accomplishEmailNotifier({
-            db,
-            service: emailService,
-            platform,
-            rec: accomplishedEBlRecord,
-            newStash,
-          });
-
-          expect(watcher).toHaveLength(1);
-          expect(
-            await db.eBlNotification.count({
-              where: { name: "accomplished", eBlStashId: newStash.id },
-            }),
-          ).toEqual(1);
-            expect(watcher[0]?.subject).toEqual(
-            "A Factory Co., Ltd has accomplished eBL BL-001",
-          );
-          expect(watcher[0]?.html).toContain("Hi Test Company,");
-        },
-      );
-    });
-
     testWithDb(
-      "when given platform is not the participants of the eBL, it should skip sending email",
+      "when eBL's current owner is NOT the given platform, it should skip sending email",
       async ({ expect, db }) => {
-        const anotherDid = "did:openebl:66c71465-3d0b-43d8-9e1b-xxxxxxxx"
         const { emailService, watcher } = useTestEmailService();
         const { platform } = await createPlatformAndUsers(db, anotherDid);
         const newStash = await createTransferEBlStash(
@@ -181,20 +145,15 @@ describe.concurrent("Email notification", () => {
           platform.id,
           currentDid,
         );
-        await accomplishEmailNotifier({
+        await returnEmailNotifier({
           db,
           service: emailService,
           platform,
-          rec: accomplishedEBlRecord,
+          rec: returnedEBlRecord,
           newStash,
         });
 
         expect(watcher).toHaveLength(0);
-        expect(
-          await db.eBlNotification.count({
-            where: { name: "accomplished", eBlStashId: newStash.id },
-          }),
-        ).toEqual(0);
       },
     );
   });

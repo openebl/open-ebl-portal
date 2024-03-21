@@ -3,10 +3,13 @@
 //
 
 import createClient from "openapi-fetch";
+import dotenv from "dotenv";
 
 import { currentStatus, eblParties } from "@/lib/ebl";
 import { type paths } from "@/types/bu-scheme";
 import { Command } from "commander";
+
+dotenv.config();
 const { env } = await import("@/env.js");
 
 export default function command(command: Command) {

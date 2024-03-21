@@ -136,6 +136,7 @@ export const transferredEBlRecord: components["schemas"]["BillOfLadingRecord"] =
             transfer_by: "did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9",
             transfer_to: "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614",
             transfer_at: "2024-03-13T02:51:49Z",
+            note: "transferred by XXX",
           },
         },
       ],

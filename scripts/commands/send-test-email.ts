@@ -1,15 +1,17 @@
 //
-// // scripts to list ebls from bu server. this is mainly for testing purposes
+// scripts to list ebls from bu server. this is mainly for testing purposes
 //
 
 import { render } from "@react-email/render";
 import { type Command } from "commander";
+import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 
 import AccomplishNotification from "@/emails/accomplish-notification";
 import TransferNotification from "@/emails/transfer-notification";
 import { type CommonEmailProps } from "@/emails/types";
 
+dotenv.config();
 const { env } = await import("@/env.js");
 
 export default function command(command: Command) {

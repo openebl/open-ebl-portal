@@ -85,6 +85,10 @@ describe.concurrent("Email notification", () => {
         expect(watcher[0]?.html).toContain(
           "Issuer Agent A, LTD has transferred eBL <strong>BL-001</strong> to your company.",
         );
+        expect(watcher[0]?.html).toContain(
+          `<strong>transferred by XXX</strong>`,
+        );
+
         expect(watcher[0]?.attachments).toEqual([
           {
             cid: "bxlogo",

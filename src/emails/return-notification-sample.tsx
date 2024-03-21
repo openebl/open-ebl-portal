@@ -1,10 +1,10 @@
-import AccomplishNotification from "./accomplish-notification";
 import { imageFileToBase64DataUrl } from "./helper";
+import ReturnNotification from "./return-notification";
 
-export default function AccomplishNotificationEmailSample() {
+export default function ReturnNotificationEmailSample() {
   return (
-    <AccomplishNotification
-      headerUrl={imageFileToBase64DataUrl("./public/email-accomplished.png")}
+    <ReturnNotification
+      headerUrl={imageFileToBase64DataUrl("./public/email-returned.png")}
       logoUrl={imageFileToBase64DataUrl("./public/bxwlogo.png")}
       companyName="BlueX"
       sender="DEF Forwarder"

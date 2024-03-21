@@ -142,6 +142,7 @@ export const accomplishedEBlRecord: components["schemas"]["BillOfLadingRecord"] 
           accomplish: {
             accomplish_by: "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614",
             accomplish_at: "2024-03-13T12:51:49Z",
+            note: "accomplished by XXX",
           },
         },
       ],

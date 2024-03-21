@@ -12,6 +12,8 @@ const vitestConfig = ({ mode }: { mode: string }) => {
       alias: {
         '@/': fileURLToPath(new URL('./src/', import.meta.url))
       },
+      maxWorkers: 4,
+      minWorkers: 2,
     },
   });
 };
