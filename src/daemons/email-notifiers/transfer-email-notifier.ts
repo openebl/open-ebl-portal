@@ -37,7 +37,7 @@ export const transferEmailNotifier: EmailNotifier = async ({
       sender,
       eBlNo: latestBl?.transportDocumentReference ?? "",
       note: event?.transfer?.note ?? "",
-      viewEblLink: new URL(`/ebl/${rec.bl?.id}`, env.PORTAL_URL).toString(),
+      viewEblLink: new URL(`/ebls/${rec.bl?.id}`, env.PORTAL_URL).toString(),
     }),
   );
 

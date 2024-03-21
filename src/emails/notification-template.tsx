@@ -67,7 +67,9 @@ export function NotificationTemplate({
       </Section>
 
       <Section style={{ width: "100%", maxWidth: "600px", padding: "0", marginTop: '40px', marginBottom: '20px' }}>
-        {headerUrl && <Img alt="" src={headerUrl} style={{ margin: "0 auto"}} />}
+        <Column align="center">
+          {headerUrl && <Img alt="" src={headerUrl} style={{ margin: "0 auto"}} />}
+        </Column>
       </Section>
 
       <Container

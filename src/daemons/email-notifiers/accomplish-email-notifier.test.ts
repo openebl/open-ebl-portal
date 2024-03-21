@@ -12,7 +12,6 @@ describe.concurrent("Email notification", () => {
   describe("Send accomplished notification", () => {
     const eBlId = "d571ec58-2a50-4708-9eeb-43e276f08065";
     const currentDid = "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614";
-    const anotherDid = "did:openebl:0158341d-5c6b-4121-bfe4-535c7606bbd5";
 
     const createPlatformAndUsers = async (db: TestDbType, did: string) => {
       const platform = await db.platform.create({
@@ -136,14 +135,14 @@ describe.concurrent("Email notification", () => {
     );
 
     testWithDb(
-      "when eBL's current owner is NOT the given platform, it should skip sending email",
+      "when eBL's issuer is the given platform, it should sending email",
       async ({ expect, db }) => {
         const { emailService, watcher } = useTestEmailService();
-        const { platform } = await createPlatformAndUsers(db, anotherDid);
+        const { platform } = await createPlatformAndUsers(db, 'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9');
         const newStash = await createTransferEBlStash(
           db,
           platform.id,
-          currentDid,
+          'did:openebl:3993ace7-eb6c-4a1f-bed8-121643a278c9',
         );
         await accomplishEmailNotifier({
           db,
@@ -153,7 +152,13 @@ describe.concurrent("Email notification", () => {
           newStash,
         });
 
-        expect(watcher).toHaveLength(0);
+        expect(watcher).toHaveLength(1);
+        expect(watcher[0]?.subject).toEqual(
+          "A Factory Co., Ltd has accomplished eBL BL-001",
+        );
+        expect(watcher[0]?.html).toContain(
+          "Hi Test Company,",
+        );
       },
     );
   });

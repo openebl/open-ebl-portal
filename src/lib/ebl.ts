@@ -46,7 +46,7 @@ export function currentStatus(record: EBlRecordType): EBlStatusType {
   return statusFilters.find(([pred]) => pred(lastEvent))?.[1] ?? "UNKNOWN";
 }
 
-export function extractParties(
+export function eblParties(
   record: EBlRecordType,
 ): EBlPartiesType | undefined {
   if (!record?.bl?.events) return undefined;

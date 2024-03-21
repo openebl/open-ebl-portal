@@ -1,19 +1,11 @@
 import React from "react";
 import { Column, Row, Text } from "@react-email/components";
+
 import { ActionButton } from "./components";
 import { NotificationTemplate } from "./notification-template";
+import { type CommonEmailProps } from "./types";
 
-interface EmailProps {
-  headerUrl: string;
-  logoUrl: string;
-  companyName: string;
-  sender: string;
-  eBlNo: string;
-  note: string;
-  viewEblLink: string;
-}
-
-export default function AccomplishNotification(props: EmailProps) {
+export default function AccomplishNotification(props: CommonEmailProps) {
   return (
     <NotificationTemplate
       headerUrl={props.headerUrl}
@@ -38,13 +30,7 @@ export default function AccomplishNotification(props: EmailProps) {
         </Text>
       </Row>
       <Row>
-        <Column
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
+        <Column align="center" style={{ margin: "0" }}>
           <ActionButton href={props.viewEblLink}>View eBL</ActionButton>
         </Column>
       </Row>

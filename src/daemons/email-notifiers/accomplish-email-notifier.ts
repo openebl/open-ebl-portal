@@ -1,6 +1,6 @@
 import AccomplishNotification from "@/emails/accomplish-notification";
 import { env } from "@/env";
-import { currentStatus, lastEvent, latestBillOfLading } from "@/lib/ebl";
+import { currentStatus, eblParties, lastEvent, latestBillOfLading } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
 import { platforms } from "@/lib/platforms";
 import { render } from "@react-email/render";
@@ -18,10 +18,12 @@ export const accomplishEmailNotifier: EmailNotifier = async ({
     return;
   }
 
-  // check if the platform is the current owner of the eBl
-  if (platform.platformId !== rec.bl?.current_owner) {
+  // check if the platform is participated in the eBl
+  const parties = eblParties(rec)
+  if (!platform.platformId || !parties || !Object.values(parties).includes(platform.platformId)) {
     return;
   }
+
   getLogger().info(`Send accomplished email to platform ${platform.id} users`);
 
   const event = lastEvent(rec);
@@ -36,8 +38,8 @@ export const accomplishEmailNotifier: EmailNotifier = async ({
       companyName: platform.name,
       sender,
       eBlNo: latestBl?.transportDocumentReference ?? "",
-      note: event?.transfer?.note ?? "",
-      viewEblLink: new URL(`/ebl/${rec.bl?.id}`, env.PORTAL_URL).toString(),
+      note: event?.accomplish?.note ?? "",
+      viewEblLink: new URL(`/ebls/${rec.bl?.id}`, env.PORTAL_URL).toString(),
     }),
   );
 

@@ -1,19 +1,11 @@
 import React from "react";
 import { Column, Row, Text } from "@react-email/components";
+
 import { NotificationTemplate } from "./notification-template";
 import { ActionButton } from "./components";
+import { type CommonEmailProps } from "./types";
 
-interface EmailProps {
-  headerUrl: string;
-  logoUrl: string;
-  companyName: string;
-  sender: string;
-  eBlNo: string;
-  note: string;
-  viewEblLink: string;
-}
-
-export default function TransferNotification(props: EmailProps) {
+export default function TransferNotification(props: CommonEmailProps) {
   return (
     <NotificationTemplate
       headerUrl={props.headerUrl}
@@ -39,13 +31,7 @@ export default function TransferNotification(props: EmailProps) {
         </Text>
       </Row>
       <Row>
-        <Column
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
+        <Column align="center" style={{ margin: "0" }}>
           <ActionButton href={props.viewEblLink}>View eBL</ActionButton>
         </Column>
       </Row>
