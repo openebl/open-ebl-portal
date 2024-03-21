@@ -13,6 +13,7 @@ export async function spinUpTestPrisma<R>(
 
     const url = new URL(env.DATABASE_URL);
     url.searchParams.set("schema", schemaName);
+    url.searchParams.set("connection_limit", "1");
 
     return await fn(createDb({ datasourceUrl: url.toString() }));
   } finally {

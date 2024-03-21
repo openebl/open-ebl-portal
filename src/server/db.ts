@@ -3,7 +3,10 @@ import { type Prisma, PrismaClient } from "@prisma/client";
 import { env } from "@/env";
 import { getLogger } from "@/lib/logger";
 
+let defaultPrisma: PrismaClient;
 const createDefaultDb = () => {
+  if (defaultPrisma) return defaultPrisma;
+
   const prisma = new PrismaClient({
     log: [
       {
@@ -38,6 +41,7 @@ const createDefaultDb = () => {
     getLogger().info(`[${e.target}] ${e.message}`);
   });
 
+  defaultPrisma = prisma;
   return prisma;
 }
 
