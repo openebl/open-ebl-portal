@@ -16,11 +16,15 @@ export type EBlPartiesType = {
 export type EBlStatusType =
   | "TRANSFER"
   | "RETURN"
-  | "AMEND"
+  | "REQUEST_AMEND"
   | "SURRENDER"
   | "PRINT"
   | "ACCOMPLISH"
   | "UNKNOWN";
+
+export function eBlNo(record: EBlRecordType) {
+  return latestBillOfLading(record)?.transportDocumentReference
+}
 
 export function lastEvent(record: EBlRecordType) {
   if (!record.bl?.events) return undefined;
@@ -73,7 +77,7 @@ export function eblParties(
 const statusFilters: [(e?: EBlEventType) => boolean, EBlStatusType][] = [
   [(event?) => !!event?.transfer, "TRANSFER"],
   [(event?) => !!event?.return, "RETURN"],
-  [(event?) => !!event?.amendment_request, "AMEND"],
+  [(event?) => !!event?.amendment_request, "REQUEST_AMEND"],
   [(event?) => !!event?.print_to_paper, "PRINT"],
   [(event?) => !!event?.surrender, "SURRENDER"],
   [(event?) => !!event?.accomplish, "ACCOMPLISH"],

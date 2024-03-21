@@ -1,10 +1,5 @@
 import { env } from "@/env";
-import {
-  currentStatus,
-  eblParties,
-  lastEvent,
-  latestBillOfLading,
-} from "@/lib/ebl";
+import { currentStatus, eBlNo, eblParties, lastEvent } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
 import { platforms } from "@/lib/platforms";
 import { type EmailNotifier } from ".";
@@ -44,7 +39,7 @@ export const returnEmailNotifier: EmailNotifier = async ({
 
   const notificationName = "returned";
   const event = lastEvent(rec);
-  const latestBl = latestBillOfLading(rec);
+  const number = eBlNo(rec);
   const sender = platforms[event?.return?.return_by ?? ""]?.name ?? "";
 
   await Promise.all([
@@ -58,10 +53,10 @@ export const returnEmailNotifier: EmailNotifier = async ({
       template: notificationName,
       service,
       receivers: (await activePlatformUsers(db, platform.id)) ?? [],
-      subject: `${sender} has returned eBL ${latestBl?.transportDocumentReference} to you`,
+      subject: `${number} has been returned to you`,
       companyName: platform.name,
       sender,
-      eBlNo: latestBl?.transportDocumentReference ?? "",
+      eBlNo: number ?? "",
       note: event?.return?.note ?? "",
       url: new URL(`/ebls/${rec.bl?.id}`, env.PORTAL_URL).toString(),
     }),

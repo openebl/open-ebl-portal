@@ -9,9 +9,10 @@ import { type DatabaseType } from "@/server/db";
 import { type EmailServiceType } from "@/server/services/email-service";
 import { type EBlStash } from "@prisma/client";
 import { isEmpty } from "remeda";
+import AmendRequestNotification from "@/emails/amend-reqeuest-notification";
 
 export const sendStandardNotification = async (props: {
-  template: "transferred" | "accomplished" | "returned";
+  template: keyof typeof emailTemplates;
   service: EmailServiceType;
   receivers: Array<string | Address>;
   subject: string;
@@ -76,7 +77,12 @@ const emailTemplates = {
     header: "./public/email-returned.png",
     renderer: ReturnNotification,
   },
+  amend_requested: {
+    header: "./public/email-amend.png",
+    renderer: AmendRequestNotification,
+  },
 };
+
 export const touchEmailNotification = async ({
   db,
   name,

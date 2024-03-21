@@ -70,7 +70,7 @@ describe.concurrent("Email notification", () => {
 
         expect(watcher).toHaveLength(1);
         expect(watcher[0]?.subject).toEqual(
-          "Issuer Agent A, LTD has transferred eBL BL-001 to your company",
+          "BL-001 has been issued to you",
         );
         expect(watcher[0]?.to).toEqual([
           {
