@@ -3,7 +3,7 @@
 import { api } from "@/trpc/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { hashQueryKey } from "@/lib/hashkey";
@@ -28,9 +28,11 @@ const MainSection = () => {
     },
   );
 
-  if (extraction) {
-    router.push(`/ebls/new/edit?uuid=${fileUuid}`);
-  }
+  useEffect(() => {
+    if (extraction) {
+      router.push(`/ebls/new/edit?uuid=${fileUuid}`);
+    }
+  }, [extraction, router, fileUuid]);
 
   if (error) {
     setLastError(error?.message ?? "Unknown error");
