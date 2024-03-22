@@ -7,7 +7,7 @@ import GoalFlagIcon from "@/app/_icons/goal-flag-icon";
 import MailIcon from "@/app/_icons/mail-icon";
 import PrintedIcon from "@/app/_icons/printed-icon";
 import { TimeLabel } from "@/components/ui/time-label";
-import { currentStatus, getSenderPartyID, latestBillOfLadingEvent } from "@/lib/ebl";
+import { currentStatus, eblParties, getSenderPartyID, latestBillOfLadingEvent } from "@/lib/ebl";
 import { cn } from "@/lib/utils";
 import { EBlFilter, type EBlRecordType } from "@/types/ebl";
 import { type Platforms } from "@/types/platform";
@@ -56,42 +56,40 @@ const PrintedStamp = () => (
 );
 
 const EBlProgressBar = ({ row }: { row: EBlRecordType }) => {
-  const inactive = "bg-[#E0EBF6]";
-  const active = "bg-secondary1";
+  const documentParties = eblParties(row)
+
+  const getClassName = (row: EBlRecordType, partyID: string) => {
+    const inactive = "bg-[#E0EBF6]";
+    const active = "bg-secondary1";
+    if (row.bl?.current_owner === partyID) return active;
+    return inactive;
+  }
   return (
     <div className="flex items-center justify-between gap-0.5">
-      {/* <div
+      <div
         className={cn(
           "flex h-2.5 w-[70px] shrink-0 flex-col rounded-l-md",
-          row.status !== Status.Draft && row.ownerPlatform === row.issuer
-            ? active
-            : inactive,
+          getClassName(row, documentParties?.issuer ?? "")
         )}
       />
       <div
         className={cn(
           "flex h-2.5 w-[70px] shrink-0 flex-col",
-          row.status !== Status.Draft && row.ownerPlatform === row.shipper
-            ? active
-            : inactive,
+          getClassName(row, documentParties?.shipper ?? "")
         )}
       />
       <div
         className={cn(
           "flex h-2.5 w-[70px] shrink-0 flex-col",
-          row.status !== Status.Draft && row.ownerPlatform === row.consignee
-            ? active
-            : inactive,
+          getClassName(row, documentParties?.consignee ?? "")
         )}
       />
       <div
         className={cn(
           "flex h-2.5 w-[70px] shrink-0 flex-col rounded-r-md",
-          row.status !== Status.Draft && row.ownerPlatform === row.releaseAgent
-            ? active
-            : inactive,
+          getClassName(row, documentParties?.releaser ?? "")
         )}
-      /> */}
+      />
     </div>
   );
 };

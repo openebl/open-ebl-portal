@@ -63,6 +63,9 @@ const ProgressTracker = ({
 const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
   const active = "bg-[#004DE3]";
   const inactive = "bg-[#0D447A]";
+  const accomplished = "bg-[#039912]";
+  const printed = "bg-[#E42525]";
+
   // TODO: try not to await in RSC
   const platforms = await api.platform.list.query();
   const documentParties = eblParties(ebl)
@@ -74,30 +77,39 @@ const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
   const shipperName = platforms[shipperID]?.name ?? ""
   const consigneeName = platforms[consigneeID]?.name ?? ""
   const releaseAgentName = platforms[releaseAgentID]?.name ?? ""
+
+  const getClassName = (ebl: EBlRecordType, partyID: string) => {
+    const status = currentStatus(ebl)
+    if (status === "PRINT" && ebl.bl?.current_owner === partyID) return printed;
+    if (status === "ACCOMPLISH" && ebl.bl?.current_owner === partyID) return accomplished;
+    if (ebl.bl?.current_owner === partyID) return active;
+    return inactive;
+  }
+
   return (
     <div className="flex w-full max-w-full justify-evenly">
       <ProgressTracker
         title="Issuing Agent"
         name={issuerName}
-        className={ebl.bl?.current_owner === issuerID ? active : inactive}
+        className={getClassName(ebl, issuerID)}
         position="first"
       />
       <ProgressTracker
         title="Shipper"
         name={shipperName}
-        className={ebl.bl?.current_owner === shipperID ? active : inactive}
+        className={getClassName(ebl, shipperID)}
         position="middle"
       />
       <ProgressTracker
         title="Consignee"
         name={consigneeName}
-        className={ebl.bl?.current_owner === consigneeID ? active : inactive}
+        className={getClassName(ebl, consigneeID)}
         position="middle"
       />
       <ProgressTracker
         title="Release Agent"
         name={releaseAgentName}
-        className={ebl.bl?.current_owner === releaseAgentID ? active : inactive}
+        className={getClassName(ebl, releaseAgentID)}
         position="last"
       />
     </div>

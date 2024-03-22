@@ -79,7 +79,18 @@ const MainSection = ({
     return formData;
   }
 
-  const issue = (payload: { isDraft: boolean }) => {
+  const checkFormValue = async (): Promise<boolean> => {
+    const r = await form.trigger(undefined, { shouldFocus: true });
+    if (!r) {
+      console.error(form.formState.errors);
+      return false;
+    }
+    return true;
+  }
+
+  const issue = async (payload: { isDraft: boolean }) => {
+    if (!await checkFormValue()) return;
+
     setDialogState('waiting');
     setDialogOpen(true);
     if (isNewEbl) {
@@ -91,8 +102,8 @@ const MainSection = ({
       updateDraft()
     }
   };
-  const saveDraft = () => {
-    issue({ isDraft: true });
+  const saveDraft = async () => {
+    await issue({ isDraft: true });
   }
   const updateDraft = () => {
     if (!isNewEbl) {
@@ -124,11 +135,7 @@ const MainSection = ({
   }
 
   const openConfirmationDialog = async (action: DialogActionType) => {
-    const r = await form.trigger(undefined, { shouldFocus: true });
-    if (!r) {
-      console.error(form.formState.errors);
-      return;
-    }
+    if (!await checkFormValue()) return;
 
     setAction(action);
     setDialogOpen(true);
@@ -138,11 +145,11 @@ const MainSection = ({
   const handleDialogCanceled = () => {
     setDialogOpen(false);
   }
-  const handleDialogConfirmed = () => {
+  const handleDialogConfirmed = async () => {
     if (dialogState === "confirm") {
       if (action === "ISSUE") {
         setDialogState('waiting');
-        issue({ isDraft: false });
+        await issue({ isDraft: false });
       } else if (action === "AMEND") {
         setDialogState('waiting');
         amend();
