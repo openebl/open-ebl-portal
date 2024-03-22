@@ -10,6 +10,7 @@ import { type EmailServiceType } from "@/server/services/email-service";
 import { type EBlStash } from "@prisma/client";
 import { isEmpty } from "remeda";
 import AmendRequestNotification from "@/emails/amend-reqeuest-notification";
+import PrintNotification from "@/emails/print-notification";
 
 export const sendStandardNotification = async (props: {
   template: keyof typeof emailTemplates;
@@ -72,6 +73,10 @@ const emailTemplates = {
   accomplished: {
     header: "./public/email-accomplished.png",
     renderer: AccomplishNotification,
+  },
+  printed: {
+    header: "./public/email-printed.png",
+    renderer: PrintNotification,
   },
   returned: {
     header: "./public/email-returned.png",

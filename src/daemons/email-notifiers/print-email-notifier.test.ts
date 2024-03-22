@@ -4,12 +4,12 @@ import {
   type TestDbType,
   testWithDb,
 } from "@/test/integration/fixtures/db-fixtures";
-import { accomplishedEBlRecord } from "@/test/integration/fixtures/test-accomplished-ebl";
+import { printedEBlRecord } from "@/test/integration/fixtures/test-printed-ebl";
 import { useTestEmailService } from "@/test/integration/helpers/test-email";
-import { accomplishEmailNotifier } from "./accomplish-email-notifier";
+import { printEmailNotifier } from "./print-email-notifier";
 
 describe.concurrent("Email notification", () => {
-  describe("Send accomplished notification", () => {
+  describe("Send printed notification", () => {
     const eBlId = "d571ec58-2a50-4708-9eeb-43e276f08065";
     const currentDid = "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614";
 
@@ -43,14 +43,14 @@ describe.concurrent("Email notification", () => {
         data: {
           eBlId: eBlId,
           platformId,
-          status: "ACCOMPLISH",
+          status: "PRINT",
           version: 6,
           currentOwner: did,
         },
       });
 
     testWithDb(
-      "when given platform participates the eBL, it should send accomplished notification to the platform users",
+      "when given platform participates the eBL, it should send printed notification to the platform users",
       async ({ expect, db }) => {
         const { emailService, watcher } = useTestEmailService();
         const { platform } = await createPlatformAndUsers(db, currentDid);
@@ -59,17 +59,17 @@ describe.concurrent("Email notification", () => {
           platform.id,
           currentDid,
         );
-        await accomplishEmailNotifier({
+        await printEmailNotifier({
           db,
           service: emailService,
           platform,
-          rec: accomplishedEBlRecord,
+          rec: printedEBlRecord,
           newStash,
         });
 
         expect(watcher).toHaveLength(1);
         expect(watcher[0]?.subject).toEqual(
-          "BL-001 has been accomplished",
+          "BL-001 has been printed",
         );
         expect(watcher[0]?.to).toEqual([
           {
@@ -81,11 +81,12 @@ describe.concurrent("Email notification", () => {
             address: "b@example.com",
           },
         ]);
+        console.log('---------',watcher[0]?.html)
         expect(watcher[0]?.html).toContain(
-          "A Factory Co., Ltd has accomplished eBL No. <strong>BL-001</strong>",
+          "A Factory Co., Ltd has initiated a print to paper for eBL <strong>BL-001</strong>, ending this eBL.",
         );
         expect(watcher[0]?.html).toContain(
-          `<strong>accomplished by XXX</strong>`,
+          `<strong>printed by XXX</strong>`,
         );
         expect(watcher[0]?.attachments).toEqual([
           {
@@ -96,13 +97,13 @@ describe.concurrent("Email notification", () => {
           {
             cid: "header",
             contentType: "image/png",
-            path: "./public/email-accomplished.png",
+            path: "./public/email-printed.png",
           },
         ]);
 
         expect(
           await db.eBlNotification.count({
-            where: { name: "accomplished", eBlStashId: newStash.id },
+            where: { name: "printed", eBlStashId: newStash.id },
           }),
         ).toEqual(1);
       },
@@ -120,18 +121,18 @@ describe.concurrent("Email notification", () => {
           platform.id,
           currentDid,
         );
-        await accomplishEmailNotifier({
+        await printEmailNotifier({
           db,
           service: emailService,
           platform,
-          rec: accomplishedEBlRecord,
+          rec: printedEBlRecord,
           newStash,
         });
 
         expect(watcher).toHaveLength(0);
         expect(
           await db.eBlNotification.count({
-            where: { name: "accomplished", eBlStashId: newStash.id },
+            where: { name: "printed", eBlStashId: newStash.id },
           }),
         ).toEqual(1);
       },
@@ -148,22 +149,22 @@ describe.concurrent("Email notification", () => {
           const { emailService, watcher } = useTestEmailService();
           const { platform } = await createPlatformAndUsers(db, did);
           const newStash = await createTransferEBlStash(db, platform.id, did);
-          await accomplishEmailNotifier({
+          await printEmailNotifier({
             db,
             service: emailService,
             platform,
-            rec: accomplishedEBlRecord,
+            rec: printedEBlRecord,
             newStash,
           });
 
           expect(watcher).toHaveLength(1);
           expect(
             await db.eBlNotification.count({
-              where: { name: "accomplished", eBlStashId: newStash.id },
+              where: { name: "printed", eBlStashId: newStash.id },
             }),
           ).toEqual(1);
             expect(watcher[0]?.subject).toEqual(
-            "BL-001 has been accomplished",
+            "BL-001 has been printed",
           );
           expect(watcher[0]?.html).toContain("Hi Test Company,");
         },
@@ -181,18 +182,18 @@ describe.concurrent("Email notification", () => {
           platform.id,
           currentDid,
         );
-        await accomplishEmailNotifier({
+        await printEmailNotifier({
           db,
           service: emailService,
           platform,
-          rec: accomplishedEBlRecord,
+          rec: printedEBlRecord,
           newStash,
         });
 
         expect(watcher).toHaveLength(0);
         expect(
           await db.eBlNotification.count({
-            where: { name: "accomplished", eBlStashId: newStash.id },
+            where: { name: "printed", eBlStashId: newStash.id },
           }),
         ).toEqual(0);
       },

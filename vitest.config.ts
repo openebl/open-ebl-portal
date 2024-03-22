@@ -14,6 +14,12 @@ const vitestConfig = ({ mode }: { mode: string }) => {
       },
       maxWorkers: 4,
       minWorkers: 2,
+      poolOptions: {
+        forks: {
+          maxForks: 4,
+          minForks: 2,
+        }
+      }
     },
   });
 };
