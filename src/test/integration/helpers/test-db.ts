@@ -15,7 +15,10 @@ export async function spinUpTestPrisma<R>(
     url.searchParams.set("schema", schemaName);
     url.searchParams.set("connection_limit", "1");
 
-    return await fn(createDb({ datasourceUrl: url.toString() }));
+    const testDb = createDb({ datasourceUrl: url.toString() })
+    const res = await fn(testDb);
+    await testDb.$disconnect();
+    return res;
   } finally {
     await dropSchema(schemaName);
   }

@@ -11,6 +11,7 @@ import { type EBlStash } from "@prisma/client";
 import { isEmpty } from "remeda";
 import AmendRequestNotification from "@/emails/amend-reqeuest-notification";
 import PrintNotification from "@/emails/print-notification";
+import AmendedNotification from "@/emails/amended-notification";
 
 export const sendStandardNotification = async (props: {
   template: keyof typeof emailTemplates;
@@ -85,6 +86,10 @@ const emailTemplates = {
   amend_requested: {
     header: "./public/email-amend.png",
     renderer: AmendRequestNotification,
+  },
+  amended: {
+    header: "./public/email-amend.png",
+    renderer: AmendedNotification,
   },
 };
 
