@@ -7,7 +7,7 @@ import GoalFlagIcon from "@/app/_icons/goal-flag-icon";
 import MailIcon from "@/app/_icons/mail-icon";
 import PrintedIcon from "@/app/_icons/printed-icon";
 import { TimeLabel } from "@/components/ui/time-label";
-import { currentStatus, getPreviousPartyID, latestBillOfLadingEvent } from "@/lib/ebl";
+import { currentStatus, getSenderPartyID, latestBillOfLadingEvent } from "@/lib/ebl";
 import { cn } from "@/lib/utils";
 import { EBlFilter, type EBlRecordType } from "@/types/ebl";
 import { type Platforms } from "@/types/platform";
@@ -113,7 +113,7 @@ const TableRow = ({
   let description = ""
   if (!isEditable) {
     if (!filter || filter === EBlFilter.ACTION_NEEDED) {
-      description = `From: ${platforms[getPreviousPartyID(row)]?.name}`
+      description = `From: ${platforms[getSenderPartyID(row)]?.name}`
     } else if (filter === EBlFilter.UPCOMING || filter === EBlFilter.SENT) {
       description = `Current Owner: ${platforms[row.bl?.current_owner ?? ""]?.name}`
     } else if (filter === EBlFilter.ARCHIVE) {

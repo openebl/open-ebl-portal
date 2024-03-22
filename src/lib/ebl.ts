@@ -83,47 +83,56 @@ export function eblParties(
   );
 }
 
-export const getPreviousPartyID = (record: EBlRecordType): string => {
+export const getSenderPartyID = (record: EBlRecordType): string => {
   const lastEBlEvent = lastEvent(record);
   if (lastEBlEvent?.transfer) return lastEBlEvent?.transfer?.transfer_by ?? "";
   if (lastEBlEvent?.surrender) return lastEBlEvent?.surrender?.surrender_by ?? "";
   if (lastEBlEvent?.return) return lastEBlEvent?.return?.return_by ?? "";
   if (lastEBlEvent?.amendment_request) return lastEBlEvent?.amendment_request?.request_by ?? "";
+  if (lastEBlEvent?.print_to_paper) return lastEBlEvent?.print_to_paper?.print_by ?? "";
+  if (lastEBlEvent?.accomplish) return lastEBlEvent?.accomplish?.accomplish_by ?? "";
   return "";
+}
+
+export const getPreviousPartyIDByOrder = (record: EBlRecordType): string => {
+  const currentOwner = record.bl?.current_owner ?? "";
+  const documentParties = eblParties(record)
+  if (currentOwner === documentParties?.issuer) return "";
+  if (currentOwner === documentParties?.shipper) return documentParties?.issuer ?? "";
+  if (currentOwner === documentParties?.consignee) return documentParties?.shipper ?? "";
+  if (currentOwner === documentParties?.releaser) return documentParties?.consignee ?? "";
+  return ""
+}
+
+export const getNextPartyIDByOrder = (record: EBlRecordType): string => {
+  const currentOwner = record.bl?.current_owner ?? "";
+  const documentParties = eblParties(record)
+  if (currentOwner === documentParties?.issuer) return documentParties?.shipper ?? "";
+  if (currentOwner === documentParties?.shipper) return documentParties?.consignee ?? "";
+  if (currentOwner === documentParties?.consignee) return documentParties?.releaser ?? "";
+  if (currentOwner === documentParties?.releaser) return "";
+  return ""
 }
 
 export const getNextPartyIDByAction = (record: EBlRecordType, action: EBlAllowAction): string => {
   const documentParties = eblParties(record)
   const lastEBlEvent = lastEvent(record);
-  const issuerID = documentParties?.issuer ?? "";
-  const consigneeID = documentParties?.consignee ?? "";
-  const releaseAgentID = documentParties?.releaser ?? "";
-  if (action === "TRANSFER") return consigneeID;
-  if (action === "SURRENDER") return releaseAgentID;
-  if (action === "REQUEST_AMEND") return issuerID;
-  if (action === "AMEND" && lastEBlEvent?.amendment_request) return lastEBlEvent?.amendment_request?.request_by ?? "";
-  if (action === "RETURN") { // to previous owner
-    let previousOwnerID = ""
-    if (lastEBlEvent?.transfer) previousOwnerID = lastEBlEvent?.transfer?.transfer_by ?? "";
-    else if (lastEBlEvent?.surrender) previousOwnerID = lastEBlEvent?.surrender?.surrender_by ?? "";
-    else if (lastEBlEvent?.amendment_request) previousOwnerID = lastEBlEvent?.amendment_request?.request_by ?? "";
-    return previousOwnerID;
+  if (action === "TRANSFER" || action === "SURRENDER") return getNextPartyIDByOrder(record);
+  if (action === "REQUEST_AMEND") return documentParties?.issuer ?? "";
+  if (action === "AMEND") return lastEBlEvent?.amendment_request?.request_by ?? "";
+  if (action === "RETURN") { // to previous one
+    // special case, if issuer return the amendment request (i.e. reject to amend), the eBL will return to amendment requester
+    if (lastEBlEvent?.amendment_request) return lastEBlEvent?.amendment_request?.request_by ?? "";
+    return getPreviousPartyIDByOrder(record);
   }
+  // delete / print / accomplish action won't have next party
   return ""
 }
 
 export const getNextPartyIDByCurrentStatus = (record: EBlRecordType, status: EBlStatusType): string => {
-  const documentParties = eblParties(record)
   const lastEBlEvent = lastEvent(record);
-  const shipperID = documentParties?.shipper ?? "";
-  const consigneeID = documentParties?.consignee ?? "";
-  const releaseAgentID = documentParties?.releaser ?? "";
-  if (status === "TRANSFER") {
-    return lastEBlEvent?.transfer?.transfer_to === shipperID ? consigneeID : releaseAgentID;
-  }
   if (status === "REQUEST_AMEND") return lastEBlEvent?.amendment_request?.request_by ?? "";
-  if (status === "RETURN") return lastEBlEvent?.return?.return_by ?? "";
-  return ""
+  return getNextPartyIDByOrder(record);
 }
 
 const statusFilters: [(e?: EBlEventType) => boolean, EBlStatusType][] = [

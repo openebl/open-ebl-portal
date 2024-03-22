@@ -43,8 +43,9 @@ const ActionPanel = ({
   const [isLoading, setLoading] = useState(false);
   const router = useRouter();
 
-  const { data: party } = api.platform.getById.useQuery(getNextPartyIDByAction(ebl, action!))
-  const nextPartyName = party?.name ?? ""
+  const { data: platforms } = api.platform.list.useQuery()
+  const nextPartyID = getNextPartyIDByAction(ebl, action!) ?? ""
+  const nextPartyName = platforms?.[nextPartyID]?.name ?? ""
 
   const actionHandlerCallback = (action: EBlAllowAction) => ({
     onSuccess: () => {
