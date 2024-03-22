@@ -19,8 +19,7 @@ import { type TRPCClientErrorLike } from "@trpc/client";
 import { type AppRouter } from "@/server/api/root";
 import { portName } from "@/lib/ports";
 import { type DialogActionType, EBlConfirmationDialog } from "../dialogs/ebl-confirmation-dialog";
-import { useGetShipper } from "@/app/_hooks/shippers-filter";
-import { currentStatus } from "@/lib/ebl";
+import { currentStatus, eblParties, getNextPartyIDByAction, getNextPartyIDByCurrentStatus } from "@/lib/ebl";
 
 const MainSection = ({
   eblForm,
@@ -41,14 +40,21 @@ const MainSection = ({
       ...eblForm,
     },
   });
-  const getShipper = useGetShipper(form.getValues().shipper);
 
   const isNewEbl = !eblRecord;
   const eblId = eblRecord?.bl?.id ?? "";
   const status = eblRecord && currentStatus(eblRecord)
-  const isAmendRequest = status === "REQUEST_AMEND";
+  const documentParties = eblRecord && eblParties(eblRecord)
+  const isAmendMode = status === "REQUEST_AMEND" || (status === "RETURN" && eblRecord?.bl?.current_owner === documentParties?.issuer);
 
-  const title = isNewEbl ? "New eBL" : isAmendRequest ? "Amend eBL" : "Edit eBL";
+  const title = isNewEbl ? "New eBL" : isAmendMode ? "Amend eBL" : "Edit eBL";
+
+  const { data: platforms } = api.platform.list.useQuery()
+  let nextPartyName = platforms?.[form.getValues().shipper]?.name
+  if (isAmendMode) {
+    if (status === "REQUEST_AMEND") nextPartyName = platforms?.[getNextPartyIDByAction(eblRecord!, "AMEND")]?.name
+    else if (status === "RETURN") nextPartyName = platforms?.[getNextPartyIDByCurrentStatus(eblRecord!, "RETURN")]?.name
+  }
 
   const actionHandlerCallback = () => ({
     onSuccess: () => {
@@ -170,18 +176,17 @@ const MainSection = ({
       <div className="mt-[1.875rem] flex h-[53.5rem] flex-col justify-between rounded-lg border border-solid border-border-light bg-white shadow-lg">
         <div className="flex h-[48.125rem] items-stretch">
           <PreviewPanel images={images} />
-          <DetailPanel form={form} isAmendRequest={isAmendRequest} />
+          <DetailPanel form={form} isAmendMode={isAmendMode} />
         </div>
 
         <div className="flex h-[5.25rem] w-full items-center justify-between border-t-[1px] border-[#D9D9D9] px-[1.875rem]">
-          {(isNewEbl || isAmendRequest) ?
-            (
-              <Link href="/ebls">
-                <Button variant="outline" size="lg" className="w-[11.25rem]">
-                  Cancel
-                </Button>
-              </Link>
-            ) : (
+          <div className="flex gap-4">
+            <Link href="/ebls">
+              <Button variant="outline" size="lg" className="w-[11.25rem]">
+                Cancel
+              </Button>
+            </Link>
+            {(!isNewEbl && !isAmendMode) &&
               <Button
                 variant="outline"
                 size="lg"
@@ -190,8 +195,8 @@ const MainSection = ({
               >
                 Delete
               </Button>
-            )
-          }
+            }
+          </div>
           <div className="flex gap-2.5">
             {isNewEbl &&
               <Button
@@ -204,7 +209,7 @@ const MainSection = ({
               </Button>
             }
             <Button size="lg" className="w-[11.25rem]" onClick={
-              !isAmendRequest ?
+              !isAmendMode ?
                 () => openConfirmationDialog("ISSUE") :
                 () => openConfirmationDialog("AMEND")
             }>
@@ -219,7 +224,7 @@ const MainSection = ({
         open={dialogOpen}
         state={dialogState}
         action={action}
-        nextPartyName={getShipper.item?.label ?? ""}
+        nextPartyName={nextPartyName ?? ""}
         onCancel={handleDialogCanceled}
         onConfirm={handleDialogConfirmed}
       />

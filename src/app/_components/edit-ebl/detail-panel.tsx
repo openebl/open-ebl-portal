@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { type EBlFormType } from "@/types/ebl";
 import { type UseFormReturn } from "react-hook-form";
 
-const DetailPanel = ({ form, isAmendRequest }: { form: UseFormReturn<EBlFormType>, isAmendRequest: boolean }) => {
+const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>, isAmendMode: boolean }) => {
   const blDocTypes = [{ name: "HBL Non-negotiable", value: "HouseBillOfLading" }];
   return (
     <div className="flex w-[35rem] flex-none flex-col items-stretch py-[1.875rem] pl-[3.125rem] pr-[1.875rem]">
@@ -67,7 +67,7 @@ const DetailPanel = ({ form, isAmendRequest }: { form: UseFormReturn<EBlFormType
             control={form.control}
             label="Shipper"
             required={true}
-            disabled={isAmendRequest}
+            disabled={isAmendMode}
             name="shipper"
             useFilterItems={useFilterShippers}
             useGetItem={useGetShipper}
@@ -77,7 +77,7 @@ const DetailPanel = ({ form, isAmendRequest }: { form: UseFormReturn<EBlFormType
             control={form.control}
             label="Consignee"
             required={true}
-            disabled={isAmendRequest}
+            disabled={isAmendMode}
             name="consignee"
             useFilterItems={useFilterConsignees}
             useGetItem={useGetConsignee}
@@ -87,7 +87,7 @@ const DetailPanel = ({ form, isAmendRequest }: { form: UseFormReturn<EBlFormType
             control={form.control}
             label="Release Agent"
             required={true}
-            disabled={isAmendRequest}
+            disabled={isAmendMode}
             name="release_agent"
             useFilterItems={useFilterReleaseAgents}
             useGetItem={useGetReleaseAgent}
