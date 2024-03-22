@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { type Session } from "next-auth";
-import Image from "next/image";
 import Link from "next/link";
 
 const AvatarButton = ({ session }: { session: Session | null }) => {
@@ -24,11 +23,15 @@ const AvatarButton = ({ session }: { session: Session | null }) => {
           <AvatarFallback>{nameInitial}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="font-header">
+      <DropdownMenuContent className="font-header" align="end">
         <DropdownMenuLabel>{session.user.name}</DropdownMenuLabel>
         <DropdownMenuLabel>({session.user.email})</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link className="w-full" href="/settings">Settings</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
           <Link className="w-full" href="/api/auth/signout">Sign out</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -50,7 +50,7 @@ const CompletedStamp = () => (
 );
 
 const PrintedStamp = () => (
-  <Stamp className="bg-[#FFE1E1] text-[#E42525]">
+  <Stamp className="bg-[#FFE1E1] text-warning">
     <PrintedIcon />
   </Stamp>
 );

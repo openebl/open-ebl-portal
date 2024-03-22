@@ -66,7 +66,7 @@ const HistoryListRow = ({
         </div>
       </div>
 
-      <div className={cn("border-b border-border-light py-[1.125rem]", item.noteAltered && 'text-[#E42525]')}>
+      <div className={cn("border-b border-border-light py-[1.125rem]", item.noteAltered && 'text-warning')}>
         {item.note}
       </div>
     </>

@@ -8,6 +8,7 @@ import { portRouter } from "./routers/port";
 import { releaseAgentRouter } from "./routers/releaseAgent";
 import { shipperRouter } from "./routers/shipper";
 import { docFileRouter } from "./routers/doc-file";
+import { userRouter } from "./routers/user";
 
 /**
  * This is the primary router for your server.
@@ -24,6 +25,7 @@ export const appRouter = createTRPCRouter({
   docExtreaction: docExtreactionRouter,
   docFile: docFileRouter,
   docImage: docImageRouter,
+  user: userRouter,
 });
 
 // export type definition of API

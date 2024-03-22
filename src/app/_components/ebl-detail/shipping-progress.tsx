@@ -64,7 +64,7 @@ const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
   const active = "bg-[#004DE3]";
   const inactive = "bg-[#0D447A]";
   const accomplished = "bg-[#039912]";
-  const printed = "bg-[#E42525]";
+  const printed = "bg-warning";
 
   // TODO: try not to await in RSC
   const platforms = await api.platform.list.query();
