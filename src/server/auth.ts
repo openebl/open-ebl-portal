@@ -1,6 +1,7 @@
 import { env } from "@/env";
 import { db } from "@/server/db";
 import { BusinessUnitSchema, type BusinessUnitType } from "@/types/business_unit";
+import { UserRoleSchema, type UserRoleType } from "@/types/user";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type Platform, type PrismaClient } from "@prisma/client";
 import {
@@ -24,6 +25,7 @@ declare module "next-auth" {
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
+    roles: UserRoleType[];
     platform: Platform;
     authentication_id: string;
   }
@@ -43,16 +45,25 @@ declare module "next-auth" {
 export const authOptions: NextAuthOptions = {
   callbacks: {
     session: async ({ session, user }) => {
-      const platform = await db.platform.findUnique({
-        where: {
-          id: user.activePlatformId
-        }
-      });
+      const [platform, roles] = await Promise.all([
+        db.platform.findUnique({
+          where: {
+            id: user.activePlatformId
+          }
+        }),
+        db.userRole.findMany({
+          where: {
+            userId: BigInt(user.id),
+            platformId: user.activePlatformId,
+          }
+        }).then(roles => roles.map(role => UserRoleSchema.parse(role.role)))
+      ])
 
       if (!platform) {
         throw new Error("Platform not found");
       }
 
+      // TODO: it should not fetch active authentication every time
       const res = await fetch(`${env.BU_SERVER_URL}/business_unit/${platform.platformId}`, {
         method: 'GET',
         headers: {
@@ -78,6 +89,7 @@ export const authOptions: NextAuthOptions = {
           ...session.user,
           id: user.id,
         },
+        roles,
         platform,
         authentication_id: activeAuthentication.id,
       };

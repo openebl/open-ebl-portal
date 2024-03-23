@@ -1,24 +1,41 @@
 "use server";
 
+import { getServerAuthSession } from "@/server/auth";
 import Link from "next/link";
 
-const MainSection = ({ tabIndex,children }: { tabIndex: number, children: React.ReactNode }) => {
+const MainSection = async ({
+  tabIndex,
+  children,
+}: {
+  tabIndex: number;
+  children: React.ReactNode;
+}) => {
+  const session = await getServerAuthSession();
+  if (!session) return null;
+  const isAdmin = session.roles.includes("admin");
+
   return (
     <>
       <div className="px-12 pb-8 pt-10 font-content">
         <div className="text-2xl font-bold leading-9 text-main">Settings</div>
       </div>
-      <TabPanel current={tabIndex} />
+      <TabPanel current={tabIndex} isAdmin={isAdmin} />
       {children}
     </>
   );
 };
 
-const TabPanel = ({ current }: { current: number }) => {
+const TabPanel = ({
+  current,
+  isAdmin,
+}: {
+  current: number;
+  isAdmin: boolean;
+}) => {
   const menuItems = [
     { label: "User Info", href: "/settings" },
     { label: "Business Info", href: "/settings/business-info" },
-    { label: "User Management", href: "/settings/user-management" },
+    ...(isAdmin ? [{ label: "User Management", href: "/settings/users" }] : []),
   ];
 
   return (

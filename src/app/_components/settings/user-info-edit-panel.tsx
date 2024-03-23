@@ -1,30 +1,22 @@
 "use client";
 
-import PenIcon from "@/app/_icons/pen-icon";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { HFormItem } from "@/app/_components/common/form/h-form";
+import { Button } from "@/components/ui/button";
+import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Form, FormField } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
+import { UserInfoFormSchema, type UserInfoFormType } from "@/types/user";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 interface UserInfoProps {
   name: string;
   email: string;
 }
-
-const UserInfoFormSchema = z.object({
-  name: z.string().min(1).max(255),
-  email: z.string().email(),
-});
-
-type UserInfoFormType = z.infer<typeof UserInfoFormSchema>;
 
 const UserInfoEditPanel = (props: UserInfoProps) => {
   const router = useRouter();
@@ -36,7 +28,7 @@ const UserInfoEditPanel = (props: UserInfoProps) => {
     onError: (error) => {
       console.error(error);
       toast.error(`Failed to update user info: ${error.message}`);
-    } ,
+    },
     onSuccess: () => {
       toast.success("User info updated successfully");
       router.push("/settings/user-info", { scroll: true });
@@ -52,7 +44,7 @@ const UserInfoEditPanel = (props: UserInfoProps) => {
       <div className="flex w-full justify-between gap-5 px-[1.875rem] py-[1.125rem] text-lg font-semibold leading-[1.625rem]">
         <div>Edit User Info</div>
       </div>
-      <Form {...form} >
+      <Form {...form}>
         <form className="flex flex-col gap-5 pt-8" onSubmit={onSubmit}>
           <div className="flex w-[34rem] flex-col pl-7 pr-3.5">
             <FormField
@@ -93,7 +85,12 @@ const UserInfoEditPanel = (props: UserInfoProps) => {
           <div className="flex h-[5.25rem] w-full items-center justify-end border-t-[1px] border-[#D9D9D9] px-[1.875rem]">
             <div className="flex gap-4">
               <Link href="/settings/user-info">
-                <Button variant="outline" size="lg" className="w-[11.25rem]" type="button">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-[11.25rem]"
+                  type="button"
+                >
                   Cancel
                 </Button>
               </Link>
