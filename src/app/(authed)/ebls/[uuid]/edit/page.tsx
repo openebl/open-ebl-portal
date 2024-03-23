@@ -20,6 +20,7 @@ export default async function Page({ params }: { params: { uuid: string } }) {
       throw new TRPCClientError("EBl NOT_FOUND");
     }
 
+    // TODO: if not found docFile, download from bu server and generate images
     const hash = String(eblEvent?.metadata?.docHash)
     const docFile = await api.docFile.findByUuid.query(hash);
     const images = docFile ? await api.docImage.getUrls.query({ docFileId: docFile.id }) : []

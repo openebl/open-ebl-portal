@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { type EBlRecordType } from "@/types/ebl";
 import { latestBillOfLadingEvent } from "@/lib/ebl";
+import type { ImageType } from "@/app/_components/common/props/types";
 
 const FileDetailsLine = ({
   title,
@@ -26,11 +27,14 @@ const FileDetailsLine = ({
   </div>
 );
 
-const FileDetails = ({ ebl }: { ebl: EBlRecordType }) => {
+const FileDetails = ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[]; }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
   const event = latestBillOfLadingEvent(ebl)
   const content = event?.bill_of_lading
+  const id = ebl.bl?.id
+  const fileName = event?.file?.name
+
   return (
     <section className="flex flex-col items-start rounded-lg border border-solid border-[#DFE4E9] bg-white p-[1.875rem] shadow-lg">
       <div className="flex items-center gap-2.5">
@@ -78,8 +82,8 @@ const FileDetails = ({ ebl }: { ebl: EBlRecordType }) => {
           </div>
         </div>
         <div className="flex flex-col justify-end">
-          <Button className="flex h-[2.75rem] w-[11.25rem] items-center justify-center rounded-lg border border-secondary1 bg-white text-sm font-semibold">
-            <a href="...">Download eBL</a>
+          <Button className="flex h-[2.75rem] w-[11.25rem] items-center justify-center rounded-lg border border-secondary1 bg-white text-sm font-semibold p-0">
+            <a className="h-full w-full flex justify-center items-center" href={`/api/file/download/${id}/${fileName}`} target="_blank">Download eBL</a>
           </Button>
         </div>
       </div>
@@ -88,7 +92,7 @@ const FileDetails = ({ ebl }: { ebl: EBlRecordType }) => {
           className={cn("fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-[50vw] max-h-[90vh] overflow-auto p-0 font-content border-[2px] border-[#738DBC] !rounded-none")}
         >
           <Image
-            src="/ebl-pdf-preview.jpg"
+            src={images[0]?.imageUrl ?? "/ebl-pdf-preview.jpg"}
             alt="eBL full-sized"
             width={1230}
             height={6000}

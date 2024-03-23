@@ -3,8 +3,10 @@
 import ErrorPage from "@/app/_components/ebl-detail/error-page";
 import MainSection from "@/app/_components/ebl-detail/main-section";
 import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
+import { latestBillOfLadingEvent } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
 import { api } from "@/trpc/server";
+import { TRPCClientError } from "@trpc/client";
 import Link from "next/link";
 
 const Page = async ({ params }: { params: { uuid: string } }) => {
@@ -12,7 +14,19 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
   try {
     const ebl = await api.ebl.getByID.query(params.uuid);
     if (!ebl) throw new Error("NOT_FOUND");
-    block = <MainSection ebl={ebl} />;
+
+    const eblEvent = latestBillOfLadingEvent(ebl)
+    const eblContent = eblEvent?.bill_of_lading
+    if (!eblContent) {
+      throw new TRPCClientError("EBl NOT_FOUND");
+    }
+
+    // TODO: if not found docFile, download from bu server and generate images
+    const hash = String(eblEvent?.metadata?.docHash)
+    const docFile = await api.docFile.findByUuid.query(hash);
+    const images = docFile ? await api.docImage.getUrls.query({ docFileId: docFile.id }) : []
+
+    block = <MainSection ebl={ebl} images={images} />;
 
   } catch (err) {
     getLogger().error(err);

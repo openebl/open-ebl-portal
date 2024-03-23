@@ -195,36 +195,4 @@ export const eBlRouter = createTRPCRouter({
       const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authentication_id }
       return await performEBlAction({ request, action: 'delete', business_unit_id: String(ctx.session.platform.platformId) })
     }),
-
-  download: protectedProcedure // need to be called in client component
-    .input(
-      z.object({
-        id: z.string(),
-        filename: z.string(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const res = await fetch(`${env.BU_SERVER_URL}/ebl/${input.id}/document`, {
-        method: 'GET',
-        headers: {
-          'accept': 'application/octet-stream',
-          'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
-        },
-        cache: 'no-store'
-      })
-      if (res.ok) {
-        const data = await res.text();
-        const blob = new Blob([Buffer.from(data, 'base64')], { type: 'application/octet-stream' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = input.filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        throw new Error(`Failed to download EBL document: ${await res.text()}`);
-      }
-    }),
 });

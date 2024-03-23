@@ -1,6 +1,7 @@
 "use server";
 
-import { type EBlAllowAction, type EBlRecordType } from "@/types/ebl";
+import type { EBlRecordType, EBlAllowAction } from "@/types/ebl";
+import type { ImageType } from "@/app/_components/common/props/types";
 import FileDetails from "./file-details";
 import HistoryList from "./history-list";
 import ShippingProgress from "./shipping-progress";
@@ -21,8 +22,10 @@ const actionMapping: Record<EBlAllowAction, string> = {
 
 const MainSection = async ({
   ebl,
+  images,
 }: {
   ebl: EBlRecordType;
+  images: ImageType[];
 }) => {
   const session = await getServerAuthSession();
   const platforms = await api.platform.list.query();
@@ -105,7 +108,7 @@ const MainSection = async ({
 
   return (
     <div className="mt-[1.875rem] flex flex-col gap-y-5">
-      <FileDetails ebl={ebl} />
+      <FileDetails ebl={ebl} images={images} />
       <ShippingProgress
         ebl={ebl}
         sessionPlatformId={String(session?.platform.platformId)}
