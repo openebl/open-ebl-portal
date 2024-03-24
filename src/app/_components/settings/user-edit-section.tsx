@@ -56,7 +56,7 @@ const UserInviteSection = ({
   const loading = deleteMutation.isLoading || mutation.isLoading;
 
   const onSubmit = form.handleSubmit(async (values) => {
-    mutation.mutate({id, role: values.role});
+    mutation.mutate({ id, role: values.role });
   });
 
   const onDeleteClicked = () => {

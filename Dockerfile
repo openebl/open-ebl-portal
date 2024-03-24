@@ -22,6 +22,7 @@ ENV S3_BUCKET=example-bucket
 ENV BU_SERVER_URL="http://localhost:8080"
 ENV BU_SERVER_API_KEY=key
 ENV PORTAL_URL="http://localhost:3000"
+ENV SYSADMIN_EMAIL=admin@example.com
 
 # Build next.js app
 ADD . /app

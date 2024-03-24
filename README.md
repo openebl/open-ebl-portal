@@ -69,6 +69,9 @@ In the .env file
 
 * PORTAL_URL: the access URL of the portal. for example: http://localhost:3000 for local development.
 
+* SYSADMIN_EMAIL: initial system administrator's email address. it is used to bootstrap the portal
+
+
 #### Database
 
 Init database with seed data

@@ -15,6 +15,7 @@ export const buildTestSession = ({
       email: user.email ?? "",
     },
     platform,
-    authentication_id: '',
+    authenticationId: '',
     expires: "1",
+    permissions: [],
   }) as Session;

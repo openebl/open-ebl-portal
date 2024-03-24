@@ -26,6 +26,12 @@ const AvatarButton = ({ session }: { session: Session | null }) => {
       <DropdownMenuContent className="font-header" align="end">
         <DropdownMenuLabel>{session.user.name}</DropdownMenuLabel>
         <DropdownMenuLabel>({session.user.email})</DropdownMenuLabel>
+        { session.platform.admin && ( <>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link className="w-full" href="/admin">Admin</Link>
+        </DropdownMenuItem>
+        </>)}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link className="w-full" href="/settings">Settings</Link>

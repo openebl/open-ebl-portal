@@ -46,7 +46,6 @@ async function main() {
       name: "Release Agent A, Inc",
     },
   });
-
   await prisma.user.upsert({
     where: { email: "kevin@bluextrade.com" },
     update: {},
@@ -106,7 +105,6 @@ async function main() {
       },
     },
   });
-
   await prisma.user.upsert({
     where: { email: "kevin+ff@bluextrade.com" },
     update: {},
@@ -126,168 +124,62 @@ async function main() {
       },
     },
   });
-  // -----
-  await prisma.user.upsert({
-    where: { email: "jason@bluextrade.com" },
-    update: {},
+
+
+
+
+  const sysPlatform = await prisma.platform.upsert({
+    where: { id: 1 },
+    update: {
+      admin: true,
+    },
     create: {
-      email: "jason@bluextrade.com",
-      name: "Jason Juang",
-      activePlatform: {
-        connect: {
-          id: platform1.id,
-        },
-      },
-      userRoles: {
-        create: {
-          platformId: platform1.id,
-          role: "admin",
-        },
-      },
+      id: 1,
+      admin: true,
+      name: "System Admin Platform",
     },
   });
 
-  await prisma.user.upsert({
-    where: { email: "jason+shipper@bluextrade.com" },
-    update: {},
-    create: {
-      email: "jason+shipper@bluextrade.com",
-      name: "Shipper Smith",
-      activePlatform: {
-        connect: {
-          id: platform2.id,
+  if (process.env.SYSADMIN_EMAIL) {
+    const adminEmail = process.env.SYSADMIN_EMAIL;
+    const admin = await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: {},
+      create: {
+        email: adminEmail,
+        name: "System Admin",
+        activePlatform: {
+          connect: {
+            id: sysPlatform.id,
+          },
+        },
+        userRoles: {
+          create: {
+            platformId: sysPlatform.id,
+            role: "admin",
+          },
         },
       },
-      userRoles: {
-        create: {
-          platformId: platform2.id,
+    });
+
+    await prisma.userRole.upsert({
+      where: {
+        userId_platformId_role: {
+          userId: admin.id,
+          platformId: sysPlatform.id,
           role: "admin",
         },
       },
-    },
-  });
+      update: {},
+      create: {
+        userId: admin.id,
+        platformId: sysPlatform.id,
+        role: "admin",
+      },
+    });
+  }
 
-  await prisma.user.upsert({
-    where: { email: "jason+consignee@bluextrade.com" },
-    update: {},
-    create: {
-      email: "jason+consignee@bluextrade.com",
-      name: "Consignee Dollar",
-      activePlatform: {
-        connect: {
-          id: platform3.id,
-        },
-      },
-      userRoles: {
-        create: {
-          platformId: platform3.id,
-          role: "admin",
-        },
-      },
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { email: "jason+ff@bluextrade.com" },
-    update: {},
-    create: {
-      email: "jason+ff@bluextrade.com",
-      name: "Releaser",
-      activePlatform: {
-        connect: {
-          id: platform4.id,
-        },
-      },
-      userRoles: {
-        create: {
-          platformId: platform4.id,
-          role: "admin",
-        },
-      },
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { email: "jordan.hsu@bluextrade.com" },
-    update: {},
-    create: {
-      email: "jordan.hsu@bluextrade.com",
-      name: "Jordan Hsu",
-      activePlatform: {
-        connect: {
-          id: platform1.id,
-        },
-      },
-      userRoles: {
-        create: {
-          platformId: platform1.id,
-          role: "admin",
-        },
-      },
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { email: "jordan.hsu+shipper@bluextrade.com" },
-    update: {},
-    create: {
-      email: "jordan.hsu+shipper@bluextrade.com",
-      name: "Shipper Jordan",
-      activePlatform: {
-        connect: {
-          id: platform2.id,
-        },
-      },
-      userRoles: {
-        create: {
-          platformId: platform2.id,
-          role: "admin",
-        },
-      },
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { email: "jordan.hsu+consignee@bluextrade.com" },
-    update: {},
-    create: {
-      email: "jordan.hsu+consignee@bluextrade.com",
-      name: "Consignee Jordan",
-      activePlatform: {
-        connect: {
-          id: platform3.id,
-        },
-      },
-      userRoles: {
-        create: {
-          platformId: platform3.id,
-          role: "admin",
-        },
-      },
-    },
-  });
-
-  await prisma.user.upsert({
-    where: { email: "jordan.hsu+ff@bluextrade.com" },
-    update: {},
-    create: {
-      email: "jordan.hsu+ff@bluextrade.com",
-      name: "Releaser Jordan",
-      activePlatform: {
-        connect: {
-          id: platform4.id,
-        },
-      },
-      userRoles: {
-        create: {
-          platformId: platform4.id,
-          role: "admin",
-        },
-      },
-    },
-  });
-
-  console.log('Seeded!');
+  console.log("Seeded!");
 }
 
 main()

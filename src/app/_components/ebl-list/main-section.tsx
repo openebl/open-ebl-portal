@@ -5,19 +5,24 @@ import Link from "next/link";
 import SearchBox from "@/app/_components/common/searchbox";
 import AddIcon from "@/app/_icons/add-icon";
 import { Button } from "@/components/ui/button";
-import type { EBlFilter, EBlRecordListType } from "@/types/ebl";
+import { api } from "@/trpc/server";
+import type { EBlFilter } from "@/types/ebl";
 import EblSection from "./ebl-section";
 import PaginatorSection from "./paginator-section";
 
-const MainSection = ({
-  recordList,
+const MainSection = async ({
   page,
   filter,
 }: {
-  recordList: EBlRecordListType;
   page: number;
-  filter: EBlFilter | null | undefined;
+  filter: EBlFilter | undefined;
 }) => {
+  const recordList = await api.ebl.list.query({
+    filter,
+    offset: (page - 1) * 20,
+    limit: 20,
+  });
+
   return (
     <div className="px-12 py-10 font-content">
       <div className="text-2xl font-bold leading-9 text-main">eBL</div>

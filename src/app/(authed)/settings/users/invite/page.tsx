@@ -3,13 +3,14 @@
 import UserInviteSection from "@/app/_components/settings/user-invite-section";
 import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
 import { getServerAuthSession } from "@/server/auth";
+import { hasPermission } from "@/server/permissions";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
   const session = await getServerAuthSession();
   if (!session) return null;
-  if (!session.roles.includes('admin')) {
+  if (!hasPermission('write:settings/users', session.permissions) ) {
     redirect("/settings/user-info");
   }
 

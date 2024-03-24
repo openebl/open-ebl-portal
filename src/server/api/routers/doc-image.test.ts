@@ -5,32 +5,10 @@ import {
   testWithDb,
   type TestDbType,
 } from "@/test/integration/fixtures/db-fixtures";
-import { useTestDocExtraction } from "@/test/integration/helpers/test-doc-extraction";
+import { useCaller } from "@/test/integration/helpers/test-caller";
 import { buildTestSession } from "@/test/integration/helpers/test-session";
-import { useTestStorageService } from "@/test/integration/helpers/test-storage";
 import { TRPCError } from "@trpc/server";
-import { type Session } from "next-auth";
 import { describe } from "vitest";
-import { appRouter } from "../root";
-
-const useCaller = ({
-  db,
-  session,
-}: {
-  db: TestDbType;
-  session: Session | null;
-}) => {
-  const { storageService, watcher } = useTestStorageService();
-  const { docExtraction } = useTestDocExtraction();
-  const caller = appRouter.createCaller({
-    headers: new Headers(),
-    session,
-    db,
-    storageService,
-    docExtraction,
-  });
-  return { caller, session, db, storageService, storageWatch: watcher };
-};
 
 describe.concurrent("docImage API", () => {
   describe("without session", () => {

@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { UserFormSchema, UserRoleSchema } from "@/types/user";
-import { Session } from "inspector";
 import { db } from "@/server/db";
+import { UserFormSchema, UserRoleSchema } from "@/types/user";
+import { hasPermission } from "@/server/permissions";
 
 export const userRouter = createTRPCRouter({
   list: protectedProcedure.query(({ ctx }) => {
@@ -20,7 +20,7 @@ export const userRouter = createTRPCRouter({
   }),
 
   get: protectedProcedure.input(z.string()).query(({ ctx, input }) => {
-    if (!ctx.session.roles.includes("admin")) {
+    if (!hasPermission('read:settings/users', ctx.session.permissions)) {
       throw new Error("You are not authorized to get user");
     }
 
@@ -35,7 +35,7 @@ export const userRouter = createTRPCRouter({
   invite: protectedProcedure
     .input(UserFormSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session.roles.includes("admin")) {
+      if (!hasPermission('write:settings/users', ctx.session.permissions)) {
         throw new Error("You are not authorized to invite users");
       }
 
@@ -76,7 +76,7 @@ export const userRouter = createTRPCRouter({
   updateRole: protectedProcedure
     .input(z.object({ id: z.string(), role: UserRoleSchema }))
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session.roles.includes("admin")) {
+      if (!hasPermission('write:settings/users', ctx.session.permissions)) {
         throw new Error("You are not authorized to update user role");
       }
 
@@ -93,12 +93,12 @@ export const userRouter = createTRPCRouter({
         throw new Error("You can update role of users from your platform");
       }
 
-      return db.$transaction(async (db) => {
-        await db.userRole.deleteMany({
+      return db.$transaction(async (tx) => {
+        await tx.userRole.deleteMany({
           where: { userId, platformId: ctx.session.platform.id },
         });
 
-        await db.userRole.create({
+        await tx.userRole.create({
           data: {
             userId,
             platformId: ctx.session.platform.id,
@@ -111,7 +111,7 @@ export const userRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.session.roles.includes("admin")) {
+      if (!hasPermission('write:settings/users', ctx.session.permissions)) {
         throw new Error("You are not authorized to delete user");
       }
 

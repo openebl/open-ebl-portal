@@ -1,6 +1,7 @@
 "use server";
 
 import { getServerAuthSession } from "@/server/auth";
+import { type PermissionType, hasPermission } from "@/server/permissions";
 import Link from "next/link";
 
 const MainSection = async ({
@@ -12,14 +13,13 @@ const MainSection = async ({
 }) => {
   const session = await getServerAuthSession();
   if (!session) return null;
-  const isAdmin = session.roles.includes("admin");
 
   return (
     <>
       <div className="px-12 pb-8 pt-10 font-content">
         <div className="text-2xl font-bold leading-9 text-main">Settings</div>
       </div>
-      <TabPanel current={tabIndex} isAdmin={isAdmin} />
+      <TabPanel current={tabIndex} permissions={session.permissions} />
       {children}
     </>
   );
@@ -27,15 +27,15 @@ const MainSection = async ({
 
 const TabPanel = ({
   current,
-  isAdmin,
+  permissions,
 }: {
   current: number;
-  isAdmin: boolean;
+  permissions: PermissionType[];
 }) => {
   const menuItems = [
     { label: "User Info", href: "/settings" },
-    { label: "Business Info", href: "/settings/business-info" },
-    ...(isAdmin ? [{ label: "User Management", href: "/settings/users" }] : []),
+    ...(hasPermission('read:settings/business-info', permissions) ? [{ label: "Business Info", href: "/settings/business-info" }] : []),
+    ...(hasPermission('write:settings/users', permissions) ? [{ label: "User Management", href: "/settings/users" }] : []),
   ];
 
   return (

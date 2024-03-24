@@ -9,6 +9,7 @@ import { releaseAgentRouter } from "./routers/releaseAgent";
 import { shipperRouter } from "./routers/shipper";
 import { docFileRouter } from "./routers/doc-file";
 import { userRouter } from "./routers/user";
+import { adminPlatformRouter } from "./routers/admin-platform";
 
 /**
  * This is the primary router for your server.
@@ -26,6 +27,7 @@ export const appRouter = createTRPCRouter({
   docFile: docFileRouter,
   docImage: docImageRouter,
   user: userRouter,
+  adminPlatform: adminPlatformRouter,
 });
 
 // export type definition of API

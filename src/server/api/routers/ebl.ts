@@ -76,7 +76,7 @@ export const eBlRouter = createTRPCRouter({
   issue: protectedProcedure
     .input(EBlFormSchema)
     .mutation(async ({ ctx, input }) => {
-      const request: EBlRequestType = { ...input, authentication_id: ctx.session.authentication_id }
+      const request: EBlRequestType = { ...input, authentication_id: ctx.session.authenticationId }
       request.metadata.username = ctx.session.user.name ?? ''
       getLogger().info('send issue request to Doc Engine', request)
       const res = await fetch(`${env.BU_SERVER_URL}/ebl`, {
@@ -101,7 +101,7 @@ export const eBlRouter = createTRPCRouter({
     .input(EBlFormUpdateSchema)
     .mutation(async ({ ctx, input }) => {
       const { ebl_id: id, ...rest } = input;
-      const request: EBlRequestType = { ...rest, authentication_id: ctx.session.authentication_id }
+      const request: EBlRequestType = { ...rest, authentication_id: ctx.session.authenticationId }
       request.metadata.username = ctx.session.user.name ?? ''
       getLogger().info('send issue request to Doc Engine', request)
       const res = await fetch(`${env.BU_SERVER_URL}/ebl/${id}/update`, {
@@ -126,7 +126,7 @@ export const eBlRouter = createTRPCRouter({
     .input(EBlFormAmendSchema)
     .mutation(async ({ ctx, input }) => {
       const { ebl_id: id, ...rest } = input;
-      const request: EBlRequestAmendType = { ...rest, authentication_id: ctx.session.authentication_id }
+      const request: EBlRequestAmendType = { ...rest, authentication_id: ctx.session.authenticationId }
       request.metadata.username = ctx.session.user.name ?? ''
       getLogger().info('send issue request to Doc Engine', request)
       const res = await fetch(`${env.BU_SERVER_URL}/ebl/${id}/amend`, {
@@ -150,49 +150,49 @@ export const eBlRouter = createTRPCRouter({
   transfer: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authentication_id }
+      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
       return await performEBlAction({ request, action: 'transfer', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   return: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authentication_id }
+      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
       return await performEBlAction({ request, action: 'return', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   surrender: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authentication_id }
+      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
       return await performEBlAction({ request, action: 'surrender', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   accomplish: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authentication_id }
+      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
       return await performEBlAction({ request, action: 'accomplish', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   print_to_paper: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authentication_id }
+      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
       return await performEBlAction({ request, action: 'print_to_paper', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   amendment_request: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authentication_id }
+      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
       return await performEBlAction({ request, action: 'amendment_request', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 
   delete: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
-      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authentication_id }
+      const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
       return await performEBlAction({ request, action: 'delete', business_unit_id: String(ctx.session.platform.platformId) })
     }),
 });

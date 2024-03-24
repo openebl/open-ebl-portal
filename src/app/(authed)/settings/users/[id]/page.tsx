@@ -3,16 +3,16 @@
 import UserEditSection from "@/app/_components/settings/user-edit-section";
 import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
 import { getServerAuthSession } from "@/server/auth";
+import { hasPermission } from "@/server/permissions";
 import { api } from "@/trpc/server";
 import { UserRoleSchema } from "@/types/user";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { toast } from "sonner";
 
 export default async function Page({ params }: { params: { id: string } }) {
   const session = await getServerAuthSession();
   if (!session) return null;
-  if (!session.roles.includes('admin')) {
+  if (!hasPermission('read:settings/users', session.permissions)) {
     redirect("/settings/user-info");
   }
 

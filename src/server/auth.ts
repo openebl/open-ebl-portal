@@ -10,6 +10,8 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import { isEmpty } from "remeda";
+import { type PermissionType, permissions } from "./permissions";
 // import GoogleProvider from "next-auth/providers/google";
 
 /**
@@ -25,9 +27,9 @@ declare module "next-auth" {
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
-    roles: UserRoleType[];
     platform: Platform;
-    authentication_id: string;
+    authenticationId: string;
+    permissions: PermissionType[];
   }
 
   interface User {
@@ -64,24 +66,27 @@ export const authOptions: NextAuthOptions = {
       }
 
       // TODO: it should not fetch active authentication every time
-      const res = await fetch(`${env.BU_SERVER_URL}/business_unit/${platform.platformId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-        },
-        cache: 'no-store'
-      })
+      const authenticationId = platform.platformId && platform.platformId.length > 0 ? await(async () => {
+        const res = await fetch(`${env.BU_SERVER_URL}/business_unit/${platform.platformId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
+          },
+          cache: 'no-store'
+        })
 
-      const data = await res.json() as BusinessUnitType
-      const result = BusinessUnitSchema.parse(data)
+        const data = await res.json() as BusinessUnitType
+        const result = BusinessUnitSchema.parse(data)
 
-      // find first authentications which status is active
-      const activeAuthentication = result.authentications.find(auth => auth.status === 'active');
+        // find first authentications which status is active
+        const activeAuthentication = result.authentications.find(auth => auth.status === 'active');
 
-      if (!activeAuthentication) {
-        throw new Error('No active authentication found');
-      }
+        if (!activeAuthentication) {
+          throw new Error('No active authentication found');
+        }
+        return activeAuthentication.id
+      })() : ''
 
       return {
         ...session,
@@ -89,9 +94,9 @@ export const authOptions: NextAuthOptions = {
           ...session.user,
           id: user.id,
         },
-        roles,
         platform,
-        authentication_id: activeAuthentication.id,
+        authenticationId,
+        permissions: permissions({roles, platform}),
       };
     },
   },

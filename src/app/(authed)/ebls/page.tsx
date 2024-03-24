@@ -1,4 +1,8 @@
+"use server";
+
 import MainSection from "@/app/_components/ebl-list/main-section";
+import PermissionContext from "@/app/_components/permission-context";
+import { getServerAuthSession } from "@/server/auth";
 import { api } from "@/trpc/server";
 import { type EBlFilter } from "@/types/ebl";
 
@@ -7,6 +11,7 @@ export default async function Page({
 }: {
   searchParams?: Record<string, string | string[] | undefined>;
 }) {
+  const session = await getServerAuthSession();
   const pageParam = Array.isArray(searchParams?.page)
     ? searchParams?.page[0]
     : searchParams?.page;
@@ -15,7 +20,13 @@ export default async function Page({
     ? searchParams?.filter[0]
     : searchParams?.filter;
 
-  const recordList = await api.ebl.list.query({ filter, offset: (currentPage - 1) * 20, limit: 20 });
-
-  return <MainSection recordList={recordList} page={currentPage} filter={filter as EBlFilter} />;
+  return (
+    <PermissionContext session={session} permission="read:ebl/list">
+      <MainSection
+        page={currentPage}
+        filter={filter as EBlFilter}
+      />
+      ;
+    </PermissionContext>
+  );
 }
