@@ -7,6 +7,7 @@ import { api } from "@/trpc/server";
 import { TRPCClientError } from "@trpc/client";
 import { type EBlFormType } from "@/types/ebl";
 import { eblParties, latestBillOfLadingEvent } from "@/lib/ebl";
+import { readRequestBodyToBuffer } from "@/server/fx/streram";
 
 export default async function Page({ params }: { params: { uuid: string } }) {
   const execution = async () => {
@@ -23,7 +24,13 @@ export default async function Page({ params }: { params: { uuid: string } }) {
     // TODO: if not found docFile, download from bu server and generate images
     const hash = String(eblEvent?.metadata?.docHash)
     const docFile = await api.docFile.findByUuid.query(hash);
-    const images = docFile ? await api.docImage.getUrls.query({ docFileId: docFile.id }) : []
+    const [images, contentResult] = await Promise.all([
+      docFile ? api.docImage.getUrls.query({ docFileId: docFile.id }) : Promise.resolve([]),
+      docFile?.contentUrl ? fetch(docFile.contentUrl) : Promise.resolve(null),
+    ]);
+
+    const content = await readRequestBodyToBuffer(contentResult?.body)
+    const contentBase64 = Buffer.from(content).toString('base64');
 
     // TODO: wait for openAPI documentation to update
     const polLocation = eblContent?.shipmentLocations?.[0]?.location as { locationName: string, UNLocationCode: string }
@@ -36,7 +43,7 @@ export default async function Page({ params }: { params: { uuid: string } }) {
       file: {
         name: eblEvent?.file?.name ?? "",
         type: eblEvent?.file?.file_type ?? "",
-        content: "",
+        content: contentBase64,
       },
       bl_number: eblContent?.transportDocumentReference ?? "",
       bl_doc_type: eblEvent?.doc_type ?? "HouseBillOfLading",
