@@ -8,7 +8,13 @@ import { hasPermission } from "@/server/permissions";
 export const userRouter = createTRPCRouter({
   list: protectedProcedure.query(({ ctx }) => {
     return ctx.db.user.findMany({
-      include: { userRoles: true },
+      include: {
+        userRoles: {
+          where: {
+            platformId: ctx.session.platform.id,
+          },
+        },
+      },
       where: {
         userRoles: {
           some: {
@@ -20,7 +26,7 @@ export const userRouter = createTRPCRouter({
   }),
 
   get: protectedProcedure.input(z.string()).query(({ ctx, input }) => {
-    if (!hasPermission('read:settings/users', ctx.session.permissions)) {
+    if (!hasPermission("read:settings/users", ctx.session.permissions)) {
       throw new Error("You are not authorized to get user");
     }
 
@@ -35,7 +41,7 @@ export const userRouter = createTRPCRouter({
   invite: protectedProcedure
     .input(UserFormSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!hasPermission('write:settings/users', ctx.session.permissions)) {
+      if (!hasPermission("write:settings/users", ctx.session.permissions)) {
         throw new Error("You are not authorized to invite users");
       }
 
@@ -76,7 +82,7 @@ export const userRouter = createTRPCRouter({
   updateRole: protectedProcedure
     .input(z.object({ id: z.string(), role: UserRoleSchema }))
     .mutation(async ({ ctx, input }) => {
-      if (!hasPermission('write:settings/users', ctx.session.permissions)) {
+      if (!hasPermission("write:settings/users", ctx.session.permissions)) {
         throw new Error("You are not authorized to update user role");
       }
 
@@ -108,10 +114,25 @@ export const userRouter = createTRPCRouter({
       });
     }),
 
+  updateActivePlatform: protectedProcedure
+    .input(z.object({ platformId: z.bigint() }))
+    .mutation(({ ctx, input }) => {
+      return ctx.db.user.update({
+        where: { id: ctx.session.user.id },
+        data: {
+          activePlatform: {
+            connect: {
+              id: BigInt(input.platformId),
+            },
+          },
+        },
+      });
+    }),
+
   delete: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
-      if (!hasPermission('write:settings/users', ctx.session.permissions)) {
+      if (!hasPermission("write:settings/users", ctx.session.permissions)) {
         throw new Error("You are not authorized to delete user");
       }
 

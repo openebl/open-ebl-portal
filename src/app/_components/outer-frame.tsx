@@ -1,3 +1,5 @@
+"use server";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -9,11 +11,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { type Session } from "next-auth";
 import Link from "next/link";
+import { groupBy } from "remeda";
 
 const AvatarButton = ({ session }: { session: Session | null }) => {
   if (!session) return null;
 
   const nameInitial = session?.user.name?.[0] ?? "";
+  const platforms = groupBy(session.platformRoles, (n) =>
+    String(n.platform.id),
+  );
+  const platformCount = Object.keys(platforms).length;
 
   return (
     <DropdownMenu>
@@ -26,19 +33,46 @@ const AvatarButton = ({ session }: { session: Session | null }) => {
       <DropdownMenuContent className="font-header" align="end">
         <DropdownMenuLabel>{session.user.name}</DropdownMenuLabel>
         <DropdownMenuLabel>({session.user.email})</DropdownMenuLabel>
-        { session.platform.admin && ( <>
+        <DropdownMenuLabel>[ {session.platform.name} ]</DropdownMenuLabel>
+        {platformCount > 1 && (
+          <>
+            <DropdownMenuSeparator />
+            {Object.keys(platforms).map(
+              (pid) =>
+                BigInt(pid) !== session.platform.id && (
+                  <DropdownMenuItem key={pid} asChild>
+                    <Link
+                      className="w-full"
+                      href={`/settings/platforms/${pid}/active`}
+                    >
+                      Switch to {platforms[pid]?.[0]?.platform.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ),
+            )}
+          </>
+        )}
+        {session.platform.admin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link className="w-full" href="/admin">
+                Admin
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link className="w-full" href="/admin">Admin</Link>
+          <Link className="w-full" href="/settings">
+            Settings
+          </Link>
         </DropdownMenuItem>
-        </>)}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link className="w-full" href="/settings">Settings</Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link className="w-full" href="/api/auth/signout">Sign out</Link>
+          <Link className="w-full" href="/api/auth/signout">
+            Sign out
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -58,16 +58,16 @@ const concatePermissions: (
   );
 };
 
-const settingsPermissions: PermissionFilterType = (source) => {
+const adminPlatformPermissions: PermissionFilterType = (source) => {
+  if (!source?.platform.admin) return [];
+
   return concatePermissions(
     [true, ["read:admin/platforms"]],
     [source.roles?.includes("admin"), ["write:admin/platforms"]],
   );
 };
 
-const adminPlatformPermissions: PermissionFilterType = (source) => {
-  if (!source?.platform.admin) return [];
-
+const settingsPermissions: PermissionFilterType = (source) => {
   return concatePermissions(
     [true, ["read:settings/business-info"]],
     [

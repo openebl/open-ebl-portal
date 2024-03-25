@@ -1,8 +1,10 @@
 "use server";
 
+import Link from "next/link";
+import React from "react";
+
 import { getServerAuthSession } from "@/server/auth";
 import { type PermissionType, hasPermission } from "@/server/permissions";
-import Link from "next/link";
 
 const MainSection = async ({
   tabIndex,
@@ -42,7 +44,7 @@ const TabPanel = ({
     <div className="flex flex-col text-xs text-main">
       <div className="flex w-full items-start gap-4 border-b-[1px] border-border-light px-[3.125rem]">
         {menuItems.map((item, index) => (
-          <>
+          <React.Fragment key={index}>
             {/* Separator */}
             {index > 0 && (
               <div className="h-[18px] w-px shrink-0 bg-border-light" />
@@ -61,7 +63,7 @@ const TabPanel = ({
                 </Link>
               )}
             </div>
-          </>
+          </React.Fragment>
         ))}
       </div>
     </div>

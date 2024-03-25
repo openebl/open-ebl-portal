@@ -179,7 +179,7 @@ async function main() {
     });
   }
 
-  console.log("Seeded!");
+  console.info("Seeded!");
 }
 
 main()

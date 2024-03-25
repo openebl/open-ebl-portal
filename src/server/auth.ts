@@ -1,6 +1,9 @@
 import { env } from "@/env";
 import { db } from "@/server/db";
-import { BusinessUnitSchema, type BusinessUnitType } from "@/types/business_unit";
+import {
+  BusinessUnitSchema,
+  type BusinessUnitType,
+} from "@/types/business_unit";
 import { UserRoleSchema, type UserRoleType } from "@/types/user";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type Platform, type PrismaClient } from "@prisma/client";
@@ -28,6 +31,7 @@ declare module "next-auth" {
       // role: UserRole;
     } & DefaultSession["user"];
     platform: Platform;
+    platformRoles: { platform: Platform; role: UserRoleType }[];
     authenticationId: string;
     permissions: PermissionType[];
   }
@@ -47,47 +51,70 @@ declare module "next-auth" {
 export const authOptions: NextAuthOptions = {
   callbacks: {
     session: async ({ session, user }) => {
-      const [platform, roles] = await Promise.all([
+      const [platform, userRoles] = await Promise.all([
         db.platform.findUnique({
           where: {
-            id: user.activePlatformId
-          }
+            id: user.activePlatformId,
+          },
         }),
         db.userRole.findMany({
           where: {
             userId: BigInt(user.id),
-            platformId: user.activePlatformId,
-          }
-        }).then(roles => roles.map(role => UserRoleSchema.parse(role.role)))
-      ])
+          },
+          include: {
+            platform: true,
+          },
+        }),
+      ]);
 
       if (!platform) {
         throw new Error("Platform not found");
       }
 
+      const platformRoles = userRoles.map((n) => ({
+        platform: n.platform,
+        role: n.role,
+      }));
+      const activePlatformId = BigInt(user.activePlatformId);
+      const roles = platformRoles
+        .filter((n) => n.platform.id === activePlatformId)
+        .map((n) => UserRoleSchema.parse(n.role));
+
       // TODO: it should not fetch active authentication every time
-      const authenticationId = platform.platformId && platform.platformId.length > 0 ? await(async () => {
-        const res = await fetch(`${env.BU_SERVER_URL}/business_unit/${platform.platformId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          },
-          cache: 'no-store'
-        })
+      const authenticationId =
+        platform.platformId && platform.platformId.length > 0
+          ? await (async () => {
+              const res = await fetch(
+                `${env.BU_SERVER_URL}/business_unit/${platform.platformId}`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${env.BU_SERVER_API_KEY}`,
+                  },
+                  cache: "no-store",
+                },
+              );
 
-        const data = await res.json() as BusinessUnitType
-        const result = BusinessUnitSchema.parse(data)
+              const data = (await res.json()) as BusinessUnitType;
+              const result = BusinessUnitSchema.parse(data);
 
-        // find first authentications which status is active
-        const activeAuthentication = result.authentications.find(auth => auth.status === 'active');
+              // find first authentications which status is active
+              const activeAuthentication = result.authentications.find(
+                (auth) => auth.status === "active",
+              );
 
-        if (!activeAuthentication) {
-          throw new Error('No active authentication found');
-        }
-        return activeAuthentication.id
-      })() : ''
+              if (!activeAuthentication) {
+                throw new Error("No active authentication found");
+              }
+              return activeAuthentication.id;
+            })().catch((err) => {
+              console.error(err);
+              return null;
+            })
+          : "";
 
+          console.log('-------', roles, platform, permissions({ roles, platform }))
       return {
         ...session,
         user: {
@@ -95,8 +122,9 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
         },
         platform,
+        platformRoles,
         authenticationId,
-        permissions: permissions({roles, platform}),
+        permissions: permissions({ roles, platform }),
       };
     },
   },
@@ -115,7 +143,7 @@ export const authOptions: NextAuthOptions = {
     colorScheme: "light",
     logo: "/bxblogo.svg", // Absolute URL to image
     // buttonText: "" // Hex color code
-  }
+  },
 };
 
 /**
@@ -124,4 +152,3 @@ export const authOptions: NextAuthOptions = {
  * @see https://next-auth.js.org/configuration/nextjs
  */
 export const getServerAuthSession = () => getServerSession(authOptions);
-

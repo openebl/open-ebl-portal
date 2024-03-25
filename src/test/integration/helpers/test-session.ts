@@ -18,4 +18,5 @@ export const buildTestSession = ({
     authenticationId: '',
     expires: "1",
     permissions: [],
+    platformRoles: [],
   }) as Session;

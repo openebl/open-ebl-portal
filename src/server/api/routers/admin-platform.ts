@@ -97,16 +97,8 @@ export const adminPlatformRouter = createTRPCRouter({
           where: { userId: user.id, platformId: platform.id },
         });
 
-        return tx.userRole.upsert({
-          where: {
-            userId_platformId_role: {
-              userId: user.id,
-              platformId: platform.id,
-              role: input.role,
-            },
-          },
-          update: {},
-          create: {
+        return tx.userRole.create({
+          data: {
             userId: user.id,
             platformId: platform.id,
             role: input.role,

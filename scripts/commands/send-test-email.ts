@@ -25,7 +25,7 @@ export default function command(command: Command) {
       "transfer",
     )
     .action(async (email: string, options: { template: string }) => {
-      console.log(`Sending ${options.template} email to ${email}`);
+      console.info(`Sending ${options.template} email to ${email}`);
       await sendEmail({ email, template: options.template }).catch(
         console.error,
       );

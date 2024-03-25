@@ -58,7 +58,6 @@ const MainSection = ({
 
   const actionHandlerCallback = () => ({
     onSuccess: () => {
-      console.log(`eBL ${action} successfully.`);
       if (["SAVE_DRAFT", "DELETE"].includes(action)) {
         setDialogOpen(false);
         router.push("/ebls", { scroll: true });

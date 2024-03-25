@@ -81,7 +81,7 @@ describe.concurrent("Email notification", () => {
             address: "b@example.com",
           },
         ]);
-        console.log('---------',watcher[0]?.html)
+
         expect(watcher[0]?.html).toContain(
           "A Factory Co., Ltd has initiated a print to paper for eBL <strong>BL-001</strong>, ending this eBL.",
         );
