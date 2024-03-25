@@ -1,11 +1,13 @@
 "use server";
 
 import PenIcon from "@/app/_icons/pen-icon";
+import { type UserRoleType, userRoleMapping } from "@/types/user";
 import Link from "next/link";
 
 interface UserInfoProps {
   name: string;
   email: string;
+  roles: UserRoleType[];
 }
 
 function UserInfoItem({
@@ -32,19 +34,23 @@ function UserInfoItem({
   );
 }
 
-const UserInfoPanel = ({ name, email }: UserInfoProps) => {
+const UserInfoPanel = ({ name, email, roles }: UserInfoProps) => {
   return (
     <div className="mx-[3.125rem] my-[1.875rem] flex flex-col rounded-lg border border-solid border-border-light bg-white text-sm leading-4 text-main shadow-lg">
       <div className="flex w-full justify-between gap-5 px-[1.875rem] py-[1.125rem] text-lg font-semibold leading-[1.625rem]">
         <div>User Info</div>
         <Link href="/settings/user-info/edit">
-          <div className="hover:bg-hover active:bg-press flex h-8 w-8 select-none items-center justify-center rounded-[16px] bg-transparent">
+          <div className="flex h-8 w-8 select-none items-center justify-center rounded-[16px] bg-transparent hover:bg-hover active:bg-press">
             <PenIcon />
           </div>
         </Link>
       </div>
       <UserInfoItem label="Name" value={name} separator={true} />
-      <UserInfoItem label="Email Address" value={email} />
+      <UserInfoItem label="Email Address" separator={true} value={email} />
+      <UserInfoItem
+        label="Role"
+        value={roles.map((r) => userRoleMapping[r]).join(" / ")}
+      />
     </div>
   );
 };

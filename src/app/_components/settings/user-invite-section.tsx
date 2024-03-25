@@ -23,7 +23,7 @@ const UserInviteSection = () => {
       toast.error(`Failed to update user info: ${error.message}`);
     },
     onSuccess: () => {
-      toast.success("User info updated successfully");
+      toast.success("User has been invited successfully");
       router.push("/settings/users", { scroll: true });
       router.refresh();
     },

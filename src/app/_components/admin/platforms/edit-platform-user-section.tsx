@@ -109,9 +109,11 @@ const ConfirmDeletionDialog = ({
 const UserActionMenu = ({
   onEdit,
   onRemove,
+  onResend,
 }: {
   onEdit: () => void;
   onRemove: () => void;
+  onResend: () => void;
 }) => {
   return (
     <DropdownMenu>
@@ -134,6 +136,9 @@ const UserActionMenu = ({
       <DropdownMenuContent className="font-header" align="end">
         <DropdownMenuItem onClick={onEdit}>
           <div className="w-full">Edit</div>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onResend}>
+          <div className="w-full">Resend Invitation</div>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onRemove}>
           <div className="w-full">Delete</div>
@@ -184,6 +189,15 @@ const EditPlatformUserSection = ({
     },
   });
 
+  const resendMutation = api.user.sendInvitation.useMutation({
+    onError: (error) => {
+      toast.error(`Failed to send invitation: ${error.message}`);
+    },
+    onSuccess: () => {
+      toast.success("Invitation sent successfully");
+    },
+  });
+
   const removeMutation = api.adminPlatform.removeUser.useMutation({
     onError: (error) => {
       console.error(error);
@@ -231,6 +245,10 @@ const EditPlatformUserSection = ({
     }
   };
 
+  const onResendInvite = async (userId: bigint) => {
+    resendMutation.mutate({ id: userId });
+  }
+
   const onRemoveUser = async (userId: bigint) => {
     setRemovingUserId(userId);
     setConfirmDeletionOpen(true);
@@ -276,6 +294,7 @@ const EditPlatformUserSection = ({
               <TableCell>
                 <UserActionMenu
                   onEdit={() => onEditUser(userRole.userId)}
+                  onResend={() => onResendInvite(userRole.userId)}
                   onRemove={() => onRemoveUser(userRole.userId)}
                 />
               </TableCell>

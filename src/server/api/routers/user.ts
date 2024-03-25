@@ -4,6 +4,8 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { db } from "@/server/db";
 import { UserFormSchema, UserRoleSchema } from "@/types/user";
 import { hasPermission } from "@/server/permissions";
+import { sendUserInvitation } from "@/emails/send-user-invitation";
+import { getLogger } from "nodemailer/lib/shared";
 
 export const userRouter = createTRPCRouter({
   list: protectedProcedure.query(({ ctx }) => {
@@ -45,14 +47,17 @@ export const userRouter = createTRPCRouter({
         throw new Error("You are not authorized to invite users");
       }
 
-      const count = await ctx.db.user.count({ where: { email: input.email } });
-      if (count > 0) {
-        throw new Error("User with this email already exists");
-      }
-
-      // TODO: send invite email
-      return ctx.db.user.create({
-        data: {
+      const newUser = await ctx.db.user.upsert({
+        where: { email: input.email },
+        update: {
+          userRoles: {
+            create: {
+              role: input.role,
+              platformId: ctx.session.platform.id,
+            },
+          },
+        },
+        create: {
           name: input.name,
           email: input.email,
           activePlatform: {
@@ -68,7 +73,39 @@ export const userRouter = createTRPCRouter({
           },
         },
       });
+
+      if (!newUser.emailVerified) {
+        sendUserInvitation({
+          service: ctx.emailService,
+          receiver: newUser,
+          sender: ctx.session.user,
+        }).catch((err) =>
+          getLogger().error(`Failed to send user invitation: ${err}`),
+        );
+      }
+
+      return true;
     }),
+
+  sendInvitation: protectedProcedure
+    .input(z.object({ id: z.bigint() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!hasPermission("write:settings/users", ctx.session.permissions)) {
+        throw new Error("You are not authorized to invite users");
+      }
+      const user = await ctx.db.user.findUnique({where: { id: input.id }});
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      sendUserInvitation({
+        service: ctx.emailService,
+        receiver: user,
+        sender: ctx.session.user,
+      }).catch((err) =>
+        getLogger().error(`Failed to send user invitation: ${err}`),
+      );
+  }),
 
   updateInfo: protectedProcedure
     .input(z.object({ name: z.string() }))
@@ -148,9 +185,9 @@ export const userRouter = createTRPCRouter({
           where: { userId, platformId: ctx.session.platform.id },
         });
 
-        const userRoles = await tx.userRole.findMany({ where: { userId } })
+        const userRoles = await tx.userRole.findMany({ where: { userId } });
         if (userRoles.length === 0) {
-          await tx.user.delete({where: {id: userId}});
+          await tx.user.delete({ where: { id: userId } });
         } else {
           await tx.user.update({
             where: { id: userId },

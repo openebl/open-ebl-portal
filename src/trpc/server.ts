@@ -11,11 +11,12 @@ import { type TRPCErrorResponse } from "@trpc/server/rpc";
 import { cookies } from "next/headers";
 import { cache } from "react";
 
+import { bxDocExtraction } from "@/add-ons/doc-reader/doc-extraction";
 import { appRouter, type AppRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
-import { transformer } from "./shared";
+import { SmtpEmailService } from "@/server/services/email-service";
 import { s3StorageService } from "@/server/services/storage-service";
-import { bxDocExtraction } from "@/add-ons/doc-reader/doc-extraction";
+import { transformer } from "./shared";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -27,6 +28,7 @@ const createContext = cache(() => {
       cookie: cookies().toString(),
       "x-trpc-source": "rsc",
     }),
+    emailService: SmtpEmailService,
     storageService: s3StorageService,
     docExtraction: bxDocExtraction,
   });
