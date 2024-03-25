@@ -1,3 +1,6 @@
+import React from "react";
+
+import { env } from "@/env";
 import {
   Column,
   Container,
@@ -10,7 +13,6 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import React from "react";
 
 interface TempalteProps {
   headerUrl?: string;
@@ -27,6 +29,7 @@ export function NotificationTemplate({
   title,
   children,
 }: TempalteProps) {
+  const { host } = new URL(env.PORTAL_URL);
   return (
     <Html>
       <Preview>{preview}</Preview>
@@ -141,7 +144,7 @@ export function NotificationTemplate({
                   color: "#999",
                 }}
               >
-                bxebl-portal.bluex.trade
+                { host }
               </Text>
               <Text
                 style={{

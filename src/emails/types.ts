@@ -14,3 +14,8 @@ export type InvitationEmailProps = {
   sender: string;
   verifyUrl: string;
 }
+
+export type SigninEmailProps = {
+  logoUrl: string;
+  signinUrl: string;
+}

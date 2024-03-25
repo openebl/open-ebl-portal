@@ -15,6 +15,8 @@ import {
 import EmailProvider from "next-auth/providers/email";
 import { isEmpty } from "remeda";
 import { type PermissionType, permissions } from "./permissions";
+import { sendUserSignin } from "@/emails/send-user-signin";
+import { SmtpEmailService } from "./services/email-service";
 // import GoogleProvider from "next-auth/providers/google";
 
 /**
@@ -132,11 +134,16 @@ export const authOptions: NextAuthOptions = {
     EmailProvider({
       server: env.EMAIL_SERVER,
       from: env.EMAIL_FROM,
+      maxAge: env.SIGNIN_EMAIL_MAXAGE_IN_SEC,
+      async sendVerificationRequest(params) {
+        const { identifier, url} = params
+        await sendUserSignin({
+          service: SmtpEmailService,
+          receiver: identifier,
+          url,
+        })
+      }
     }),
-    // GoogleProvider({
-    //   clientId: env.GOOGLE_CLIENT_ID,
-    //   clientSecret: env.GOOGLE_CLIENT_SECRET,
-    // }),
   ],
   theme: {
     colorScheme: "light",
