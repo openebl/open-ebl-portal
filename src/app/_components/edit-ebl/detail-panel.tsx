@@ -31,7 +31,7 @@ const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>, 
             render={({ field }) => (
               <HFormItem label="BL No." required={true}>
                 <Input
-                  className={`h-10 w-[21.25rem] shadow-inner ${form.formState.errors.bl_number && '!border-[#E42525]'}`}
+                  className={`h-10 w-[21.25rem] shadow-inner ${form.formState.errors.bl_number && '!border-warning'}`}
                   {...field}
                 />
               </HFormItem>
@@ -43,7 +43,7 @@ const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>, 
             required={true}
             name="bl_doc_type"
             items={blDocTypes}
-            className={form.formState.errors.bl_doc_type && '!border-[#E42525]'}
+            className={form.formState.errors.bl_doc_type && '!border-warning'}
           />
           <ComboboxField
             control={form.control}
@@ -52,7 +52,7 @@ const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>, 
             name="pol.UNLocationCode"
             useFilterItems={useFilterPorts}
             useGetItem={useGetPort}
-            className={form.formState.errors.pol && '!border-[#E42525]'}
+            className={form.formState.errors.pol && '!border-warning'}
           />
           <ComboboxField
             control={form.control}
@@ -61,7 +61,7 @@ const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>, 
             name="pod.UNLocationCode"
             useFilterItems={useFilterPorts}
             useGetItem={useGetPort}
-            className={form.formState.errors.pod && '!border-[#E42525]'}
+            className={form.formState.errors.pod && '!border-warning'}
           />
           <ComboboxField
             control={form.control}
@@ -71,7 +71,7 @@ const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>, 
             name="shipper"
             useFilterItems={useFilterShippers}
             useGetItem={useGetShipper}
-            className={form.formState.errors.shipper && '!border-[#E42525]'}
+            className={form.formState.errors.shipper && '!border-warning'}
           />
           <ComboboxField
             control={form.control}
@@ -81,7 +81,7 @@ const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>, 
             name="consignee"
             useFilterItems={useFilterConsignees}
             useGetItem={useGetConsignee}
-            className={form.formState.errors.consignee && '!border-[#E42525]'}
+            className={form.formState.errors.consignee && '!border-warning'}
           />
           <ComboboxField
             control={form.control}
@@ -91,7 +91,7 @@ const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>, 
             name="release_agent"
             useFilterItems={useFilterReleaseAgents}
             useGetItem={useGetReleaseAgent}
-            className={form.formState.errors.release_agent && '!border-[#E42525]'}
+            className={form.formState.errors.release_agent && '!border-warning'}
           />
           <FormField
             control={form.control}
@@ -100,7 +100,7 @@ const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>, 
               <HFormItem label="Notes" required={false}>
                 <Textarea
                   placeholder=""
-                  className={`h-[10.625rem] w-[21.25rem] resize-none font-normal ${form.formState.errors.note && '!border-[#E42525]'}`}
+                  className={`h-[10.625rem] w-[21.25rem] resize-none font-normal ${form.formState.errors.note && '!border-warning'}`}
                   {...field}
                   value={field.value ?? ""}
                 ></Textarea>

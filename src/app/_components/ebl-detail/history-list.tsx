@@ -38,12 +38,12 @@ const HistoryListRow = ({
         <div
           className={cn(
             "h-[1.125rem] w-[1px]",
-            !first && "border-l border-dashed border-[#004DE3]",
+            !first && "border-l border-dashed border-secondary1",
           )}
         ></div>
         <ConnectDotIcon className="h-[1.125rem] w-[1.125rem] text-secondary1" />
         {!last && (
-          <div className="w-[1px] flex-1 border-l border-dashed border-[#004DE3]"></div>
+          <div className="w-[1px] flex-1 border-l border-dashed border-secondary1"></div>
         )}
       </div>
       <div className="border-b border-border-light py-[1.125rem]">

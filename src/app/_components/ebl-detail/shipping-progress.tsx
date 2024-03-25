@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 import { type EBlRecordType } from "@/types/ebl";
 import ActionPanel from "./action-panel";
 import { api } from "@/trpc/server";
-import { currentStatus, eblParties, getNextPartyIDByCurrentStatus } from "@/lib/ebl";
+import { type EBlStatusType, currentStatus, eblParties, getNextPartyIDByCurrentStatus } from "@/lib/ebl";
+import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon";
 
 type TrackerPosition = "first" | "middle" | "last";
 
@@ -36,7 +37,7 @@ const ProgressTracker = ({
     <Tooltip>
       <div
         className={cn(
-          "flex min-w-0 max-w-[26%] flex-auto flex-col items-start justify-center bg-[#004DE3] py-[1.0625rem] pl-[1.875rem] pr-8",
+          "flex min-w-0 max-w-[26%] flex-auto flex-col items-start justify-center bg-secondary1 py-[1.0625rem] pl-[1.875rem] pr-8",
           className,
           position === "first" ? "pl-[1.875rem]" : "-ml-[10px] pl-9",
         )}
@@ -61,7 +62,7 @@ const ProgressTracker = ({
 };
 
 const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
-  const active = "bg-[#004DE3]";
+  const active = "bg-secondary1";
   const inactive = "bg-[#0D447A]";
   const accomplished = "bg-[#039912]";
   const printed = "bg-warning";
@@ -133,6 +134,26 @@ const ProgressStatusItem = ({
   </div>
 );
 
+const ProgressStatusText = ({
+  status
+}: {
+  status: EBlStatusType
+}) => (
+  <ProgressStatusItem title="Status">
+    {status === "PRINT" && <p className="text-warning">Printed to Paper</p>}
+    {status === "SURRENDER" &&
+      <div className="flex gap-x-1 items-center">
+        Not accomplished yet {<CircleInCheckIcon className="text-hint" />}
+      </div>
+    }
+    {status === "ACCOMPLISH" &&
+      <div className="flex gap-x-1 items-center">
+        Accomplished {<CircleInCheckIcon className="text-[#42BE25]" />}
+      </div>
+    }
+  </ProgressStatusItem>
+);
+
 const ProgressStatus = async ({
   ebl,
   sessionPlatformId,
@@ -147,10 +168,7 @@ const ProgressStatus = async ({
   const currentOwnerName = platforms[ebl.bl?.current_owner ?? ""]?.name ?? ""
   const nextOwnerName = platforms[nextPartyID]?.name
 
-  const isSurrender = status === "SURRENDER"
-  const isAccomplished = status === "ACCOMPLISH"
-  const isPrinted = status === "PRINT"
-  const showNextOwner = !isSurrender && !isAccomplished && !isPrinted
+  const showNextOwner = !["SURRENDER", "ACCOMPLISH", "PRINT"].includes(status);
   const showStatus = !showNextOwner
 
   return (
@@ -178,11 +196,7 @@ const ProgressStatus = async ({
       }
 
       {showStatus &&
-        <ProgressStatusItem title="Status">
-          {isPrinted && "Printed to Paper"}
-          {isSurrender && "Not accomplished yet"}
-          {isAccomplished && "Accomplished"}
-        </ProgressStatusItem>
+        <ProgressStatusText status={status} />
       }
     </div>
   );
