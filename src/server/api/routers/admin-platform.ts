@@ -76,11 +76,6 @@ export const adminPlatformRouter = createTRPCRouter({
           where: { email: input.email },
           update: {
             name: input.name,
-            activePlatform: {
-              connect: {
-                id: platform.id,
-              },
-            },
           },
           create: {
             email: input.email,
@@ -113,11 +108,34 @@ export const adminPlatformRouter = createTRPCRouter({
       if (!hasPermission("write:admin/platforms", ctx.session.permissions))
         throw new Error("You are not authorized to update platforms");
 
-      return ctx.db.userRole.deleteMany({
-        where: {
-          userId: BigInt(input.userId),
-          platformId: BigInt(input.platformId),
-        },
+      const userId = input.userId;
+      if (input.userId === ctx.session.user.id && input.platformId === ctx.session.platform.id) {
+        throw new Error("You cannot delete yourself");
+      }
+
+      return ctx.db.$transaction(async (tx) => {
+        await tx.userRole.deleteMany({
+          where: { userId, platformId: input.platformId },
+        });
+
+        const userRoles = await tx.userRole.findMany({ where: { userId } })
+        if (userRoles.length === 0) {
+          await tx.user.delete({where: {id: userId}});
+        } else {
+          await tx.user.update({
+            where: { id: userId },
+            data: {
+              activePlatform: {
+                connect: {
+                  id: userRoles[0]!.platformId,
+                },
+              },
+            },
+          });
+        }
+
+        return true;
       });
+
     }),
 });

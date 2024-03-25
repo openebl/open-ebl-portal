@@ -114,6 +114,7 @@ export const userRouter = createTRPCRouter({
       });
     }),
 
+  // update current user's active platform
   updateActivePlatform: protectedProcedure
     .input(z.object({ platformId: z.bigint() }))
     .mutation(({ ctx, input }) => {
@@ -129,6 +130,7 @@ export const userRouter = createTRPCRouter({
       });
     }),
 
+  // remove specific user from current platform
   delete: protectedProcedure
     .input(z.string())
     .mutation(async ({ ctx, input }) => {
@@ -141,18 +143,28 @@ export const userRouter = createTRPCRouter({
         throw new Error("You cannot delete yourself");
       }
 
-      if (
-        (await ctx.db.user.count({
-          where: { id: userId, activePlatformId: ctx.session.platform.id },
-        })) === 0
-      ) {
-        throw new Error("You can delete only users from your platform");
-      }
+      return ctx.db.$transaction(async (tx) => {
+        await tx.userRole.deleteMany({
+          where: { userId, platformId: ctx.session.platform.id },
+        });
 
-      return ctx.db.user.delete({
-        where: {
-          id: userId,
-        },
+        const userRoles = await tx.userRole.findMany({ where: { userId } })
+        if (userRoles.length === 0) {
+          await tx.user.delete({where: {id: userId}});
+        } else {
+          await tx.user.update({
+            where: { id: userId },
+            data: {
+              activePlatform: {
+                connect: {
+                  id: userRoles[0]!.platformId,
+                },
+              },
+            },
+          });
+        }
+
+        return true;
       });
     }),
 });

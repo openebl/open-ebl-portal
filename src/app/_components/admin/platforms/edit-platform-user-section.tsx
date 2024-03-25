@@ -146,18 +146,25 @@ const UserActionMenu = ({
 const EditPlatformUserSection = ({
   userRoles,
   platformId,
+  platformName,
 }: {
   userRoles: UserRoleWithUser[];
   platformId: bigint;
+  platformName: string;
 }) => {
   const router = useRouter();
   const [addUserOpen, setAddUserOpen] = useState(false);
+  const [userAction, setUserAction] = useState<"edit" | "add">("add");
   const [confirmDeletionOpen, setConfirmDeletionOpen] = useState(false);
   const [removingUserId, setRemovingUserId] = useState<bigint | null>(null);
   const [formValues, setFormValues] = useState<UserFormType | undefined>(
     undefined,
   );
-  const defaultValues = { email: "", name: "", role: "viewonly" } as UserFormType
+  const defaultValues = {
+    email: "",
+    name: "",
+    role: "viewonly",
+  } as UserFormType;
   const form = useForm<UserFormType>({
     resolver: zodResolver(UserFormSchema),
     defaultValues: defaultValues,
@@ -197,6 +204,7 @@ const EditPlatformUserSection = ({
   });
 
   const onAddUser = () => {
+    setUserAction("add");
     setFormValues(defaultValues);
     setAddUserOpen(true);
   };
@@ -213,6 +221,7 @@ const EditPlatformUserSection = ({
   const onEditUser = async (userId: bigint) => {
     const userRole = userRoles.find((ur) => ur.userId === userId);
     if (userRole) {
+      setUserAction("edit");
       setFormValues({
         email: userRole.user.email ?? "",
         name: userRole.user.name ?? "",
@@ -239,7 +248,7 @@ const EditPlatformUserSection = ({
   return (
     <div className="my-[1.875rem] flex flex-col rounded-lg border border-solid border-border-light bg-white text-sm leading-4 text-main shadow-lg">
       <div className="flex w-full justify-between gap-5 px-[1.875rem] py-[1.125rem] text-lg font-semibold leading-[1.625rem]">
-        <div>Platform Users</div>
+        <div>Platform Users - {platformName}</div>
         <Button onClick={onAddUser}>Add User</Button>
       </div>
 
@@ -255,10 +264,7 @@ const EditPlatformUserSection = ({
         </TableHeader>
         <TableBody>
           {userRoles.map((userRole, index) => (
-            <TableRow
-              key={index}
-              className="h-[3.75rem] cursor-pointer"
-            >
+            <TableRow key={index} className="h-[3.75rem] cursor-pointer">
               <TableCell className="px-[1.875rem]">
                 {String(userRole.user.id)}
               </TableCell>
@@ -284,11 +290,16 @@ const EditPlatformUserSection = ({
         onCancel={() => {
           setAddUserOpen(false);
           // set form values to default to clear errors and reset form
-          setFormValues({...defaultValues, name: ' '});
+          setFormValues({ ...defaultValues, name: " " });
         }}
         onConfirm={addUser}
       >
-        <AddUserPanel form={form} disabled={loading} onSubmit={onSubmit} />
+        <AddUserPanel
+          form={form}
+          disabled={loading}
+          disableEmail={userAction === "edit"}
+          onSubmit={onSubmit}
+        />
       </AddOrEditUserDialog>
       <ConfirmDeletionDialog
         open={confirmDeletionOpen}

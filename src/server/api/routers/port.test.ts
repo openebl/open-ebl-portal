@@ -41,6 +41,7 @@ describe.concurrent("ports API", () => {
       },
       authenticationId: "",
       expires: "1",
+      platformRoles: [],
       permissions: [],
     };
 
