@@ -23,8 +23,6 @@ export const env = createEnv({
       process.env.VERCEL ? z.string() : z.string().url(),
     ),
 
-    // GOOGLE_CLIENT_ID: z.string().min(1),
-    // GOOGLE_CLIENT_SECRET: z.string().min(1),
     EMAIL_SERVER: z.string().min(1),
     EMAIL_FROM: z.string().min(1),
     S3_BUCKET: z.string().min(1),
@@ -32,7 +30,7 @@ export const env = createEnv({
     BU_SERVER_API_KEY: z.string().min(1),
     NOTIFIER_POLL_INTERVAL: z.coerce.number().default(1000 * 60 * 5),
     PORTAL_URL: z.string().min(1),
-    SIGNIN_EMAIL_MAXAGE_IN_SEC: z.coerce.number().default(1 * 60 * 60),
+    SIGNIN_EMAIL_MAXAGE_IN_SEC: z.coerce.number().default(15 * 60),
   },
 
   /**
@@ -51,8 +49,6 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    // GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-    // GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     EMAIL_SERVER: process.env.EMAIL_SERVER,

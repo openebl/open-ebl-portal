@@ -17,6 +17,8 @@ import { isEmpty } from "remeda";
 import { type PermissionType, permissions } from "./permissions";
 import { sendUserSignin } from "@/emails/send-user-signin";
 import { SmtpEmailService } from "./services/email-service";
+import { sleep } from "@/lib/utils";
+import { getLogger } from "@/lib/logger";
 // import GoogleProvider from "next-auth/providers/google";
 
 /**
@@ -128,6 +130,17 @@ export const authOptions: NextAuthOptions = {
         permissions: permissions({ roles, platform }),
       };
     },
+    async signIn({ user }) {
+      if (user.name && user.activePlatformId) {
+        return true;
+      } else {
+        // not a valid user
+        // sleep 2 seconds and redirect to verify-request page
+        // so others cannot brute force the email
+        await sleep(2000);
+        return "/auth/verify-request";
+      }
+    },
   },
   adapter: PrismaAdapter(db as PrismaClient),
   providers: [
@@ -136,19 +149,21 @@ export const authOptions: NextAuthOptions = {
       from: env.EMAIL_FROM,
       maxAge: env.SIGNIN_EMAIL_MAXAGE_IN_SEC,
       async sendVerificationRequest(params) {
-        const { identifier, url} = params
-        await sendUserSignin({
+        const { identifier, url } = params;
+        sendUserSignin({
           service: SmtpEmailService,
           receiver: identifier,
           url,
-        })
-      }
+        }).catch((err) =>
+          getLogger().error(`Failed to send signin email: ${err}`),
+        );
+      },
     }),
   ],
-  theme: {
-    colorScheme: "light",
-    logo: "/bxblogo.svg", // Absolute URL to image
-    // buttonText: "" // Hex color code
+  pages: {
+    signIn: "/auth/signin",
+    // error: "/auth/error",
+    verifyRequest: "/auth/verify-request",
   },
 };
 

@@ -17,7 +17,7 @@ export const sendUserInvitation = async (props: {
   const subject = 'You have been invited to join BlueX Open eBL!'
   try {
     const logoCid = "bxlogo";
-    const verifyUrl =  new URL(`/invite/${props.receiver.email}`, env.PORTAL_URL).toString();
+    const verifyUrl =  new URL('/', env.PORTAL_URL).toString();
     const html = render(
       UserInvitation({
         logoUrl: `cid:${logoCid}`,
