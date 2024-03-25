@@ -7,3 +7,10 @@ export type CommonEmailProps = {
   note: string;
   viewEblLink: string;
 }
+
+export type InvitationEmailProps = {
+  logoUrl: string;
+  username: string;
+  sender: string;
+  verifyUrl: string;
+}
