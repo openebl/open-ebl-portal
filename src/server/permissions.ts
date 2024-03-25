@@ -67,6 +67,18 @@ const adminPlatformPermissions: PermissionFilterType = (source) => {
   );
 };
 
+const eblPermissions: PermissionFilterType = (source) => {
+  if (source?.platform.admin) return [];
+
+  return concatePermissions(
+    [true, ["read:ebl/list", "read:ebl/item"]],
+    [
+      source.roles?.includes("operator"),
+      ["read:ebl/new", "write:ebl/new", "write:ebl/item", "write:ebl/list"],
+    ],
+  );
+};
+
 const settingsPermissions: PermissionFilterType = (source) => {
   return concatePermissions(
     [true, ["read:settings/business-info"]],
@@ -78,8 +90,9 @@ const settingsPermissions: PermissionFilterType = (source) => {
 };
 
 const permissionFilters: PermissionFilterType[] = [
-  adminPlatformPermissions,
+  eblPermissions,
   settingsPermissions,
+  adminPlatformPermissions,
 ];
 
 export { permissions, hasPermission };

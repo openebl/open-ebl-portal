@@ -15,9 +15,6 @@ export const metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 const RootLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerAuthSession();
 

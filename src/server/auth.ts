@@ -114,7 +114,6 @@ export const authOptions: NextAuthOptions = {
             })
           : "";
 
-          console.log('-------', roles, platform, permissions({ roles, platform }))
       return {
         ...session,
         user: {
