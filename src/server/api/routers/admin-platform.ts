@@ -1,6 +1,5 @@
-import { sleep } from "@/lib/utils";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { hasPermission, permissions } from "@/server/permissions";
+import { hasPermission } from "@/server/permissions";
 import { PlatformFormSchema } from "@/types/admin-platform";
 import { UserFormSchema } from "@/types/user";
 import { z } from "zod";
@@ -23,13 +22,13 @@ export const adminPlatformRouter = createTRPCRouter({
   }),
 
   getWithUserRoles: protectedProcedure
-    .input(z.bigint())
+    .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) => {
       if (!hasPermission("read:admin/platforms", ctx.session.permissions))
         throw new Error("You are not authorized to get platforms");
 
       return ctx.db.platform.findUnique({
-        where: { id: BigInt(input) },
+        where: { id: BigInt(input.id) },
         include: {
           userRoles: {
             include: { user: true },
@@ -61,7 +60,7 @@ export const adminPlatformRouter = createTRPCRouter({
     }),
 
   addUser: protectedProcedure
-    .input(UserFormSchema.and(z.object({ platformId: z.bigint() })))
+    .input(UserFormSchema.and(z.object({ platformId: z.string() })))
     .mutation(async ({ ctx, input }) => {
       if (!hasPermission("write:admin/platforms", ctx.session.permissions))
         throw new Error("You are not authorized to update platforms");
@@ -103,24 +102,28 @@ export const adminPlatformRouter = createTRPCRouter({
     }),
 
   removeUser: protectedProcedure
-    .input(z.object({ userId: z.bigint(), platformId: z.bigint() }))
+    .input(z.object({ userId: z.bigint(), platformId: z.string() }))
     .mutation(({ ctx, input }) => {
       if (!hasPermission("write:admin/platforms", ctx.session.permissions))
         throw new Error("You are not authorized to update platforms");
 
       const userId = input.userId;
-      if (input.userId === ctx.session.user.id && input.platformId === ctx.session.platform.id) {
+      const platformId = BigInt(input.platformId);
+      if (
+        input.userId === ctx.session.user.id &&
+        platformId === ctx.session.platform.id
+      ) {
         throw new Error("You cannot delete yourself");
       }
 
       return ctx.db.$transaction(async (tx) => {
         await tx.userRole.deleteMany({
-          where: { userId, platformId: input.platformId },
+          where: { userId, platformId },
         });
 
-        const userRoles = await tx.userRole.findMany({ where: { userId } })
+        const userRoles = await tx.userRole.findMany({ where: { userId } });
         if (userRoles.length === 0) {
-          await tx.user.delete({where: {id: userId}});
+          await tx.user.delete({ where: { id: userId } });
         } else {
           await tx.user.update({
             where: { id: userId },
@@ -136,6 +139,5 @@ export const adminPlatformRouter = createTRPCRouter({
 
         return true;
       });
-
     }),
 });

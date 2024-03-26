@@ -1,6 +1,4 @@
 import { type UserRoleType } from "@/types/user";
-import { type Session } from "next-auth";
-// import { type getServerAuthSession } from "./auth";
 
 type ResourceType =
   | "ebl/list"
@@ -95,5 +93,5 @@ const permissionFilters: PermissionFilterType[] = [
   adminPlatformPermissions,
 ];
 
-export { permissions, hasPermission };
-export type { ResourceType, ActionType, PermissionType };
+export { hasPermission, permissions };
+export type { ActionType, PermissionType, ResourceType };

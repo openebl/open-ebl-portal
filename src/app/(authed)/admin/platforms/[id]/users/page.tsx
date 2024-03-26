@@ -10,9 +10,9 @@ import { redirect } from "next/navigation";
 
 export default async function Page({ params }: { params: { id: string } }) {
   const session = await getServerAuthSession();
-  const platform = await api.adminPlatform.getWithUserRoles.query(
-    BigInt(params.id),
-  );
+  const platform = await api.adminPlatform.getWithUserRoles.query({
+    id: params.id,
+  });
 
   if (!platform) {
     redirect("/admin/platforms");
@@ -30,11 +30,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           Back
         </Link>
 
-        <EditPlatformUserSection
-          userRoles={platform.userRoles}
-          platformId={platform.id}
-          platformName={platform.name}
-        />
+        <EditPlatformUserSection platformId={params.id} />
       </div>
     </PermissionContext>
   );

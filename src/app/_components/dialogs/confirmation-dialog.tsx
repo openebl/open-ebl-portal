@@ -10,13 +10,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 export type DialogState = "confirm" | "waiting" | "completed";
 export type DialogContent = {
   [key in DialogState]?: {
     title?: string;
     icon?: React.ReactNode;
-    message?: string;
+    message?: string | React.ReactNode;
     cancelButton?: string;
     confirmButton?: string;
   };
@@ -34,10 +35,16 @@ const ConfirmContent = ({
   return (
     <>
       <AlertDialogHeader className="min-h-[164px] min-w-[500px]">
-        <AlertDialogTitle>{content.confirm?.title}</AlertDialogTitle>
-        <AlertDialogDescription>
-          {content.confirm?.message}
-        </AlertDialogDescription>
+        {content.confirm?.title && (
+          <AlertDialogTitle className="text-main">{content.confirm.title}</AlertDialogTitle>
+        )}
+        {typeof content.confirm?.message === "string" ? (
+          <AlertDialogDescription className="text-main">
+            {content.confirm?.message}
+          </AlertDialogDescription>
+        ) : (
+          content.confirm?.message
+        )}
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel onClick={onCancel}>
@@ -57,6 +64,15 @@ const WaitingContent = ({ content }: { content: DialogContent }) => {
       {content.waiting?.icon}
       <AlertDialogTitle>{content.waiting?.message}</AlertDialogTitle>
     </AlertDialogHeader>
+  );
+};
+
+const BlankContent = () => {
+  return (
+    <>
+      <AlertDialogHeader className="min-h-[164px] min-w-[500px] items-center justify-center space-y-5 p-[1.875rem]" />
+      <AlertDialogFooter />
+    </>
   );
 };
 
@@ -84,18 +100,20 @@ const CompletedContent = ({
 
 export const ConfirmationDialog = ({
   open,
-  state,
+  state = "confirm",
   content,
+  className,
   onCancel,
   onConfirm,
 }: {
   open: boolean;
   state: DialogState;
   content: DialogContent;
+  className?: string;
   onCancel?: () => void;
   onConfirm: () => void;
 }) => {
-  const transitions = useTransition(state, {
+  const transitions = useTransition(open ? state : 'blank', {
     from: { opacity: 0 },
     enter: { opacity: 1 },
     leave: { position: "absolute", opacity: 0 },
@@ -103,11 +121,13 @@ export const ConfirmationDialog = ({
 
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent className="min-h-[220px] min-w-[500px]">
+      <AlertDialogContent className={cn("min-w-[500px]", className)}>
         <div className="relative">
           {transitions((style, item) => (
             <animated.div style={{ ...style }}>
-              {item === "confirm" ? (
+              {!open ? (
+                <BlankContent />
+              ) : item === "confirm" ? (
                 <ConfirmContent
                   content={content}
                   onCancel={onCancel}

@@ -1,7 +1,10 @@
 import { render } from "@react-email/components";
-import { type Address, type Attachment } from "nodemailer/lib/mailer";
+import { type Address } from "nodemailer/lib/mailer";
 
 import AccomplishNotification from "@/emails/accomplish-notification";
+import AmendRequestNotification from "@/emails/amend-reqeuest-notification";
+import AmendedNotification from "@/emails/amended-notification";
+import PrintNotification from "@/emails/print-notification";
 import ReturnNotification from "@/emails/return-notification";
 import TransferNotification from "@/emails/transfer-notification";
 import { getLogger } from "@/lib/logger";
@@ -9,9 +12,6 @@ import { type DatabaseType } from "@/server/db";
 import { type EmailServiceType } from "@/server/services/email-service";
 import { type EBlStash } from "@prisma/client";
 import { isEmpty } from "remeda";
-import AmendRequestNotification from "@/emails/amend-reqeuest-notification";
-import PrintNotification from "@/emails/print-notification";
-import AmendedNotification from "@/emails/amended-notification";
 
 export const sendStandardNotification = async (props: {
   template: keyof typeof emailTemplates;

@@ -1,6 +1,6 @@
 import { type external } from "@/types/bu-scheme";
-import type { EBlAllowAction, EBlRecordType, EBlEventType } from "@/types/ebl";
-import { findLast, last } from "remeda";
+import type { EBlAllowAction, EBlEventType, EBlRecordType } from "@/types/ebl";
+import { findLast } from "remeda";
 
 type PartyType =
   external["https://api.swaggerhub.com/domains/dcsaorg/DOCUMENTATION_DOMAIN/2.1.0"]["components"]["schemas"]["party"];

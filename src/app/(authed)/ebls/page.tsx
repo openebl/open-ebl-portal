@@ -3,7 +3,6 @@
 import MainSection from "@/app/_components/ebl-list/main-section";
 import PermissionContext from "@/app/_components/permission-context";
 import { getServerAuthSession } from "@/server/auth";
-import { api } from "@/trpc/server";
 import { type EBlFilter } from "@/types/ebl";
 
 export default async function Page({
@@ -22,11 +21,7 @@ export default async function Page({
 
   return (
     <PermissionContext session={session} permission="read:ebl/list">
-      <MainSection
-        page={currentPage}
-        filter={filter as EBlFilter}
-      />
-      ;
+      <MainSection page={currentPage} filter={filter as EBlFilter} />;
     </PermissionContext>
   );
 }

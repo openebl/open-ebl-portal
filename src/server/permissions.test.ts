@@ -1,8 +1,7 @@
+import { type UserRoleType } from "@/types/user";
 import { type Platform } from "@prisma/client";
-import { type Session } from "next-auth";
 import { describe, it } from "vitest";
 import { permissions } from "./permissions";
-import { type UserRoleType } from "@/types/user";
 
 describe.concurrent("permissions", () => {
   const minimalPermissions = [

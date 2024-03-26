@@ -30,7 +30,7 @@ const AddUserPanel = ({
   onSubmit,
 }: AddUserPanelProps) => {
   return (
-    <div className="my-[1.875rem] flex flex-col text-sm leading-4 text-main">
+    <div className="py-[1.875rem] flex flex-col text-sm leading-4 text-main">
       <Form {...form}>
         <form className="flex flex-col gap-5" onSubmit={onSubmit}>
           <div className="flex w-[34rem] flex-col pl-7 pr-3.5">

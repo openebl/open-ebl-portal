@@ -1,4 +1,7 @@
+import { sendUserSignin } from "@/emails/send-user-signin";
 import { env } from "@/env";
+import { getLogger } from "@/lib/logger";
+import { sleep } from "@/lib/utils";
 import { db } from "@/server/db";
 import {
   BusinessUnitSchema,
@@ -13,12 +16,8 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
-import { isEmpty } from "remeda";
-import { type PermissionType, permissions } from "./permissions";
-import { sendUserSignin } from "@/emails/send-user-signin";
+import { permissions, type PermissionType } from "./permissions";
 import { SmtpEmailService } from "./services/email-service";
-import { sleep } from "@/lib/utils";
-import { getLogger } from "@/lib/logger";
 // import GoogleProvider from "next-auth/providers/google";
 
 /**
