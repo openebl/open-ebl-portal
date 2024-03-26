@@ -89,7 +89,7 @@ const UserInviteSection = ({
           </Button>
 
           <div className="flex gap-4">
-            <Link href="/settings/users">
+            <Link href="/settings/users" tabIndex={-1}>
               <Button
                 variant="outline"
                 size="lg"

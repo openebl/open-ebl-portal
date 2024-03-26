@@ -3,11 +3,21 @@
 import { type FormEventHandler } from "react";
 import { type UseFormReturn } from "react-hook-form";
 
-import { HFormItem } from "@/app/_components/common/form/h-form";
-import { Form, FormField } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { type PlatformFormType } from "@/types/admin-platform";
+import {
+  BusinessInfoKeys,
+  BusinessInfoTitleMapping,
+} from "@/types/business-info";
 
 interface EditPlatformPanelProps {
   form: UseFormReturn<PlatformFormType>;
@@ -36,16 +46,25 @@ const InputField = ({
         control={form.control}
         name={name}
         render={({ field }) => (
-          <HFormItem label={label} required={required}>
-            <Input
-              className={cn(
-                "h-10 w-[40rem] shadow-inner",
-                form.formState.errors[name] && "!border-warning",
-              )}
-              {...field}
-              {...{ disabled }}
-            />
-          </HFormItem>
+          <FormItem className="flex items-start justify-between space-y-0">
+            <FormLabel className="w-[18rem] flex-none bg-transparent text-[0.8125rem] font-semibold leading-10 text-light">
+              {label}
+              {required && <span className="ml-1 text-warning">*</span>}
+            </FormLabel>
+            <div className="flex flex-col">
+              <FormControl>
+                <Input
+                  className={cn(
+                    "h-10 w-[40rem] shadow-inner",
+                    form.formState.errors[name] && "!border-warning",
+                  )}
+                  {...field}
+                  {...{ disabled }}
+                />
+              </FormControl>
+              <FormMessage className="mx-2" />
+            </div>
+          </FormItem>
         )}
       />
     </div>
@@ -80,6 +99,16 @@ const EditPlatformPanel = ({
             disabled={!canUpdateInfo}
             label="Business Unit ID"
           />
+          {BusinessInfoKeys.map((key) => (
+            <InputField
+              key={key}
+              form={form}
+              name={key}
+              required={false}
+              disabled={!canUpdateInfo}
+              label={BusinessInfoTitleMapping[key]}
+            />
+          ))}
           {children}
         </form>
       </Form>

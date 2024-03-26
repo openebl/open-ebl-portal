@@ -80,7 +80,7 @@ const MainSection = () => {
         {status === "processing" && <ProcessingView />}
         {status === "error" && <ErrorView message={lastError} />}
         <div className="flex h-[5.25rem] w-full items-center justify-between border-t-[1px] border-[#D9D9D9] px-[1.875rem]">
-          <Link href="/ebls">
+          <Link href="/ebls" tabIndex={-1}>
             <Button variant="outline" size="lg" className="w-[11.25rem]">
               Cancel
             </Button>

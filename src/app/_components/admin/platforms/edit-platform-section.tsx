@@ -16,6 +16,7 @@ import EditPlatformPanel from "./edit-platform-panel";
 import { type Platform } from "@prisma/client";
 import { hasPermission, type PermissionType } from "@/server/permissions";
 import PermissionedSection from "@/app/_components/common/permissioned-section";
+import { BusinessInfoSchema } from "@/types/business-info";
 
 const EditPlatformSection = ({
   platform,
@@ -30,6 +31,7 @@ const EditPlatformSection = ({
     defaultValues: {
       name: platform.name,
       platformId: platform.platformId ?? undefined,
+      ...(platform.businessInfo && BusinessInfoSchema.parse(platform.businessInfo)),
     },
   });
 
@@ -80,16 +82,18 @@ const EditPlatformSection = ({
               </Button>
             }
           >
+            <Link href="/admin/platforms" tabIndex={-1}>
             <Button
-              asChild
               variant="outline"
               size="lg"
               className="w-[11.25rem]"
               type="button"
               loading={loading}
+
             >
-              <Link href="/admin/platforms">Cancel</Link>
+              Cancel
             </Button>
+            </Link>
             <Button
               size="lg"
               className="w-[11.25rem]"

@@ -43,7 +43,7 @@ const UserInviteSection = () => {
       {/* Action Panel */}
       <div className="flex h-[5.25rem] w-full items-center justify-end border-t-[1px] border-[#D9D9D9] px-[1.875rem]">
         <div className="flex gap-4">
-          <Link href="/settings/users">
+          <Link href="/settings/users" tabIndex={-1}>
             <Button
               variant="outline"
               size="lg"

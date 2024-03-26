@@ -11,15 +11,29 @@ import { api } from "@/trpc/react";
 import { type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
 import SendIcon from "@/app/_icons/send-icon";
 import { Button } from "@/components/ui/button";
-import { type EBlFormType, EBlFormSchema, EBlFormUpdateSchema, type EBlRecordType, EBlFormAmendSchema } from "@/types/ebl";
+import {
+  type EBlFormType,
+  EBlFormSchema,
+  EBlFormUpdateSchema,
+  type EBlRecordType,
+  EBlFormAmendSchema,
+} from "@/types/ebl";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
 import type { ImageType } from "@/app/_components/common/props/types";
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type AppRouter } from "@/server/api/root";
 import { portName } from "@/lib/ports";
-import { type DialogActionType, EBlConfirmationDialog } from "../dialogs/ebl-confirmation-dialog";
-import { currentStatus, eblParties, getNextPartyIDByAction, getNextPartyIDByCurrentStatus } from "@/lib/ebl";
+import {
+  type DialogActionType,
+  EBlConfirmationDialog,
+} from "../dialogs/ebl-confirmation-dialog";
+import {
+  currentStatus,
+  eblParties,
+  getNextPartyIDByAction,
+  getNextPartyIDByCurrentStatus,
+} from "@/lib/ebl";
 
 const MainSection = ({
   eblForm,
@@ -43,17 +57,24 @@ const MainSection = ({
 
   const isNewEbl = !eblRecord;
   const eblId = eblRecord?.bl?.id ?? "";
-  const status = eblRecord && currentStatus(eblRecord)
-  const documentParties = eblRecord && eblParties(eblRecord)
-  const isAmendMode = status === "REQUEST_AMEND" || (status === "RETURN" && eblRecord?.bl?.current_owner === documentParties?.issuer);
+  const status = eblRecord && currentStatus(eblRecord);
+  const documentParties = eblRecord && eblParties(eblRecord);
+  const isAmendMode =
+    status === "REQUEST_AMEND" ||
+    (status === "RETURN" &&
+      eblRecord?.bl?.current_owner === documentParties?.issuer);
 
   const title = isNewEbl ? "New eBL" : isAmendMode ? "Amend eBL" : "Edit eBL";
 
-  const { data: platforms } = api.platform.list.useQuery()
-  let nextPartyName = platforms?.[form.getValues().shipper]?.name
+  const { data: platforms } = api.platform.list.useQuery();
+  let nextPartyName = platforms?.[form.getValues().shipper]?.name;
   if (isAmendMode) {
-    if (status === "REQUEST_AMEND") nextPartyName = platforms?.[getNextPartyIDByAction(eblRecord!, "AMEND")]?.name
-    else if (status === "RETURN") nextPartyName = platforms?.[getNextPartyIDByCurrentStatus(eblRecord!, "RETURN")]?.name
+    if (status === "REQUEST_AMEND")
+      nextPartyName =
+        platforms?.[getNextPartyIDByAction(eblRecord!, "AMEND")]?.name;
+    else if (status === "RETURN")
+      nextPartyName =
+        platforms?.[getNextPartyIDByCurrentStatus(eblRecord!, "RETURN")]?.name;
   }
 
   const actionHandlerCallback = () => ({
@@ -71,18 +92,20 @@ const MainSection = ({
       toast.error(`Failed to ${action} eBL: ${error.message}`);
       console.error(error);
     },
-  })
+  });
   const issueEBl = api.ebl.issue.useMutation(actionHandlerCallback());
   const updateEBl = api.ebl.updateDraft.useMutation(actionHandlerCallback());
   const deleteEBl = api.ebl.delete.useMutation(actionHandlerCallback());
   const amendEBl = api.ebl.amend.useMutation(actionHandlerCallback());
 
   const getFormData = () => {
-    const formData = form.getValues()
-    formData.pol.locationName = portName(formData.pol.UNLocationCode) ?? formData.pol.locationName;
-    formData.pod.locationName = portName(formData.pod.UNLocationCode) ?? formData.pod.locationName;
+    const formData = form.getValues();
+    formData.pol.locationName =
+      portName(formData.pol.UNLocationCode) ?? formData.pol.locationName;
+    formData.pod.locationName =
+      portName(formData.pod.UNLocationCode) ?? formData.pod.locationName;
     return formData;
-  }
+  };
 
   const checkFormValue = async (): Promise<boolean> => {
     const r = await form.trigger(undefined, { shouldFocus: true });
@@ -91,12 +114,12 @@ const MainSection = ({
       return false;
     }
     return true;
-  }
+  };
 
   const issue = async (payload: { isDraft: boolean }) => {
-    if (!await checkFormValue()) return;
+    if (!(await checkFormValue())) return;
 
-    setDialogState('waiting');
+    setDialogState("waiting");
     setDialogOpen(true);
     if (isNewEbl) {
       payload.isDraft ? setAction("SAVE_DRAFT") : setAction("ISSUE");
@@ -104,43 +127,47 @@ const MainSection = ({
       const body = EBlFormSchema.parse({ ...formData, draft: payload.isDraft });
       issueEBl.mutate(body);
     } else {
-      updateDraft()
+      updateDraft();
     }
   };
   const saveDraft = async () => {
     await issue({ isDraft: true });
-  }
+  };
   const updateDraft = () => {
     if (!isNewEbl) {
       setAction("UPDATE_DRAFT");
-      setDialogState('waiting');
+      setDialogState("waiting");
       setDialogOpen(true);
       const formData = getFormData();
-      const body = EBlFormUpdateSchema.parse({ ...formData, ebl_id: eblId, draft: false });
+      const body = EBlFormUpdateSchema.parse({
+        ...formData,
+        ebl_id: eblId,
+        draft: false,
+      });
       updateEBl.mutate(body);
     }
-  }
+  };
   const deleteDraft = () => {
     if (!isNewEbl) {
       setAction("DELETE");
-      setDialogState('waiting');
+      setDialogState("waiting");
       setDialogOpen(true);
       deleteEBl.mutate({ id: eblId, note: form.getValues().note ?? "" });
     }
-  }
+  };
   const amend = () => {
     setAction("AMEND");
-    setDialogState('waiting');
+    setDialogState("waiting");
     setDialogOpen(true);
     const formData = getFormData();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { shipper, consignee, release_agent, draft, ...rest } = formData;
     const body = EBlFormAmendSchema.parse({ ...rest, ebl_id: eblId });
     amendEBl.mutate(body);
-  }
+  };
 
   const openConfirmationDialog = async (action: DialogActionType) => {
-    if (!await checkFormValue()) return;
+    if (!(await checkFormValue())) return;
 
     setAction(action);
     setDialogOpen(true);
@@ -149,14 +176,14 @@ const MainSection = ({
 
   const handleDialogCanceled = () => {
     setDialogOpen(false);
-  }
+  };
   const handleDialogConfirmed = async () => {
     if (dialogState === "confirm") {
       if (action === "ISSUE") {
-        setDialogState('waiting');
+        setDialogState("waiting");
         await issue({ isDraft: false });
       } else if (action === "AMEND") {
-        setDialogState('waiting');
+        setDialogState("waiting");
         amend();
       } else if (action === "DELETE") {
         deleteDraft();
@@ -180,12 +207,12 @@ const MainSection = ({
 
         <div className="flex h-[5.25rem] w-full items-center justify-between border-t-[1px] border-[#D9D9D9] px-[1.875rem]">
           <div className="flex gap-4">
-            <Link href="/ebls">
+            <Link href="/ebls" tabIndex={-1}>
               <Button variant="outline" size="lg" className="w-[11.25rem]">
                 Cancel
               </Button>
             </Link>
-            {(!isNewEbl && !isAmendMode) &&
+            {!isNewEbl && !isAmendMode && (
               <Button
                 variant="outline"
                 size="lg"
@@ -194,10 +221,10 @@ const MainSection = ({
               >
                 Delete
               </Button>
-            }
+            )}
           </div>
           <div className="flex gap-2.5">
-            {isNewEbl &&
+            {isNewEbl && (
               <Button
                 variant="outline"
                 size="lg"
@@ -206,12 +233,16 @@ const MainSection = ({
               >
                 Save as Draft
               </Button>
-            }
-            <Button size="lg" className="w-[11.25rem]" onClick={
-              !isAmendMode ?
-                () => openConfirmationDialog("ISSUE") :
-                () => openConfirmationDialog("AMEND")
-            }>
+            )}
+            <Button
+              size="lg"
+              className="w-[11.25rem]"
+              onClick={
+                !isAmendMode
+                  ? () => openConfirmationDialog("ISSUE")
+                  : () => openConfirmationDialog("AMEND")
+              }
+            >
               <SendIcon className="mr-1" />
               {isNewEbl ? "Issue eBL" : "Transfer"}
             </Button>
