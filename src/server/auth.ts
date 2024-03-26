@@ -18,6 +18,8 @@ import {
 import EmailProvider from "next-auth/providers/email";
 import { permissions, type PermissionType } from "./permissions";
 import { SmtpEmailService } from "./services/email-service";
+import { type paths } from "@/types/bu-scheme";
+import createClient from "openapi-fetch";
 // import GoogleProvider from "next-auth/providers/google";
 
 /**
@@ -87,32 +89,34 @@ export const authOptions: NextAuthOptions = {
       const authenticationId =
         platform.platformId && platform.platformId.length > 0
           ? await (async () => {
-              const res = await fetch(
-                `${env.BU_SERVER_URL}/business_unit/${platform.platformId}`,
-                {
-                  method: "GET",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${env.BU_SERVER_API_KEY}`,
-                  },
-                  cache: "no-store",
-                },
-              );
+              const client = createClient<paths>({
+                baseUrl: env.BU_SERVER_URL,
+              });
+              getLogger().info(`Fetching active authentication for platform ${platform.id}`);
 
-              const data = (await res.json()) as BusinessUnitType;
-              const result = BusinessUnitSchema.parse(data);
+              const { data, error } = await client.GET("/business_unit/{id}", {
+                headers: {
+                  accept: "application/json",
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${env.BU_SERVER_API_KEY}`,
+                },
+                params: { path: { id: platform.platformId! } },
+              });
+              if (error) throw error;
+              if (!data) throw new Error("No data found");
 
               // find first authentications which status is active
-              const activeAuthentication = result.authentications.find(
+              const activeAuthentication = data.authentications?.find(
                 (auth) => auth.status === "active",
               );
+              getLogger().info(`Got active authentication for platform ${platform.id}`);
 
               if (!activeAuthentication) {
                 throw new Error("No active authentication found");
               }
               return activeAuthentication.id;
             })().catch((err) => {
-              console.error(err);
+              getLogger().error("cannot fetch active authentication: ", err);
               return null;
             })
           : "";
