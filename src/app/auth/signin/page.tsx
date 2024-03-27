@@ -15,8 +15,9 @@ export default async function SignIn() {
     redirect("/");
   }
 
-  const cookieStore = cookies();
-  const token = cookieStore.get("next-auth.csrf-token");
+  const token = cookies()
+    .getAll()
+    .find((item) => item.name.includes("next-auth.csrf-token"));
   const csrfToken = token?.value.split("|")[0];
 
   return (
