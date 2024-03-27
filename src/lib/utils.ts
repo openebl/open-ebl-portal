@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import crypto from "crypto";
 import { twMerge } from "tailwind-merge";
 
-import type { Platforms } from "@/types/platform";
+import { type BusinessInfoType } from "@/types/business-info";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,10 +27,11 @@ export function randomId(len = 20): string {
   }
 }
 
-export const platformsToDropdownOptionList = (platforms: Platforms | null | undefined) => {
-  if (!platforms) return [];
-  return Object.entries(platforms).map(([id, platform]) => ({
-    label: platform.name,
+type BuType = BusinessInfoType & { id: string };
+export const buListToDropdownOptionList = (buList: BuType[] | null | undefined) => {
+  if (!buList) return [];
+  return Object.entries(buList).map(([id, bu]) => ({
+    label: bu.legalBusinessName ?? '',
     value: id,
   }));
 }

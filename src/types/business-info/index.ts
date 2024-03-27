@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 const BusinessInfoSchema = z.object({
-  businessRegisteredRegion: z.string(),
-  legalBusinessName: z.string(),
+  businessRegisteredRegion: z.string().optional(),
+  legalBusinessName: z.string().optional(),
   doingBusinessAs: z.string().optional(),
   companyCategory: z.string().optional(),
   companyType: z.string().optional(),
@@ -12,12 +12,12 @@ const BusinessInfoSchema = z.object({
   usdotLicenseNo: z.string().optional(),
   customBrokerLicenseNo: z.string().optional(),
   companyPhone: z.string().optional(),
-  businessEmail: z.string().email().optional(),
+  businessEmail: z.string().optional(),
   streetAddress: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
   zip: z.string().regex(/^\d*$/).optional(),
-  companyWebsite: z.string().url().optional(),
+  companyWebsite: z.string().optional(),
 });
 
 type BusinessInfoType = z.infer<typeof BusinessInfoSchema>;

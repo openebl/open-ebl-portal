@@ -31,7 +31,8 @@ const EditPlatformSection = ({
     defaultValues: {
       name: platform.name,
       platformId: platform.platformId ?? undefined,
-      ...(platform.businessInfo && BusinessInfoSchema.parse(platform.businessInfo)),
+      ...(platform.businessInfo &&
+        BusinessInfoSchema.parse(platform.businessInfo)),
     },
   });
 
@@ -57,14 +58,14 @@ const EditPlatformSection = ({
     <EditPlatformPanel
       title="Update Platform"
       form={form}
-      canUpdateInfo={hasPermission("write:admin/platforms", permissions) && !loading}
+      canUpdateInfo={
+        hasPermission("write:admin/platforms", permissions) && !loading
+      }
       onSubmit={onSubmit}
     >
       {/* Action Panel */}
       <div className="flex h-[5.25rem] w-full items-center justify-between border-t-[1px] border-[#D9D9D9] px-[1.875rem]">
-        <Link href={`/admin/platforms/${platform.id}/users`}>
-          Manage Users
-        </Link>
+        <Link href={`/admin/platforms/${platform.id}/users`}>Manage Users</Link>
 
         <div className="flex gap-4">
           <PermissionedSection
@@ -83,16 +84,15 @@ const EditPlatformSection = ({
             }
           >
             <Link href="/admin/platforms" tabIndex={-1}>
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-[11.25rem]"
-              type="button"
-              loading={loading}
-
-            >
-              Cancel
-            </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-[11.25rem]"
+                type="button"
+                loading={loading}
+              >
+                Cancel
+              </Button>
             </Link>
             <Button
               size="lg"

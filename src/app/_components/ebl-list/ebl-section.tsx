@@ -140,11 +140,11 @@ const EblTable = async ({
 }) => {
   if (recordList.total === 0) return <EmptyList filter={filter} />;
 
-  const platforms = await api.platform.list.query();
+  const buList = await api.buinfo.all.query();
   return (
     <div className="text-content flex min-h-[28rem] w-full flex-col justify-start">
       {recordList.records?.map((row, index) => (
-        <TableRow key={index} row={row} filter={filter} platforms={platforms} />
+        <TableRow key={index} row={row} filter={filter} buList={buList} />
       ))}
     </div>
   );

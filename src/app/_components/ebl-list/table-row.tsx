@@ -9,8 +9,8 @@ import PrintedIcon from "@/app/_icons/printed-icon";
 import { TimeLabel } from "@/components/ui/time-label";
 import { currentStatus, eblParties, getSenderPartyID, latestBillOfLadingEvent } from "@/lib/ebl";
 import { cn } from "@/lib/utils";
+import { type BusinessInfoListType } from "@/server/fx/buinfo";
 import { EBlFilter, type EBlRecordType } from "@/types/ebl";
-import { type Platforms } from "@/types/platform";
 import Link from "next/link";
 import React from "react";
 
@@ -97,11 +97,11 @@ const EBlProgressBar = ({ row }: { row: EBlRecordType }) => {
 const TableRow = ({
   row,
   filter,
-  platforms,
+  buList,
 }: {
   row: EBlRecordType;
   filter: EBlFilter | null | undefined;
-  platforms: Platforms;
+  buList: BusinessInfoListType | null;
 }) => {
   const event = latestBillOfLadingEvent(row);
   const content = event?.bill_of_lading;
@@ -111,9 +111,9 @@ const TableRow = ({
   let description = ""
   if (!isEditable) {
     if (!filter || filter === EBlFilter.ACTION_NEEDED) {
-      description = `From: ${platforms[getSenderPartyID(row)]?.name}`
+      description = `From: ${buList?.[getSenderPartyID(row)]?.legalBusinessName}`
     } else if (filter === EBlFilter.UPCOMING || filter === EBlFilter.SENT) {
-      description = `Current Owner: ${platforms[row.bl?.current_owner ?? ""]?.name}`
+      description = `Current Owner: ${buList?.[row.bl?.current_owner ?? ""]?.legalBusinessName}`
     } else if (filter === EBlFilter.ARCHIVE) {
       description = status === "ACCOMPLISH" ? "This eBL was accomplished." : "This eBL was printed to paper."
     }

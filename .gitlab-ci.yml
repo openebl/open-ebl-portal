@@ -51,6 +51,7 @@ include:
     BU_SERVER_URL: "http://localhost:8080"
     BU_SERVER_API_KEY: key
     PORTAL_URL: "http://localhost:3000"
+    BU_INFO_LIST_URL: https://example.com/business-info-list.json
   before_script:
     - ln -fs /usr/share/zoneinfo/Asia/Taipei /etc/localtime
     - npm ci

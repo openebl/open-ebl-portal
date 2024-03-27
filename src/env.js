@@ -31,6 +31,7 @@ export const env = createEnv({
     NOTIFIER_POLL_INTERVAL: z.coerce.number().default(1000 * 60 * 5),
     PORTAL_URL: z.string().min(1),
     SIGNIN_EMAIL_MAXAGE_IN_SEC: z.coerce.number().default(15 * 60),
+    BU_INFO_LIST_URL: z.string().url(),
   },
 
   /**
@@ -59,6 +60,7 @@ export const env = createEnv({
     NOTIFIER_POLL_INTERVAL: process.env.NOTIFIER_POLL_INTERVAL,
     PORTAL_URL: process.env.PORTAL_URL,
     SIGNIN_EMAIL_MAXAGE_IN_SEC: process.env.SIGNIN_EMAIL_MAXAGE_IN_SEC,
+    BU_INFO_LIST_URL: process.env.BU_INFO_LIST_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

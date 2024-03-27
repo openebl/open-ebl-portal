@@ -1,13 +1,13 @@
 import { env } from "@/env";
 import { currentStatus, eBlNo, lastEvent } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
-import { platforms } from "@/lib/platforms";
 import { type EmailNotifier } from ".";
 import {
   activePlatformUsers,
   sendStandardNotification,
   touchEmailNotification,
 } from "./utils";
+import { businessInfoList } from "@/server/fx/buinfo";
 
 export const amendRequestEmailNotifier: EmailNotifier = async ({
   db,
@@ -31,8 +31,10 @@ export const amendRequestEmailNotifier: EmailNotifier = async ({
   const notificationName = "amend_requested";
   const event = lastEvent(rec);
   const number = eBlNo(rec);
+  const buList = await businessInfoList();
   const sender =
-    platforms[event?.amendment_request?.request_by ?? ""]?.name ?? "";
+    buList?.[event?.amendment_request?.request_by ?? ""]?.legalBusinessName ??
+    "";
 
   await Promise.all([
     touchEmailNotification({

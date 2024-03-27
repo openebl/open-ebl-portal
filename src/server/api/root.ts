@@ -1,15 +1,12 @@
 import { createTRPCRouter } from "@/server/api/trpc";
-import { consigneeRouter } from "./routers/consignee";
+import { adminPlatformRouter } from "./routers/admin-platform";
+import { buinfoRouter } from "./routers/buinfo";
 import { docExtreactionRouter } from "./routers/doc-extraction";
+import { docFileRouter } from "./routers/doc-file";
 import { docImageRouter } from "./routers/doc-image";
 import { eBlRouter } from "./routers/ebl";
-import { platformRouter } from "./routers/platform";
 import { portRouter } from "./routers/port";
-import { releaseAgentRouter } from "./routers/releaseAgent";
-import { shipperRouter } from "./routers/shipper";
-import { docFileRouter } from "./routers/doc-file";
 import { userRouter } from "./routers/user";
-import { adminPlatformRouter } from "./routers/admin-platform";
 
 /**
  * This is the primary router for your server.
@@ -18,10 +15,7 @@ import { adminPlatformRouter } from "./routers/admin-platform";
  */
 export const appRouter = createTRPCRouter({
   port: portRouter,
-  platform: platformRouter,
-  shipper: shipperRouter,
-  consignee: consigneeRouter,
-  releaseAgent: releaseAgentRouter,
+  buinfo: buinfoRouter,
   ebl: eBlRouter,
   docExtreaction: docExtreactionRouter,
   docFile: docFileRouter,

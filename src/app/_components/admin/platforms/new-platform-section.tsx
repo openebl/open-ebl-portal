@@ -8,7 +8,10 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
-import { PlatformFormSchema, type PlatformFormType } from "@/types/admin-platform";
+import {
+  PlatformFormSchema,
+  type PlatformFormType,
+} from "@/types/admin-platform";
 import EditPlatformPanel from "./edit-platform-panel";
 
 const NewPlatformSection = () => {

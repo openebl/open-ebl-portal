@@ -8,7 +8,12 @@ import { cn } from "@/lib/utils";
 import { type EBlRecordType } from "@/types/ebl";
 import ActionPanel from "./action-panel";
 import { api } from "@/trpc/server";
-import { type EBlStatusType, currentStatus, eblParties, getNextPartyIDByCurrentStatus } from "@/lib/ebl";
+import {
+  type EBlStatusType,
+  currentStatus,
+  eblParties,
+  getNextPartyIDByCurrentStatus,
+} from "@/lib/ebl";
 import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon";
 
 type TrackerPosition = "first" | "middle" | "last";
@@ -61,31 +66,39 @@ const ProgressTracker = ({
   );
 };
 
+const getBuLegalBusinessName = async (buId: string | undefined | null) => {
+  if (!buId) return "";
+
+  return api.buinfo.legalBusinessName.query(buId);
+};
+
 const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
   const active = "bg-secondary1";
   const inactive = "bg-[#0D447A]";
   const accomplished = "bg-[#039912]";
   const printed = "bg-warning";
 
-  // TODO: try not to await in RSC
-  const platforms = await api.platform.list.query();
-  const documentParties = eblParties(ebl)
-  const issuerID = documentParties?.issuer ?? ""
-  const shipperID = documentParties?.shipper ?? ""
-  const consigneeID = documentParties?.consignee ?? ""
-  const releaseAgentID = documentParties?.releaser ?? ""
-  const issuerName = platforms[issuerID]?.name ?? ""
-  const shipperName = platforms[shipperID]?.name ?? ""
-  const consigneeName = platforms[consigneeID]?.name ?? ""
-  const releaseAgentName = platforms[releaseAgentID]?.name ?? ""
+  const documentParties = eblParties(ebl);
+  const issuerID = documentParties?.issuer ?? "";
+  const shipperID = documentParties?.shipper ?? "";
+  const consigneeID = documentParties?.consignee ?? "";
+  const releaseAgentID = documentParties?.releaser ?? "";
+  const [issuerName, shipperName, consigneeName, releaseAgentName] =
+    await Promise.all([
+      getBuLegalBusinessName(issuerID),
+      getBuLegalBusinessName(shipperID),
+      getBuLegalBusinessName(consigneeID),
+      getBuLegalBusinessName(releaseAgentID),
+    ]);
 
   const getClassName = (ebl: EBlRecordType, partyID: string) => {
-    const status = currentStatus(ebl)
+    const status = currentStatus(ebl);
     if (status === "PRINT" && ebl.bl?.current_owner === partyID) return printed;
-    if (status === "ACCOMPLISH" && ebl.bl?.current_owner === partyID) return accomplished;
+    if (status === "ACCOMPLISH" && ebl.bl?.current_owner === partyID)
+      return accomplished;
     if (ebl.bl?.current_owner === partyID) return active;
     return inactive;
-  }
+  };
 
   return (
     <div className="flex w-full max-w-full justify-evenly">
@@ -115,7 +128,7 @@ const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
       />
     </div>
   );
-}
+};
 
 const ProgressStatusItem = ({
   title,
@@ -134,23 +147,19 @@ const ProgressStatusItem = ({
   </div>
 );
 
-const ProgressStatusText = ({
-  status
-}: {
-  status: EBlStatusType
-}) => (
+const ProgressStatusText = ({ status }: { status: EBlStatusType }) => (
   <ProgressStatusItem title="Status">
     {status === "PRINT" && <p className="text-warning">Printed to Paper</p>}
-    {status === "SURRENDER" &&
-      <div className="flex gap-x-1 items-center">
+    {status === "SURRENDER" && (
+      <div className="flex items-center gap-x-1">
         Not accomplished yet {<CircleInCheckIcon className="text-hint" />}
       </div>
-    }
-    {status === "ACCOMPLISH" &&
-      <div className="flex gap-x-1 items-center">
+    )}
+    {status === "ACCOMPLISH" && (
+      <div className="flex items-center gap-x-1">
         Accomplished {<CircleInCheckIcon className="text-[#42BE25]" />}
       </div>
-    }
+    )}
   </ProgressStatusItem>
 );
 
@@ -161,15 +170,14 @@ const ProgressStatus = async ({
   ebl: EBlRecordType;
   sessionPlatformId: string | undefined;
 }) => {
-  // TODO: try not to await in RSC
-  const platforms = await api.platform.list.query();
-  const status = currentStatus(ebl)
+  // TODO: try not to get bu list all the time
+  const status = currentStatus(ebl);
   const nextPartyID = getNextPartyIDByCurrentStatus(ebl, status);
-  const currentOwnerName = platforms[ebl.bl?.current_owner ?? ""]?.name ?? ""
-  const nextOwnerName = platforms[nextPartyID]?.name
+  const currentOwnerName = await getBuLegalBusinessName(ebl.bl?.current_owner);
+  const nextOwnerName = await getBuLegalBusinessName(nextPartyID);
 
   const showNextOwner = !["SURRENDER", "ACCOMPLISH", "PRINT"].includes(status);
-  const showStatus = !showNextOwner
+  const showStatus = !showNextOwner;
 
   return (
     <div className="flex h-[3.875rem] w-full items-start justify-start gap-[3.75rem] px-[1.875rem]">
@@ -183,7 +191,7 @@ const ProgressStatus = async ({
         )}
       </ProgressStatusItem>
 
-      {showNextOwner &&
+      {showNextOwner && (
         <ProgressStatusItem title="Next Owner">
           {nextOwnerName}
           {sessionPlatformId === nextPartyID && (
@@ -193,11 +201,9 @@ const ProgressStatus = async ({
             </span>
           )}
         </ProgressStatusItem>
-      }
+      )}
 
-      {showStatus &&
-        <ProgressStatusText status={status} />
-      }
+      {showStatus && <ProgressStatusText status={status} />}
     </div>
   );
 };

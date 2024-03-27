@@ -3,10 +3,7 @@ import { env } from "@/env";
 import { getLogger } from "@/lib/logger";
 import { sleep } from "@/lib/utils";
 import { db } from "@/server/db";
-import {
-  BusinessUnitSchema,
-  type BusinessUnitType,
-} from "@/types/business_unit";
+import { type paths } from "@/types/bu-scheme";
 import { UserRoleSchema, type UserRoleType } from "@/types/user";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type Platform, type PrismaClient } from "@prisma/client";
@@ -16,10 +13,9 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import createClient from "openapi-fetch";
 import { permissions, type PermissionType } from "./permissions";
 import { SmtpEmailService } from "./services/email-service";
-import { type paths } from "@/types/bu-scheme";
-import createClient from "openapi-fetch";
 // import GoogleProvider from "next-auth/providers/google";
 
 /**

@@ -71,6 +71,8 @@ In the .env file
 
 * SYSADMIN_EMAIL: initial system administrator's email address. it is used to bootstrap the portal
 
+* BU_INFO_LIST_URL: Url of a JSON file that contains business unit info list.
+
 
 #### Database
 

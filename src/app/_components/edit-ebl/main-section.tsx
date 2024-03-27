@@ -66,15 +66,16 @@ const MainSection = ({
 
   const title = isNewEbl ? "New eBL" : isAmendMode ? "Amend eBL" : "Edit eBL";
 
-  const { data: platforms } = api.platform.list.useQuery();
-  let nextPartyName = platforms?.[form.getValues().shipper]?.name;
+  // TODO: do not download whole bu list
+  const { data: bulist } = api.buinfo.all.useQuery();
+  let nextPartyName = bulist?.[form.getValues().shipper]?.legalBusinessName;
   if (isAmendMode) {
     if (status === "REQUEST_AMEND")
       nextPartyName =
-        platforms?.[getNextPartyIDByAction(eblRecord!, "AMEND")]?.name;
+        bulist?.[getNextPartyIDByAction(eblRecord!, "AMEND")]?.legalBusinessName;
     else if (status === "RETURN")
       nextPartyName =
-        platforms?.[getNextPartyIDByCurrentStatus(eblRecord!, "RETURN")]?.name;
+        bulist?.[getNextPartyIDByCurrentStatus(eblRecord!, "RETURN")]?.legalBusinessName;
   }
 
   const actionHandlerCallback = () => ({

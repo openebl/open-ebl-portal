@@ -3,7 +3,6 @@ import { createChannel, createClient } from "nice-grpc";
 import { keys } from "remeda";
 
 import { getLogger } from "@/lib/logger";
-import { platforms } from "@/lib/platforms";
 import { portName, ports } from "@/lib/ports";
 import { type EBlFormType } from "@/types/ebl";
 import { EBlDocType } from "@/types/ebl/common";
@@ -14,6 +13,7 @@ import {
 } from "./protos/bluex_payment/docu_sum_service";
 import { type DocExtractionType } from "./types";
 import { DocuSumDocumentExtraction_DocInfo_Status } from "./protos/bluex_payment/docu_sum";
+import { businessInfoList } from "@/server/fx/buinfo";
 
 // Create an Document Extraction.
 // uuid: unique id for the document
@@ -49,7 +49,7 @@ const createExtraction = async ({
 const InProgressStatusList = [
   DocuSumDocumentExtraction_DocInfo_Status.UNKNOWN,
   DocuSumDocumentExtraction_DocInfo_Status.REQUESTED,
-  DocuSumDocumentExtraction_DocInfo_Status.WAITING_HIL
+  DocuSumDocumentExtraction_DocInfo_Status.WAITING_HIL,
 ];
 
 // Get the document extraction by uuid.
@@ -87,17 +87,17 @@ const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (
       content: "",
     },
     shipper:
-      lookupParty(
+      (await lookupParty(
         docInfo.originEntities.find((e) => e.label === "Shipper")?.value,
-      ) ?? "",
+      )) ?? "",
     consignee:
-      lookupParty(
+      (await lookupParty(
         docInfo.originEntities.find((e) => e.label === "Consignee")?.value,
-      ) ?? "",
+      )) ?? "",
     release_agent:
-      lookupParty(
+      (await lookupParty(
         docInfo.originEntities.find((e) => e.label === "NotifyParty")?.value,
-      ) ?? "",
+      )) ?? "",
     pol: {
       UNLocationCode: polCode ?? "",
       locationName: portName(polCode) ?? "",
@@ -153,16 +153,20 @@ const lookupPort = (port?: string) => {
   return portFuse.search(port)[0]?.item?.value;
 };
 
-const partyFuse = new Fuse(
-  keys(platforms).map((k) => ({ ...platforms[k], did: k })),
-  {
-    includeScore: false,
-    keys: ["name", "legalName"],
-  },
-);
-
-const lookupParty = (name?: string) => {
+const lookupParty = async (name?: string) => {
   if (!name) return undefined;
+
+  const buList = await businessInfoList();
+  if (!buList) return undefined;
+
+  const partyFuse = new Fuse(
+    keys(buList).map((k) => ({ ...buList[k], did: k })),
+    {
+      includeScore: false,
+      keys: ["legalBusinessName"],
+    },
+  );
+
   return partyFuse.search(name)[0]?.item?.did;
 };
 

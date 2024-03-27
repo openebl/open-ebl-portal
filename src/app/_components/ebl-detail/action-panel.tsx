@@ -43,9 +43,8 @@ const ActionPanel = ({
   const [isLoading, setLoading] = useState(false);
   const router = useRouter();
 
-  const { data: platforms } = api.platform.list.useQuery()
   const nextPartyID = getNextPartyIDByAction(ebl, action!) ?? ""
-  const nextPartyName = platforms?.[nextPartyID]?.name ?? ""
+  const { data: nextPartyName } = api.buinfo.legalBusinessName.useQuery(nextPartyID)
 
   const actionHandlerCallback = (action: EBlAllowAction) => ({
     onSuccess: () => {
@@ -203,7 +202,7 @@ const ActionPanel = ({
         open={dialogOpen}
         state={dialogState}
         action={action as DialogActionType}
-        nextPartyName={nextPartyName}
+        nextPartyName={nextPartyName ?? ""}
         onCancel={handleDialogCanceled}
         onConfirm={handleDialogConfirmed}
       />

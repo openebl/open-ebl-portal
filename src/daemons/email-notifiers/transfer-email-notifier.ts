@@ -1,7 +1,7 @@
 import { env } from "@/env";
 import { currentStatus, eBlNo, lastEvent } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
-import { platforms } from "@/lib/platforms";
+import { businessInfoList } from "@/server/fx/buinfo";
 import { type EmailNotifier } from ".";
 import {
   activePlatformUsers,
@@ -26,10 +26,11 @@ export const transferEmailNotifier: EmailNotifier = async ({
   }
   getLogger().info(`Send transferred email to platform ${platform.id} users`);
 
+  const buList = await businessInfoList();
   const notificationName = "transferred";
   const event = lastEvent(rec);
   const number = eBlNo(rec);
-  const sender = platforms[event?.transfer?.transfer_by ?? ""]?.name ?? "";
+  const sender = buList?.[event?.transfer?.transfer_by ?? ""]?.legalBusinessName ?? "";
 
   await Promise.all([
     touchEmailNotification({
