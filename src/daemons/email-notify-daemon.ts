@@ -48,52 +48,75 @@ async function pollingEBls(args: DaemonArgs) {
   logger.info("Polling EBls");
   for await (const platform of fetchPlatforms()) {
     logger.info(`Processing platform ${platform.id}`);
-    for await (const chunk of fetchEBlInChunk({
-      buUrl: args.serverUrl,
-      buKey: args.serverApiKey,
+
+    if (!platform.platformId) {
+      logger.info(`Platform ${platform.id} has no platformId. Skipping`);
+      continue;
+    }
+
+    await pollingPlatformEBls({
       platform,
-    })) {
-      const stashes = await latestEBlStashesByPlatformAndEBl(chunk, platform);
+      ...args,
+    }).catch((err) =>
+      logger.error(`Polling platform ${platform.id} error: ${err}`),
+    );
+  }
+}
 
-      for (const rec of chunk) {
-        if (!rec?.bl?.id) continue;
+async function pollingPlatformEBls({
+  platform,
+  serverUrl,
+  serverApiKey,
+}: {
+  platform: Platform;
+  serverUrl: string;
+  serverApiKey: string;
+}) {
+  for await (const chunk of fetchEBlInChunk({
+    buUrl: serverUrl,
+    buKey: serverApiKey,
+    platform,
+  })) {
+    const stashes = await latestEBlStashesByPlatformAndEBl(chunk, platform);
 
-        const stash = stashes[rec.bl.id];
-        const status = currentStatus(rec);
+    for (const rec of chunk) {
+      if (!rec?.bl?.id) continue;
 
-        // check if bl status or owner has changed
-        if (
-          stash?.status === status ||
-          stash?.currentOwner === rec.bl?.current_owner
-        ) {
-          continue; // no change. ignore it
-        }
+      const stash = stashes[rec.bl.id];
+      const status = currentStatus(rec);
 
-        // process changed eBl through email notifiers
-        logger.info(
-          `Processing changed eBl ${rec.bl?.id}. status: ${stash?.status ?? "-"} => ${status}, owner: ${stash?.currentOwner ?? "-"} => ${rec.bl?.current_owner ?? ""}`,
-        );
-
-        // create a new stash record
-        const newStash = await db.eBlStash.create({
-          data: {
-            eBlId: rec.bl.id,
-            platformId: platform.id,
-            status,
-            version: rec.bl.version ?? 0,
-            currentOwner: rec.bl.current_owner ?? "",
-          },
-        });
-
-        await performEmailNotifiers({
-          db,
-          service: SmtpEmailService,
-          platform,
-          rec,
-          stash,
-          newStash,
-        });
+      // check if bl status or owner has changed
+      if (
+        stash?.status === status ||
+        stash?.currentOwner === rec.bl?.current_owner
+      ) {
+        continue; // no change. ignore it
       }
+
+      // process changed eBl through email notifiers
+      logger.info(
+        `Processing changed eBl ${rec.bl?.id}. status: ${stash?.status ?? "-"} => ${status}, owner: ${stash?.currentOwner ?? "-"} => ${rec.bl?.current_owner ?? ""}`,
+      );
+
+      // create a new stash record
+      const newStash = await db.eBlStash.create({
+        data: {
+          eBlId: rec.bl.id,
+          platformId: platform.id,
+          status,
+          version: rec.bl.version ?? 0,
+          currentOwner: rec.bl.current_owner ?? "",
+        },
+      });
+
+      await performEmailNotifiers({
+        db,
+        service: SmtpEmailService,
+        platform,
+        rec,
+        stash,
+        newStash,
+      });
     }
   }
 }
