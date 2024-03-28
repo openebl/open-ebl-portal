@@ -222,7 +222,7 @@ const PreviewPanel = ({
             ref={fileInputRef}
             className="hidden"
             type="file"
-            accept="image/png,image/jpeg,image/tiff,application/pdf"
+            accept="image/png,image/jpeg,application/pdf"
             onChange={onFilesChange}
           />
           <Button variant="flat" className="h-[1.875rem] w-[1.875rem] p-0" onClick={downloadDocument}>
@@ -242,7 +242,7 @@ const PreviewPanel = ({
               onClick={() => handleSelectDocument(index)}
             >
               <Image
-                src={imageUrl}
+                src={imageUrl ?? ""}
                 width={123}
                 height={170}
                 alt="preview"
@@ -256,7 +256,7 @@ const PreviewPanel = ({
         {/* Document preview */}
         <div className="flex flex-1 bg-[#333639] justify-center overflow-auto min-h-full">
           {selectedDocument && <Image
-            src={selectedDocument.imageUrl}
+            src={selectedDocument.imageUrl ?? ""}
             width={500}
             height={680}
             alt="preview"

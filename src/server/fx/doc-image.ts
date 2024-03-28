@@ -12,8 +12,8 @@ export const getDocImagesByDocFileUuid = async (
   const images = await db.docImage.findMany({ where: { docFile: { uuid } } });
   const n = groupImagesByPage(images).map(async (image) => {
     const [imageUrl, thumbnailUrl] = await Promise.all([
-      storage.getPresignedUrl({ key: image.imageKey! }),
-      storage.getPresignedUrl({ key: image.thumbnailKey! }),
+      image.imageKey && storage.getPresignedUrl({ key: image.imageKey }),
+      image.thumbnailKey && storage.getPresignedUrl({ key: image.thumbnailKey }),
     ]);
     return {
       page: image.page,
@@ -32,8 +32,8 @@ export const getDocImagesByDocFileId = async (
   const images = await db.docImage.findMany({ where: { docFileId } });
   const n = groupImagesByPage(images).map(async (image) => {
     const [imageUrl, thumbnailUrl] = await Promise.all([
-      storage.getPresignedUrl({ key: image.imageKey! }),
-      storage.getPresignedUrl({ key: image.thumbnailKey! }),
+      image.imageKey && storage.getPresignedUrl({ key: image.imageKey }),
+      image.thumbnailKey && storage.getPresignedUrl({ key: image.thumbnailKey }),
     ]);
     return {
       page: image.page,

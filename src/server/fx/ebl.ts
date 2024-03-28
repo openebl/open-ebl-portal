@@ -67,7 +67,7 @@ export const processFileDocUploadReq = async ({
 }): Promise<EBlFileProcessResultType> => {
   const storagekey = `/ebl/${crypto.randomUUID()}`;
   const filename = req.headers.get("X-Filename") ?? "(unknown)";
-  const contentType = req.headers.get("Content-Type") ?? "application/pdf";
+  const contentType = req.headers.get("Content-Type") ?? "application/octet-stream";
 
   try {
     // read content from request body
@@ -103,10 +103,14 @@ export const processFileDocUploadReq = async ({
       });
       if (!docFile) throw new Error("Failed to create docFile record");
 
-      const keyPairs = await saveImagesToStorage(content, storage);
-      await Promise.all(
-        keyPairs.map((keyPair) => insertImageRecords(db, docFile.id, keyPair)),
-      );
+      if (contentType === "application/pdf") {
+        const keyPairs = await saveImagesToStorage(content, storage);
+        await Promise.all(
+          keyPairs.map((keyPair) => insertImageRecords(db, docFile.id, keyPair)),
+        );
+      } else {
+        await insertImageRecords(db, docFile.id, { imageKey: storagekey, thumbnailKey: "", page: 1 })
+      }
       return docFile;
     }
 
@@ -129,14 +133,14 @@ const insertImageRecords = async (
   keyPair: KeyPairType,
 ) => {
   const imgs = await Promise.all([
-    tx.docImage.create({
+    keyPair.imageKey && tx.docImage.create({
       data: {
         docFileId,
         page: keyPair.page,
         storagekey: keyPair.imageKey,
       },
     }),
-    tx.docImage.create({
+    keyPair.thumbnailKey && tx.docImage.create({
       data: {
         docFileId,
         page: keyPair.page,
@@ -146,6 +150,6 @@ const insertImageRecords = async (
     }),
   ]);
 
-  getLogger().debug(`Page images inserted: ${imgs[0].id}, ${imgs[1].id}`);
+  getLogger().debug(`Page images inserted: ${imgs[0] && imgs[0].id}, ${imgs[1] && imgs[1].id}`);
   return true;
 };

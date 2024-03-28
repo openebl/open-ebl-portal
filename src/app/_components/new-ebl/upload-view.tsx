@@ -19,7 +19,7 @@ const UploadView = ({ onFileSelected }: UploadViewProps) => {
     <div className="flex h-[48.125rem] flex-col items-center justify-center p-[3.125rem] text-main">
       <p className="text-[1.375rem] font-semibold leading-8">Upload a BL</p>
       <p className="my-2.5 whitespace-nowrap text-sm font-normal">
-        Supported file formats: PNG, JPEG, TIFF and PDF
+        Supported file formats: PNG, JPEG and PDF
       </p>
 
       <Button
@@ -33,7 +33,7 @@ const UploadView = ({ onFileSelected }: UploadViewProps) => {
         ref={fileInputRef}
         className="hidden"
         type="file"
-        accept="image/png,image/jpeg,image/tiff,application/pdf"
+        accept="image/png,image/jpeg,application/pdf"
         onChange={onFilesChange}
       />
     </div>

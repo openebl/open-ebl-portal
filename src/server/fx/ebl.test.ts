@@ -36,7 +36,7 @@ describe.concurrent("EBl Fx", () => {
     testWithDb(
       "upload a valid PDF file, it converts PDF to images and store to storage and database",
       async ({ expect, db }) => {
-        const req = createNextRequest(pdfFile, { 'X-Filename': 'ebl.pdf' });
+        const req = createNextRequest(pdfFile, { 'X-Filename': 'ebl.pdf', 'Content-Type': 'application/pdf' });
         const { storageService, watcher } = useTestStorageService();
         const { docExtraction } = useTestDocExtraction();
         const { uuid: docFileUuid } = await processFileDocUploadReq({ req, session, db, storage: storageService, docExtraction });

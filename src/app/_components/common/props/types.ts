@@ -1,5 +1,5 @@
 export type ImageType = {
-  imageUrl: string;
-  thumbnailUrl: string;
+  imageUrl: string | undefined | null;
+  thumbnailUrl: string | undefined | null;
   page: number;
 };
