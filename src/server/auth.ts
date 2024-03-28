@@ -16,6 +16,7 @@ import EmailProvider from "next-auth/providers/email";
 import createClient from "openapi-fetch";
 import { permissions, type PermissionType } from "./permissions";
 import { SmtpEmailService } from "./services/email-service";
+import { authenticationId } from "./fx/auth-id";
 // import GoogleProvider from "next-auth/providers/google";
 
 /**
@@ -81,42 +82,6 @@ export const authOptions: NextAuthOptions = {
         .filter((n) => n.platform.id === activePlatformId)
         .map((n) => UserRoleSchema.parse(n.role));
 
-      // TODO: it should not fetch active authentication every time
-      const authenticationId =
-        platform.platformId && platform.platformId.length > 0
-          ? await (async () => {
-              const client = createClient<paths>({
-                baseUrl: env.BU_SERVER_URL,
-              });
-              getLogger().info(`Fetching active authentication for platform ${platform.id}`);
-
-              const { data, error } = await client.GET("/business_unit/{id}", {
-                headers: {
-                  accept: "application/json",
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${env.BU_SERVER_API_KEY}`,
-                },
-                params: { path: { id: platform.platformId! } },
-              });
-              if (error) throw error;
-              if (!data) throw new Error("No data found");
-
-              // find first authentications which status is active
-              const activeAuthentication = data.authentications?.find(
-                (auth) => auth.status === "active",
-              );
-              getLogger().info(`Got active authentication for platform ${platform.id}`);
-
-              if (!activeAuthentication) {
-                throw new Error("No active authentication found");
-              }
-              return activeAuthentication.id;
-            })().catch((err) => {
-              getLogger().error("cannot fetch active authentication: ", err);
-              return null;
-            })
-          : "";
-
       return {
         ...session,
         user: {
@@ -125,7 +90,7 @@ export const authOptions: NextAuthOptions = {
         },
         platform,
         platformRoles,
-        authenticationId,
+        authenticationId: authenticationId(platform),
         permissions: permissions({ roles, platform }),
       };
     },
