@@ -25,17 +25,16 @@ export default async function Page({
     const hash = uuid.split("-")[0];
     const docFile = await api.docFile.findByUuid.query(hash!);
     if (!docFile) {
-      throw new TRPCClientError("NOT_FOUND");
+      throw new TRPCClientError("docFile NOT_FOUND");
     }
 
-    const [extraction, images, contentResult] = await Promise.all([
-      api.docExtreaction.get.query({ uuid }),
-      api.docImage.getUrls.query({ docFileId: docFile.id }),
+    const [extraction, contentResult] = await Promise.all([
+      api.docExtraction.get.query({ uuid }),
       docFile.contentUrl ? fetch(docFile.contentUrl) : Promise.resolve(null),
     ]);
 
     if (!extraction) {
-      throw new TRPCClientError("NOT_FOUND");
+      throw new TRPCClientError("extraction NOT_FOUND");
     }
 
     const contentType = contentResult?.headers.get("content-type");
@@ -51,13 +50,13 @@ export default async function Page({
       file: {
         name: docFile.filename ?? "(unknown)",
         type: contentType ?? 'binary/octet-stream',
-        content: contentBase64
+        content: contentBase64 // be used to upload to bu server but not for download file
       },
       note: "",
       draft: true,
     };
 
-    return <MainSection eblForm={eblForm} eblRecord={undefined} images={images} />;
+    return <MainSection eblForm={eblForm} eblRecord={undefined} />;
   };
 
   return execution().catch((err) => {

@@ -21,9 +21,9 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
       throw new TRPCClientError("EBl NOT_FOUND");
     }
 
-    // TODO: if not found docFile, download from bu server and generate images
     const hash = String(eblEvent?.metadata?.docHash)
     const docFile = await api.docFile.findByUuid.query(hash);
+    // TODO: if not found docFile, download from bu server and generate docFile record
     const images = docFile ? await api.docImage.getUrls.query({ docFileId: docFile.id }) : []
 
     block = <MainSection ebl={ebl} images={images} />;

@@ -11,6 +11,7 @@ import ErrorView from "./error-view";
 import ProcessingView from "./processing-view";
 import UploadView from "./upload-view";
 import UploadingView from "./uploading-view";
+import type { EBlFileProcessResultType } from "@/types/ebl";
 
 const MainSection = () => {
   const router = useRouter();
@@ -18,7 +19,7 @@ const MainSection = () => {
   const [fileUuid, setFileUuid] = useState("");
   const [lastError, setLastError] = useState("");
 
-  const { data: extraction, error } = api.docExtreaction.get.useQuery(
+  const { data: extraction, error } = api.docExtraction.get.useQuery(
     { uuid: fileUuid },
     {
       queryKeyHashFn: hashQueryKey,
@@ -54,7 +55,8 @@ const MainSection = () => {
 
     if (res) {
       if (res?.ok) {
-        const uuid = await res.text();
+        const result = await res.json() as EBlFileProcessResultType;
+        const { uuid } = result;
         setFileUuid(uuid);
         setStatus("processing");
       } else {

@@ -21,10 +21,14 @@ describe.concurrent("EBl Fx", () => {
         id: 168n,
         platformId: "",
         name: "",
+        admin: true,
+        businessInfo: {},
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      authentication_id: '',
+      platformRoles: [],
+      permissions: [],
+      authenticationId: '',
       expires: "1",
     };
     const pdfFile = readFileSync('./src/test/integration/fixtures/ebl.pdf');
@@ -35,7 +39,7 @@ describe.concurrent("EBl Fx", () => {
         const req = createNextRequest(pdfFile, { 'X-Filename': 'ebl.pdf' });
         const { storageService, watcher } = useTestStorageService();
         const { docExtraction } = useTestDocExtraction();
-        const docFileUuid = await processFileDocUploadReq({ req, session, db, storage: storageService, docExtraction });
+        const { uuid: docFileUuid } = await processFileDocUploadReq({ req, session, db, storage: storageService, docExtraction });
 
         expect(docFileUuid).toBeTypeOf('string');
         const hash = docFileUuid.split('-')[0];

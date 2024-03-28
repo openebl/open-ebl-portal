@@ -12,6 +12,7 @@ import { randomId } from "@/lib/utils";
 import { type StorageServiceType } from "@/server/services/storage-service";
 import { type DatabaseType, type TransactionType } from "../db";
 import { readRequestBodyToBuffer } from "./streram";
+import type { EBlFileProcessResultType } from "@/types/ebl";
 
 type KeyPairType = { imageKey: string; thumbnailKey: string; page: number };
 
@@ -63,7 +64,7 @@ export const processFileDocUploadReq = async ({
   db: DatabaseType;
   storage: StorageServiceType;
   docExtraction: DocExtractionType;
-}) => {
+}): Promise<EBlFileProcessResultType> => {
   const storagekey = `/ebl/${crypto.randomUUID()}`;
   const filename = req.headers.get("X-Filename") ?? "(unknown)";
   const contentType = req.headers.get("Content-Type") ?? "application/pdf";
@@ -110,11 +111,11 @@ export const processFileDocUploadReq = async ({
     }
 
     await Promise.all([
-      docExtraction.createExtraction({uuid, filename, content}),
+      docExtraction.createExtraction({ uuid, filename, content }),
       findOrCreateDocFile(),
     ]);
 
-    return uuid;
+    return { uuid, fileContentBase64: content.toString("base64") };
   } catch (err) {
     getLogger().error(err);
     throw err;

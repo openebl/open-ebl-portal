@@ -18,6 +18,10 @@ type EBlMetadataType = z.infer<typeof EBlMetadataSchema>;
 type EBlFormType = z.infer<typeof EBlFormSchema>;
 type EBlFormUpdateType = z.infer<typeof EBlFormUpdateSchema>;
 type EBlFormAmendType = z.infer<typeof EBlFormAmendSchema>;
+type EBlFileProcessResultType = {
+  uuid: string;
+  fileContentBase64: string;
+}
 
 const eBlIdGenerator = () =>
   `${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.random().toString(36).slice(2, 8)}`;
@@ -43,4 +47,5 @@ export type {
   EBlFormUpdateType,
   EBlFormAmendType,
   EBlMetadataType,
+  EBlFileProcessResultType,
 };

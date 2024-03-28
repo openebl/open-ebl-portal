@@ -77,7 +77,7 @@ export const eBlRouter = createTRPCRouter({
     .input(EBlFormSchema)
     .mutation(async ({ ctx, input }) => {
       const request: EBlRequestType = { ...input, authentication_id: ctx.session.authenticationId }
-      request.metadata.username = ctx.session.user.name ?? ''
+      request.metadata.username = ctx.session.user.name ?? '' // TODO: fill it before api call to make QA not be confused
       getLogger().info('send issue request to Doc Engine', request)
       const res = await fetch(`${env.BU_SERVER_URL}/ebl`, {
         method: 'POST',
@@ -102,7 +102,7 @@ export const eBlRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { ebl_id: id, ...rest } = input;
       const request: EBlRequestType = { ...rest, authentication_id: ctx.session.authenticationId }
-      request.metadata.username = ctx.session.user.name ?? ''
+      request.metadata.username = ctx.session.user.name ?? ''  // TODO: fill it before api call to make QA not be confused
       getLogger().info('send issue request to Doc Engine', request)
       const res = await fetch(`${env.BU_SERVER_URL}/ebl/${id}/update`, {
         method: 'POST',
@@ -127,7 +127,7 @@ export const eBlRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { ebl_id: id, ...rest } = input;
       const request: EBlRequestAmendType = { ...rest, authentication_id: ctx.session.authenticationId }
-      request.metadata.username = ctx.session.user.name ?? ''
+      request.metadata.username = ctx.session.user.name ?? ''  // TODO: fill it before api call to make QA not be confused
       getLogger().info('send issue request to Doc Engine', request)
       const res = await fetch(`${env.BU_SERVER_URL}/ebl/${id}/amend`, {
         method: 'POST',

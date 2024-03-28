@@ -14,12 +14,12 @@ export async function POST(req: NextRequest) {
     return new NextResponse("No Permission", { status: 401 });
   }
 
-  const uuid = await processFileDocUploadReq({
+  const result = await processFileDocUploadReq({
     req,
     session,
     db,
     storage: s3StorageService,
     docExtraction: bxDocExtraction,
   });
-  return new NextResponse(uuid);
+  return NextResponse.json(result)
 }

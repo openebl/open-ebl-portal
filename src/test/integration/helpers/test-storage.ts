@@ -11,7 +11,10 @@ export const useTestStorageService = () => {
     putObject: async ({ content, key, contentType }: PutObjectProps) => {
       watcher[key] = { content, contentType };
     },
-    getPresignedUrl: async ({key}:{key:string}) => {
+    getPresignedUrl: async ({ key }: { key: string }) => {
+      return `https://storage.com/${key}`
+    },
+    downloadToBrowser: async ({ key }: { key: string }) => {
       return `https://storage.com/${key}`
     }
   };

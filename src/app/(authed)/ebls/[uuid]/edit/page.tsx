@@ -7,7 +7,6 @@ import { api } from "@/trpc/server";
 import { TRPCClientError } from "@trpc/client";
 import { type EBlFormType } from "@/types/ebl";
 import { eblParties, latestBillOfLadingEvent } from "@/lib/ebl";
-import { readRequestBodyToBuffer } from "@/server/fx/streram";
 
 export default async function Page({ params }: { params: { uuid: string } }) {
   const execution = async () => {
@@ -21,16 +20,13 @@ export default async function Page({ params }: { params: { uuid: string } }) {
       throw new TRPCClientError("EBl NOT_FOUND");
     }
 
-    // TODO: if not found docFile, download from bu server and generate images
+    const filename = eblEvent?.file?.name ?? ""
+    const contentType = eblEvent?.file?.file_type ?? ""
     const hash = String(eblEvent?.metadata?.docHash)
     const docFile = await api.docFile.findByUuid.query(hash);
-    const [images, contentResult] = await Promise.all([
-      docFile ? api.docImage.getUrls.query({ docFileId: docFile.id }) : Promise.resolve([]),
-      docFile?.contentUrl ? fetch(docFile.contentUrl) : Promise.resolve(null),
-    ]);
-
-    const content = await readRequestBodyToBuffer(contentResult?.body)
-    const contentBase64 = Buffer.from(content).toString('base64');
+    if (!docFile) {
+      // TODO: If not found docFile, download from bu server and generate docFile record
+    }
 
     // TODO: wait for openAPI documentation to update
     const polLocation = eblContent?.shipmentLocations?.[0]?.location as { locationName: string, UNLocationCode: string }
@@ -41,9 +37,9 @@ export default async function Page({ params }: { params: { uuid: string } }) {
         docHash: hash,
       },
       file: {
-        name: eblEvent?.file?.name ?? "",
-        type: eblEvent?.file?.file_type ?? "",
-        content: contentBase64,
+        name: filename,
+        type: contentType,
+        content: "", // not need to pass current file content to client in edit mode, because if not upload new file, pass "" and bu server will use old file automatically
       },
       bl_number: eblContent?.transportDocumentReference ?? "",
       bl_doc_type: eblEvent?.doc_type ?? "HouseBillOfLading",
@@ -62,7 +58,7 @@ export default async function Page({ params }: { params: { uuid: string } }) {
       note: eblEvent?.note,
       draft: false,
     }
-    return <MainSection eblForm={eblForm} eblRecord={ebl} images={images} />;
+    return <MainSection eblForm={eblForm} eblRecord={ebl} />;
   };
 
   return execution().catch((err) => {

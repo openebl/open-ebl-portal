@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
@@ -20,7 +20,6 @@ import {
 } from "@/types/ebl";
 import DetailPanel from "./detail-panel";
 import PreviewPanel from "./preview-panel";
-import type { ImageType } from "@/app/_components/common/props/types";
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type AppRouter } from "@/server/api/root";
 import { portName } from "@/lib/ports";
@@ -38,11 +37,9 @@ import {
 const MainSection = ({
   eblForm,
   eblRecord,
-  images,
 }: {
   eblForm: EBlFormType;
   eblRecord: EBlRecordType | undefined;
-  images: ImageType[];
 }) => {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -67,7 +64,9 @@ const MainSection = ({
   const title = isNewEbl ? "New eBL" : isAmendMode ? "Amend eBL" : "Edit eBL";
 
   // TODO: do not download whole bu list
-  const { data: bulist } = api.buinfo.all.useQuery();
+  const { data: bulist } = api.buinfo.all.useQuery(undefined, {
+    staleTime: 1000 * 5 * 60,
+  });
   let nextPartyName = bulist?.[form.getValues().shipper]?.legalBusinessName;
   if (isAmendMode) {
     if (status === "REQUEST_AMEND")
@@ -196,13 +195,27 @@ const MainSection = ({
     }
   };
 
+  // useCallback: memo the function reference to prevent re-render
+  const updateFormDataByNewEBl = useCallback((formData: EBlFormType) => {
+    form.setValue("bl_number", formData.bl_number);
+    form.setValue("pol", formData.pol);
+    form.setValue("pod", formData.pod);
+    form.setValue("file", formData.file);
+    form.setValue("metadata.docHash", formData.metadata.docHash);
+    if (!isAmendMode) { // Do not update parties if in amend mode
+      form.setValue("shipper", formData.shipper);
+      form.setValue("consignee", formData.consignee);
+      form.setValue("release_agent", formData.release_agent);
+    }
+  }, [form, isAmendMode])
+
   return (
     <div className="px-12 py-10 font-content">
       <div className="text-2xl font-bold leading-9 text-main">{title}</div>
 
       <div className="mt-[1.875rem] flex h-[53.5rem] flex-col justify-between rounded-lg border border-solid border-border-light bg-white shadow-lg">
         <div className="flex h-[48.125rem] items-stretch">
-          <PreviewPanel images={images} />
+          <PreviewPanel docId={eblRecord?.bl?.id ?? ""} form={form} updateFormDataByNewEBl={updateFormDataByNewEBl} />
           <DetailPanel form={form} isAmendMode={isAmendMode} />
         </div>
 

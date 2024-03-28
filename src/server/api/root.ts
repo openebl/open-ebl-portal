@@ -1,7 +1,7 @@
 import { createTRPCRouter } from "@/server/api/trpc";
 import { adminPlatformRouter } from "./routers/admin-platform";
 import { buinfoRouter } from "./routers/buinfo";
-import { docExtreactionRouter } from "./routers/doc-extraction";
+import { docExtractionRouter } from "./routers/doc-extraction";
 import { docFileRouter } from "./routers/doc-file";
 import { docImageRouter } from "./routers/doc-image";
 import { eBlRouter } from "./routers/ebl";
@@ -17,7 +17,7 @@ export const appRouter = createTRPCRouter({
   port: portRouter,
   buinfo: buinfoRouter,
   ebl: eBlRouter,
-  docExtreaction: docExtreactionRouter,
+  docExtraction: docExtractionRouter,
   docFile: docFileRouter,
   docImage: docImageRouter,
   user: userRouter,

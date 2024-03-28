@@ -44,7 +44,7 @@ const ActionPanel = ({
   const router = useRouter();
 
   const nextPartyID = getNextPartyIDByAction(ebl, action!) ?? ""
-  const { data: nextPartyName } = api.buinfo.legalBusinessName.useQuery(nextPartyID)
+  const { data: nextPartyName } = api.buinfo.legalBusinessName.useQuery(nextPartyID, { staleTime: 1000 * 60 * 10 })
 
   const actionHandlerCallback = (action: EBlAllowAction) => ({
     onSuccess: () => {
@@ -148,7 +148,10 @@ const ActionPanel = ({
   }
 
   const handleClick = () => {
-    if (action === "AMEND") router.push(`/ebls/${ebl.bl?.id}/edit`);
+    if (action === "AMEND") {
+      setLoading(true);
+      router.push(`/ebls/${ebl.bl?.id}/edit`);
+    }
     else setDialogOpen(true);
   };
 

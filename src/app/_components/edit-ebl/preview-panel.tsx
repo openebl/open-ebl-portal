@@ -5,17 +5,89 @@ import { Input } from "@/components/ui/input";
 import FitScreenIcon from "@/app/_icons/fit-screen-icon";
 import MinusIcon from "@/app/_icons/minus-icon";
 import PlusIcon from "@/app/_icons/plus-icon";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import DownloadIcon from "@/app/_icons/download-icon";
 import Image from "next/image";
-import Link from "next/link";
 import type { ImageType } from "@/app/_components/common/props/types";
+import type { EBlFileProcessResultType, EBlFormType } from "@/types/ebl";
+import { api } from "@/trpc/react";
+import { hashQueryKey } from "@/lib/hashkey";
+import { toast } from "sonner";
+import type { UseFormReturn } from "react-hook-form";
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import JumpingLoader from "../common/jumping-loader";
 
-const PreviewPanel = ({ images }: { images: ImageType[] }) => {
-  const [selectedDocument, setSelectedDocument] = useState(images[0]);
+const PreviewPanel = ({
+  docId,
+  form,
+  updateFormDataByNewEBl
+}: {
+  docId: string;
+  form: UseFormReturn<EBlFormType>;
+  updateFormDataByNewEBl: (form: EBlFormType) => void
+}) => {
+  const [selectedDocument, setSelectedDocument] = useState<ImageType | null | undefined>(null);
   const [zoomLevel, setZoomLevel] = useState(100); // Zoom level as a percentage
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState("new");
+  const [lastError, setLastError] = useState("");
+  const [fileUuid, setFileUuid] = useState("");
+  const [fileHash, setFileHash] = useState(form.getValues().metadata.docHash ?? "");
+  const [fileInfo, setFileInfo] = useState<EBlFormType["file"]>({
+    name: form.getValues().file.name,
+    type: form.getValues().file.type,
+    content: form.getValues().file.content,
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: docFile } = api.docFile.findByUuid.useQuery(
+    fileHash,
+    {
+      queryKeyHashFn: hashQueryKey,
+      staleTime: Infinity,
+      enabled: !!fileHash,
+    },
+  );
+
+  const { data: images } = api.docImage.getUrls.useQuery(
+    { docFileId: docFile?.id ?? 0n },
+    {
+      queryKeyHashFn: hashQueryKey,
+      staleTime: Infinity,
+      enabled: !!docFile?.id,
+    },
+  );
+
+  useEffect(() => {
+    if (images && images.length > 0) {
+      setSelectedDocument(images[0]);
+    }
+  }, [images]);
+
+  const { data: extraction, error } = api.docExtraction.get.useQuery(
+    { uuid: fileUuid },
+    {
+      queryKeyHashFn: hashQueryKey,
+      refetchInterval: 1000,
+      staleTime: Infinity,
+      enabled: status === "processing",
+    },
+  );
+
+  useEffect(() => {
+    if (extraction) {
+      extraction.file = fileInfo
+      extraction.metadata.docHash = fileHash
+      updateFormDataByNewEBl(extraction)
+      setStatus("done")
+    }
+  }, [extraction, fileInfo, fileHash, updateFormDataByNewEBl]);
+
+  if (error) {
+    setLastError(error?.message ?? "Unknown error");
+    setStatus("error");
+  }
 
   const handleZoomIn = () => {
     setZoomLevel(zoomLevel < 300 ? zoomLevel + 10 : zoomLevel);
@@ -26,8 +98,70 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
   };
 
   const handleSelectDocument = (index: number) => {
-    setSelectedDocument(images[index]);
+    setSelectedDocument(images?.[index]);
     setPage(index + 1);
+  };
+
+  const downloadDocument = async () => {
+    if (!fileInfo.content && docId) { // not upload new bl file, download from bu server
+      const link = document.createElement('a');
+      link.href = `/api/file/download/${docId}/${fileInfo.name}`;
+      link.download = fileInfo.name;
+      link.click();
+    } else { // user newly uploaded file, download from AWS S3 presigned url (get storage key in docFile table by fileHash)
+      const link = document.createElement('a');
+      link.href = `/api/file/download_from_s3/${fileHash}`;
+      link.download = fileInfo.name;
+      link.click();
+    }
+  }
+
+  const onFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target?.files?.[0]) {
+      const f = e.target.files[0];
+      setStatus("uploading");
+      const res = await fetch("/api/file/ebl", {
+        method: "POST",
+        body: f,
+        headers: {
+          "Content-Type": f.type,
+          "X-Filename": f.name,
+        },
+      }).catch((err) => {
+        console.error(err);
+      });
+
+      if (res) {
+        if (res?.ok) {
+          const result = await res.json() as EBlFileProcessResultType;
+          const { uuid, fileContentBase64: newContent } = result;
+          const newHash = String(uuid.split("-")[0]);
+          if (!newContent) {
+            console.error("Failed to upload file", "No content returned");
+            setLastError("No content returned");
+            setStatus("error");
+            return;
+          }
+          setFileUuid(uuid);
+          setFileHash(newHash);
+          setFileInfo({
+            name: f.name,
+            type: f.type,
+            content: newContent,
+          });
+          setStatus("processing");
+        } else {
+          console.error(
+            "Failed to upload file",
+            res.status,
+            res.statusText,
+            await res.text(),
+          );
+          setLastError(res.statusText ?? "Unknown error");
+          setStatus("error");
+        }
+      }
+    }
   };
 
   return (
@@ -44,7 +178,7 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
               }}
             />
             <p>/</p>
-            <p>{images.length}</p>
+            <p>{images?.length}</p>
           </div>
 
           <div className="flex items-center gap-2 text-white">
@@ -65,7 +199,7 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
             <Button
               variant="flat"
               onClick={handleZoomIn}
-              className="h-[1.875rem] w-[1.875rem] p-0 p-0 text-white"
+              className="h-[1.875rem] w-[1.875rem] p-0 text-white"
             >
               <PlusIcon />
             </Button>
@@ -81,12 +215,17 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
         </div>
 
         <div className="flex items-center gap-7">
-          <Link href="/ebls/new">
-            <Button variant="flat" className="text-white">
-              Upload New BL
-            </Button>
-          </Link>
-          <Button variant="flat" className="h-[1.875rem] w-[1.875rem] p-0">
+          <Button variant="flat" className="text-white" onClick={() => fileInputRef.current?.click()}>
+            Upload New BL
+          </Button>
+          <input
+            ref={fileInputRef}
+            className="hidden"
+            type="file"
+            accept="image/png,image/jpeg,image/tiff,application/pdf"
+            onChange={onFilesChange}
+          />
+          <Button variant="flat" className="h-[1.875rem] w-[1.875rem] p-0" onClick={downloadDocument}>
             <DownloadIcon className="text-white" />
           </Button>
         </div>
@@ -96,7 +235,7 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
       <div className="flex flex-1">
         {/* Page Selector */}
         <div className="flex w-[8.125rem] flex-shrink-0 flex-col gap-5 bg-[#2D2D2D] p-5">
-          {images.map(({ imageUrl }, index) => (
+          {images?.map(({ imageUrl }, index) => (
             <div
               key={index}
               className="flex cursor-pointer items-center justify-center"
@@ -129,6 +268,24 @@ const PreviewPanel = ({ images }: { images: ImageType[] }) => {
           />}
         </div>
       </div>
+
+      {["uploading", "processing"].includes(status) &&
+        <Dialog open={true}>
+          <DialogContent
+            showCloseButton={false}
+            className={"p-0 font-content"}
+          >
+            <div className="flex flex-col items-center justify-center py-[3.125rem] text-main bg-white rounded-[4px]">
+              <JumpingLoader className="text-secondary1" />
+              <p className="mt-10 text-base font-semibold">Scanning documents...</p>
+              <p className="my-2.5 whitespace-nowrap text-[0.75rem] font-normal leading-[1.125rem]">
+                This may take a moment, thank you for your patience.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
+      }
+      {status === "error" && toast.error(lastError)}
     </div>
   );
 };
