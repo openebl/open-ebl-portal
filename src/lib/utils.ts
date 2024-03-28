@@ -30,8 +30,8 @@ export function randomId(len = 20): string {
 type BuType = BusinessInfoType & { id: string };
 export const buListToDropdownOptionList = (buList: BuType[] | null | undefined) => {
   if (!buList) return [];
-  return Object.entries(buList).map(([id, bu]) => ({
+  return buList.map(bu => ({
     label: bu.legalBusinessName ?? '',
-    value: id,
-  }));
+    value: bu.id,
+  }))
 }

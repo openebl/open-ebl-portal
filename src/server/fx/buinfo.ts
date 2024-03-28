@@ -22,7 +22,7 @@ export const businessInfoList: () => Promise<BusinessInfoListType | null> =
     const parsed = BusinessInfoListSchema.safeParse(JSON.parse(content));
     if (!parsed.success) {
       getLogger().error(
-        `Invalid business info list JSON: ${parsed.error.errors.map(s=>`${s.message} - ${s.path.join('/')}`).join("; ")}`,
+        `Invalid business info list JSON: ${parsed.error.errors.map(s => `${s.message} - ${s.path.join('/')}`).join("; ")}`,
       );
       return null;
     }

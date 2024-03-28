@@ -13,7 +13,7 @@ export const useFilterBusinessUnits = (keyword: string) => {
 
 export const useGetBusinessUnit = (id: string) => {
   const { data: name, isLoading: loading } = api.buinfo.legalBusinessName.useQuery(
-    id ,
+    id,
     { staleTime: 1000 * 60 * 10 },
   );
   return {
