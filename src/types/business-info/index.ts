@@ -45,6 +45,25 @@ const BusinessInfoTitleMapping: Record<BusinessInfoKeyType, string> = {
   companyWebsite: "Company Website",
 };
 
+const newBusinessInfo: BusinessInfoType = {
+  businessRegisteredRegion: "",
+  legalBusinessName: "",
+  doingBusinessAs: "",
+  companyCategory: "",
+  companyType: "",
+  ein: "",
+  taxId: "",
+  otiLicenseNo: "",
+  usdotLicenseNo: "",
+  customBrokerLicenseNo: "",
+  companyPhone: "",
+  businessEmail: "",
+  streetAddress: "",
+  city: "",
+  state: "",
+  zip: "",
+  companyWebsite: "",
+}
 
-export { BusinessInfoSchema, BusinessInfoTitleMapping, BusinessInfoKeys };
+export { BusinessInfoSchema, BusinessInfoTitleMapping, BusinessInfoKeys, newBusinessInfo };
 export type { BusinessInfoType, BusinessInfoKeyType };

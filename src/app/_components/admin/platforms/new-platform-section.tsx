@@ -13,12 +13,15 @@ import {
   type PlatformFormType,
 } from "@/types/admin-platform";
 import EditPlatformPanel from "./edit-platform-panel";
+import { newBusinessInfo } from "@/types/business-info";
 
 const NewPlatformSection = () => {
   const router = useRouter();
+  // all form field value can't be undefined to avoid controlled/uncontrolled component error
+  // More info: https://react.dev/reference/react-dom/components/textarea#im-getting-an-error-a-component-is-changing-an-uncontrolled-input-to-be-controlled
   const form = useForm<PlatformFormType>({
     resolver: zodResolver(PlatformFormSchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: "", platformId: "", ...newBusinessInfo },
   });
   const mutation = api.adminPlatform.create.useMutation({
     onError: (error) => {

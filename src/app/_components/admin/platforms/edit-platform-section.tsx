@@ -30,7 +30,7 @@ const EditPlatformSection = ({
     resolver: zodResolver(PlatformFormSchema),
     defaultValues: {
       name: platform.name,
-      platformId: platform.platformId ?? undefined,
+      platformId: platform.platformId ?? "",
       ...(platform.businessInfo &&
         BusinessInfoSchema.parse(platform.businessInfo)),
     },

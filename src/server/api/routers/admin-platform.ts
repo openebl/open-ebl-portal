@@ -43,7 +43,8 @@ export const adminPlatformRouter = createTRPCRouter({
       if (!hasPermission("write:admin/platforms", ctx.session.permissions))
         throw new Error("You are not authorized to create platforms");
 
-      return ctx.db.platform.create({ data: input });
+      const { name, platformId, ...businessInfo } = input;
+      return ctx.db.platform.create({ data: { name, platformId, businessInfo } });
     }),
 
   update: protectedProcedure
