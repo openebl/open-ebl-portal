@@ -52,6 +52,66 @@ const saveImagesToStorage = async (
   return imageKeys;
 };
 
+const findOrCreateDocFile = async ({
+  filename,
+  content,
+  contentType,
+  session,
+  db,
+  storage,
+}: {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+  session: Session | null;
+  db: DatabaseType;
+  storage: StorageServiceType;
+}) => {
+  const fileHash = crypto.createHash("md5").update(content).digest("hex");
+
+  if (!fileHash) throw new Error("Failed to hash file content");
+
+  // find docFile with the hash
+  const existingDocFile = await db.docFile.findFirst({
+    where: { uuid: fileHash },
+  });
+
+  if (existingDocFile) return existingDocFile;
+
+  const storagekey = `/ebl/${crypto.randomUUID()}`;
+
+  // upload file to storage
+  await storage.putObject({
+    content,
+    key: storagekey,
+    contentType,
+  });
+
+  // create docfile
+  const docFile = await db.docFile.create({
+    data: {
+      // use hash as uuid so same content will have same uuid
+      uuid: fileHash,
+      filename,
+      platformId: session!.platform.id,
+      uploaderId: session!.user.id,
+      storagekey,
+    },
+  });
+  if (!docFile) throw new Error("Failed to create docFile record");
+
+  if (contentType === "application/pdf") {
+    const keyPairs = await saveImagesToStorage(content, storage);
+    await Promise.all(
+      keyPairs.map((keyPair) => insertImageRecords(db, docFile.id, keyPair)),
+    );
+  } else {
+    // TODO: compress png / jpeg to generate thumbnail
+    await insertImageRecords(db, docFile.id, { imageKey: storagekey, thumbnailKey: "", page: 1 })
+  }
+  return docFile;
+}
+
 export const processFileDocUploadReq = async ({
   req,
   session,
@@ -65,7 +125,6 @@ export const processFileDocUploadReq = async ({
   storage: StorageServiceType;
   docExtraction: DocExtractionType;
 }): Promise<EBlFileProcessResultType> => {
-  const storagekey = `/ebl/${crypto.randomUUID()}`;
   const filename = req.headers.get("X-Filename") ?? "(unknown)";
   const contentType = req.headers.get("Content-Type") ?? "application/octet-stream";
 
@@ -75,51 +134,55 @@ export const processFileDocUploadReq = async ({
     const hash = crypto.createHash("md5").update(content).digest("hex");
     const uuid = `${hash}-${randomId(8)}`;
 
-    const findOrCreateDocFile = async () => {
-      // find docFile with the hash
-      const existingDocFile = await db.docFile.findFirst({
-        where: { uuid: hash },
-      });
-
-      if (existingDocFile) return existingDocFile;
-
-      // upload file to storage
-      await storage.putObject({
-        content,
-        key: storagekey,
-        contentType,
-      });
-
-      // create docfile
-      const docFile = await db.docFile.create({
-        data: {
-          // use hash as uuid so same content will have same uuid
-          uuid: hash,
-          filename,
-          platformId: session!.platform.id,
-          uploaderId: session!.user.id,
-          storagekey,
-        },
-      });
-      if (!docFile) throw new Error("Failed to create docFile record");
-
-      if (contentType === "application/pdf") {
-        const keyPairs = await saveImagesToStorage(content, storage);
-        await Promise.all(
-          keyPairs.map((keyPair) => insertImageRecords(db, docFile.id, keyPair)),
-        );
-      } else {
-        await insertImageRecords(db, docFile.id, { imageKey: storagekey, thumbnailKey: "", page: 1 })
-      }
-      return docFile;
-    }
-
     await Promise.all([
       docExtraction.createExtraction({ uuid, filename, content }),
-      findOrCreateDocFile(),
+      findOrCreateDocFile({
+        filename,
+        content,
+        contentType,
+        session,
+        db,
+        storage,
+      }),
     ]);
 
     return { uuid, fileContentBase64: content.toString("base64") };
+  } catch (err) {
+    getLogger().error(err);
+    throw err;
+  }
+};
+
+export const processFileDocReUpload = async ({
+  filename,
+  contentType,
+  body,
+  session,
+  db,
+  storage,
+}: {
+  filename: string
+  contentType: string
+  body: ReadableStream<Uint8Array> | null
+  session: Session | null;
+  db: DatabaseType;
+  storage: StorageServiceType;
+}): Promise<{ docFileId: bigint }> => {
+  if (!body) throw new Error("ReadableStream is null");
+
+  try {
+    const content = await readRequestBodyToBuffer(body);
+    const docFile = await findOrCreateDocFile({
+      filename,
+      content,
+      contentType,
+      session,
+      db,
+      storage,
+    })
+
+    return { docFileId: docFile.id };
+
   } catch (err) {
     getLogger().error(err);
     throw err;
