@@ -14,8 +14,15 @@ import { db } from "@/server/db";
 import { processFileDocReUpload } from "@/server/fx/ebl";
 import { s3StorageService } from "@/server/services/storage-service";
 import { redirect } from "next/navigation";
+import { env } from "@/env";
+import { getServerAuthSession } from "@/server/auth";
+import { db } from "@/server/db";
+import { processFileDocReUpload } from "@/server/fx/ebl";
+import { s3StorageService } from "@/server/services/storage-service";
+import { redirect } from "next/navigation";
 
-const Content = async ({ uuid }: { uuid: string }) => {
+const Page = async ({ params }: { params: { uuid: string } }) => {
+  let block: JSX.Element | null = null;
   try {
     const ebl = await api.ebl.getByID.query(uuid);
     if (!ebl) throw new Error("NOT_FOUND");
@@ -26,6 +33,9 @@ const Content = async ({ uuid }: { uuid: string }) => {
       throw new TRPCClientError("EBl NOT_FOUND");
     }
 
+    const eblId = ebl.bl?.id ?? "";
+    const filename = eblEvent?.file?.name ?? "";
+    const contentType = eblEvent?.file?.file_type ?? "";
     const eblId = ebl.bl?.id ?? "";
     const filename = eblEvent?.file?.name ?? "";
     const contentType = eblEvent?.file?.file_type ?? "";
@@ -43,7 +53,7 @@ const Content = async ({ uuid }: { uuid: string }) => {
         headers: {
           accept: "application/octet-stream",
           Authorization: `Bearer ${env.BU_SERVER_API_KEY}`,
-          "X-Business-Unit-ID": session?.businessUnitId,
+          "X-Business-Unit-ID": String(session?.platform.platformId),
         },
       });
       // generate docFile record in db
@@ -59,7 +69,7 @@ const Content = async ({ uuid }: { uuid: string }) => {
     }
     const images = await api.docImage.getUrls.query({ docFileId });
 
-    return (
+    block = (
       <MainSection
         ebl={ebl}
         images={images}
