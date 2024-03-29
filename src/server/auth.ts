@@ -3,7 +3,6 @@ import { env } from "@/env";
 import { getLogger } from "@/lib/logger";
 import { sleep } from "@/lib/utils";
 import { db } from "@/server/db";
-import { type paths } from "@/types/bu-scheme";
 import { UserRoleSchema, type UserRoleType } from "@/types/user";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type Platform, type PrismaClient } from "@prisma/client";
@@ -11,12 +10,12 @@ import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
+  type Session,
 } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
-import createClient from "openapi-fetch";
+import { authenticationId } from "./fx/auth-id";
 import { permissions, type PermissionType } from "./permissions";
 import { SmtpEmailService } from "./services/email-service";
-import { authenticationId } from "./fx/auth-id";
 // import GoogleProvider from "next-auth/providers/google";
 
 /**
@@ -86,13 +85,13 @@ export const authOptions: NextAuthOptions = {
         ...session,
         user: {
           ...session.user,
-          id: user.id,
+          id: BigInt(user.id),
         },
         platform,
         platformRoles,
-        authenticationId: authenticationId(platform),
+        authenticationId: await authenticationId(platform),
         permissions: permissions({ roles, platform }),
-      };
+      } as Session;
     },
     async signIn({ user }) {
       if (user.name && user.activePlatformId) {
