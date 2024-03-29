@@ -23,10 +23,12 @@ export const authenticationId: (
 
   const latestAuthId = await fetchAutheticationId(platform.platformId).catch(
     (err) => {
-      getLogger().error("cannot fetch active authentication: ", err);
-      return null;
+      getLogger().error(`cannot fetch active authentication: ${err}`);
+      return '';
     },
   );
+
+  if (latestAuthId.length === 0) return null;
 
   getLogger().info(`Got active authentication for platform ${platform.id}`);
   memoryCache.set(platform.platformId, latestAuthId, 60 * 60);
@@ -58,5 +60,5 @@ const fetchAutheticationId = async (businessUnitId: string) => {
   if (!activeAuthentication) {
     throw new Error("No active authentication found");
   }
-  return activeAuthentication.id ?? null;
+  return activeAuthentication.id ?? '';
 };
