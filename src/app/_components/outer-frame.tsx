@@ -104,10 +104,10 @@ const OuterFrame = async ({
     <main className="relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header">
       <div className="flex h-16 w-full items-center justify-between bg-header text-header-text">
         <div className="mx-12 flex items-center justify-start">
-          <Link href="/">
+          <Link href="/ebls" tabIndex={-1}>
             <BlueXLogo />
           </Link>
-          <Link href="/">
+          <Link href="/ebls" tabIndex={-1}>
             <div className="mx-2 text-lg font-semibold text-header-text">
               Open eBL
             </div>
