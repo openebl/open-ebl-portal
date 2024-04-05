@@ -124,8 +124,10 @@ async function pollingPlatformEBls({
 async function latestEBlStashesByPlatformAndEBl(
   chunk: EBlRecordType[],
   platform: Platform,
-) {
+): Promise<Record<string, EBlStash>> {
   const ids = chunk.map((rec) => rec?.bl?.id).filter((v) => !!v);
+  if (ids.length === 0) return {};
+
   const query = Prisma.sql`
     SELECT DISTINCT ON ("platformId", "eBlId") *
     FROM "EBlStash"
