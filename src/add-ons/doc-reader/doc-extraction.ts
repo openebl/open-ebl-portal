@@ -96,7 +96,7 @@ const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (
       )) ?? "",
     release_agent:
       (await lookupParty(
-        docInfo.originEntities.find((e) => e.label === "NotifyParty")?.value,
+        docInfo.originEntities.find((e) => e.label === "NotifyParty" || e.label === "DeliveryAgent")?.value,
       )) ?? "",
     pol: {
       UNLocationCode: polCode ?? "",
