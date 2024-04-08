@@ -72,6 +72,7 @@ model UserRole {
   createdAt  DateTime @default(now())
   platform   Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, platformId, role])
 }
 
@@ -86,13 +87,13 @@ model VerificationToken {
 model DocFile {
   id         BigInt     @id @default(autoincrement())
   platformId BigInt
-  uploaderId BigInt
+  uploaderId BigInt?
   filename   String?
   storagekey String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @default(now())
   uuid       String?    @unique
-  uploader   User       @relation(fields: [uploaderId], references: [id])
+  uploader   User?      @relation(fields: [uploaderId], references: [id])
   docImage   DocImage[]
 }
 

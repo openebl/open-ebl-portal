@@ -47,7 +47,7 @@ const FileDetails = ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[];
         <div className="flex w-full gap-5">
           <div className="flex flex-col items-start cursor-pointer">
             <Image
-              src="/ebl-pdf-preview.jpg"
+              src={ images[0]?.thumbnailUrl ?? images[0]?.imageUrl ?? "/ebl-pdf-preview.jpg" }
               alt="eBL Preview"
               width={123}
               height={170}
