@@ -42,12 +42,13 @@ const MainSection = () => {
 
   const handleFileSelected = async (f: File) => {
     setStatus("uploading");
+    const encodedFilename = encodeURIComponent(f.name); // ensure that any non-ASCII characters are properly handled
     const res = await fetch("/api/file/ebl", {
       method: "POST",
       body: f,
       headers: {
         "Content-Type": f.type,
-        "X-Filename": f.name,
+        "X-Filename": encodedFilename,
       },
     }).catch((err) => {
       console.error(err);

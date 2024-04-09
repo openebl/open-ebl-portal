@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import FitScreenIcon from "@/app/_icons/fit-screen-icon";
 import MinusIcon from "@/app/_icons/minus-icon";
 import PlusIcon from "@/app/_icons/plus-icon";
-import { useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import DownloadIcon from "@/app/_icons/download-icon";
 import Image from "next/image";
@@ -102,6 +102,15 @@ const PreviewPanel = ({
     setPage(index + 1);
   };
 
+  const handleSelectDocumentByInput = (event: ChangeEvent<HTMLInputElement>) => {
+    const targetPage = Number(event.target.value);
+    const totalPages = images?.length ?? 0;
+    setPage(targetPage);
+    if (targetPage >= 1 && targetPage <= totalPages) {
+      setSelectedDocument(images?.[targetPage - 1]);
+    }
+  };
+
   const downloadDocument = async () => {
     if (!fileInfo.content && docId) { // not upload new bl file, download from bu server
       const link = document.createElement('a');
@@ -120,12 +129,13 @@ const PreviewPanel = ({
     if (e.target?.files?.[0]) {
       const f = e.target.files[0];
       setStatus("uploading");
+      const encodedFilename = encodeURIComponent(f.name); // ensure that any non-ASCII characters are properly handled
       const res = await fetch("/api/file/ebl", {
         method: "POST",
         body: f,
         headers: {
           "Content-Type": f.type,
-          "X-Filename": f.name,
+          "X-Filename": encodedFilename,
         },
       }).catch((err) => {
         console.error(err);
@@ -173,9 +183,7 @@ const PreviewPanel = ({
             <Input
               className="m-0 h-[1.875rem] w-[1.875rem] rounded-none border-none bg-black text-[0.8125rem] font-semibold leading-[1.125rem]"
               value={page}
-              onChange={() => {
-                0;
-              }}
+              onChange={handleSelectDocumentByInput}
             />
             <p>/</p>
             <p>{images?.length}</p>
@@ -235,17 +243,18 @@ const PreviewPanel = ({
       <div className="flex flex-1">
         {/* Page Selector */}
         <div className="flex w-[8.125rem] flex-shrink-0 flex-col gap-5 bg-[#2D2D2D] p-5">
-          {images?.map(({ imageUrl }, index) => (
+          {images?.map(({ imageUrl, thumbnailUrl }, index) => (
             <div
               key={index}
               className="flex cursor-pointer items-center justify-center"
               onClick={() => handleSelectDocument(index)}
             >
               <Image
-                src={imageUrl ?? ""}
+                src={thumbnailUrl ?? imageUrl ?? ""}
                 width={123}
                 height={170}
                 alt="preview"
+                priority
                 className={
                   selectedDocument?.page === index + 1 ? 'border-[3px] border-[#20C2C2]' : 'border-none'
                 }
@@ -261,6 +270,7 @@ const PreviewPanel = ({
             height={680}
             alt="preview"
             priority
+            className="w-auto"
             style={{
               transform: `scale(${zoomLevel / 100})`,
               transformOrigin: 'top'

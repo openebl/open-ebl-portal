@@ -47,17 +47,19 @@ const FileDetails = ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[];
         <div className="flex w-full gap-5">
           <div className="flex flex-col items-start cursor-pointer">
             <Image
-              src="/ebl-pdf-preview.jpg"
+              src={images[0]?.thumbnailUrl ?? images[0]?.imageUrl ?? ""}
               alt="eBL Preview"
               width={123}
               height={170}
+              className="w-auto"
+              priority
               onClick={() => setModalOpen(true)}
             />
           </div>
           <div className="ml-[3.75rem] flex flex-col items-start text-[.8125rem] leading-[1.125rem]">
             <div className="flex flex-col items-start justify-start gap-[.875rem]">
               <FileDetailsLine title="File Name">
-                <div className="font-semibold text-main">{event?.file?.name}</div>
+                <div className="font-semibold text-main">{decodeURIComponent(event?.file?.name ?? "")}</div>
               </FileDetailsLine>
 
               <FileDetailsLine title="File Type">
@@ -91,15 +93,16 @@ const FileDetails = ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[];
         <DialogContent
           className={cn("fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-[50vw] max-h-[90vh] overflow-auto p-0 font-content border-[2px] border-[#738DBC] !rounded-none")}
         >
-          <Image
-            src={images[0]?.imageUrl ?? "/ebl-pdf-preview.jpg"}
-            alt="eBL full-sized"
-            width={1230}
-            height={6000}
-            layout="responsive"
-            objectFit="contain"
-            onClick={() => setModalOpen(true)}
-          />
+          {images.map((image, index) => (
+            <Image
+              key={index}
+              src={image?.imageUrl ?? ""}
+              alt={`eBL full-sized ${index + 1}`}
+              width={1230}
+              height={6000}
+              className="w-auto"
+            />
+          ))}
         </DialogContent>
       </Dialog>
     </section>

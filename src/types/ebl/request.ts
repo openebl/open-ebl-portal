@@ -10,7 +10,7 @@ export const EBlRequestSchema = z.object({
     type: z.string(),
     content: Base64EncodedString, // base64 encoded file content
   }),
-  bl_number: z.string().min(1).max(50),
+  bl_number: z.string().trim().min(1).max(50),
   bl_doc_type: EBlDocTypeSchema,
   to_order: z.boolean(), // false: non-negotiable, true: negotiable
   pol: z.object({ // port of loading
