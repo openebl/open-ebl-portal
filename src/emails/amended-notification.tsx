@@ -1,7 +1,7 @@
 import React from "react";
 import { Column, Row, Text } from "@react-email/components";
 
-import { ActionButton } from "./components";
+import { ActionButton, NoteSection } from "./components";
 import { NotificationTemplate } from "./notification-template";
 import { type CommonEmailProps } from "./types";
 
@@ -22,10 +22,7 @@ export default function AmendedNotification(props: CommonEmailProps) {
           <strong>{props.eBlNo}</strong> to you.
           <br />
           <br />
-          Note:&nbsp;
-          <strong>{props.note}</strong>
-          <br />
-          <br />
+          <NoteSection {...props} />
           Please review the amendment via the link below.
         </Text>
       </Row>
