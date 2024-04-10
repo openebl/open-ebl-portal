@@ -45,12 +45,6 @@ const MainSection = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogState, setDialogState] = useState<DialogState>("confirm");
   const [action, setAction] = useState<DialogActionType>("ISSUE");
-  const form = useForm<EBlFormType>({
-    resolver: zodResolver(EBlFormSchema),
-    defaultValues: {
-      ...eblForm,
-    },
-  });
 
   const isNewEbl = !eblRecord;
   const eblId = eblRecord?.bl?.id ?? "";
@@ -60,8 +54,14 @@ const MainSection = ({
     status === "REQUEST_AMEND" ||
     (status === "RETURN" &&
       eblRecord?.bl?.current_owner === documentParties?.issuer);
-
   const title = isNewEbl ? "New eBL" : isAmendMode ? "Amend eBL" : "Edit eBL";
+
+  const form = useForm<EBlFormType>({
+    resolver: zodResolver(isAmendMode ? EBlFormAmendSchema.omit({ ebl_id: true }) : EBlFormSchema),
+    defaultValues: {
+      ...eblForm,
+    },
+  });
 
   // TODO: do not download whole bu list
   const { data: bulist } = api.buinfo.all.useQuery(undefined, {

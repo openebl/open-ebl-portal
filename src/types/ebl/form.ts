@@ -13,6 +13,7 @@ const EBlFormAmendSchema = EBlRequestAmendSchema.omit({
   authentication_id: true,
 }).extend({
   ebl_id: z.string(),
+  note: z.string().min(1).max(1500),
 })
 
 export {

@@ -101,7 +101,7 @@ const DetailPanel = ({
             control={form.control}
             name="note"
             render={({ field }) => (
-              <HFormItem label="Notes" required={false}>
+              <HFormItem label="Notes" required={isAmendMode}>
                 <Textarea
                   placeholder=""
                   className={`h-[10.625rem] w-[21.25rem] resize-none font-normal ${form.formState.errors.note && "!border-warning"}`}

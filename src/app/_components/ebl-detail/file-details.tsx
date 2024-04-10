@@ -100,7 +100,6 @@ const FileDetails = ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[];
               alt={`eBL full-sized ${index + 1}`}
               width={1230}
               height={6000}
-              className="w-auto"
             />
           ))}
         </DialogContent>

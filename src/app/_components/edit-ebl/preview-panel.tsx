@@ -27,6 +27,9 @@ const PreviewPanel = ({
   form: UseFormReturn<EBlFormType>;
   updateFormDataByNewEBl: (form: EBlFormType) => void
 }) => {
+  const originalImageWidth = 500;
+  const originalImageHeight = 680;
+
   const [selectedDocument, setSelectedDocument] = useState<ImageType | null | undefined>(null);
   const [zoomLevel, setZoomLevel] = useState(100); // Zoom level as a percentage
   const [page, setPage] = useState(1);
@@ -40,6 +43,7 @@ const PreviewPanel = ({
     content: form.getValues().file.content,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: docFile } = api.docFile.findByUuid.useQuery(
     fileHash,
@@ -90,11 +94,21 @@ const PreviewPanel = ({
   }
 
   const handleZoomIn = () => {
-    setZoomLevel(zoomLevel < 300 ? zoomLevel + 10 : zoomLevel);
+    setZoomLevel(zoomLevel + 10);
   };
 
   const handleZoomOut = () => {
     setZoomLevel(zoomLevel > 50 ? zoomLevel - 10 : zoomLevel);
+  };
+
+  const handleZoomByInput = (event: ChangeEvent<HTMLInputElement>) => {
+    const targetZoom = Number(event.target.value);
+    if (!isNaN(targetZoom)) setZoomLevel(targetZoom);
+  };
+
+  const handleZoomFullScreen = () => {
+    const zoomVal = Math.round((imageContainerRef.current!.offsetWidth / originalImageWidth) * 100);
+    setZoomLevel(zoomVal);
   };
 
   const handleSelectDocument = (index: number) => {
@@ -177,7 +191,7 @@ const PreviewPanel = ({
   return (
     <div className="flex h-[48.125rem] w-[38.75rem] flex-1 flex-col items-stretch rounded-tl-lg bg-[#333639]">
       {/* Toolbar */}
-      <div className="flex h-[3.75rem] items-center justify-between border-b px-[1.875rem] text-[0.8125rem] font-semibold leading-[1.125rem]">
+      <div className="flex shrink-0 h-[3.75rem] items-center justify-between border-b px-[1.875rem] text-[0.8125rem] font-semibold leading-[1.125rem]">
         <div className="flex items-center gap-10">
           <div className="flex items-center gap-2.5 text-white">
             <Input
@@ -200,9 +214,7 @@ const PreviewPanel = ({
             <Input
               className="m-0 h-[1.875rem] w-[3.75rem] rounded-none border-none bg-black text-[0.8125rem] font-semibold leading-[1.125rem]"
               value={zoomLevel}
-              onChange={() => {
-                0;
-              }}
+              onChange={handleZoomByInput}
             />
             <Button
               variant="flat"
@@ -215,7 +227,7 @@ const PreviewPanel = ({
 
           <Button
             variant="flat"
-            onClick={handleZoomIn}
+            onClick={handleZoomFullScreen}
             className="h-[1.875rem] w-[1.875rem] p-0 text-white"
           >
             <FitScreenIcon className="text-white" />
@@ -263,19 +275,17 @@ const PreviewPanel = ({
           ))}
         </div>
         {/* Document preview */}
-        <div className="flex flex-1 bg-[#333639] justify-center overflow-auto min-h-full">
-          {selectedDocument && <Image
-            src={selectedDocument.imageUrl ?? ""}
-            width={500}
-            height={680}
-            alt="preview"
-            priority
-            className="w-auto"
-            style={{
-              transform: `scale(${zoomLevel / 100})`,
-              transformOrigin: 'top'
-            }}
-          />}
+        <div className="flex flex-1 bg-[#333639]">
+          <div className="relative w-full h-full overflow-auto" ref={imageContainerRef}>
+            {selectedDocument && <Image
+              src={selectedDocument.imageUrl ?? ""}
+              width={originalImageWidth * (zoomLevel / 100)}
+              height={originalImageHeight * (zoomLevel / 100)}
+              alt="full"
+              className="absolute left-1/2 -translate-x-1/2"
+              priority
+            />}
+          </div>
         </div>
       </div>
 
