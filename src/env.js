@@ -20,11 +20,18 @@ export const env = createEnv({
       // Since NextAuth.js automatically uses the VERCEL_URL if present.
       (str) => process.env.VERCEL_URL ?? str,
       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
-      process.env.VERCEL ? z.string() : z.string().url()
+      process.env.VERCEL ? z.string() : z.string().url(),
     ),
 
-    GOOGLE_CLIENT_ID: z.string().min(1),
-    GOOGLE_CLIENT_SECRET: z.string().min(1),
+    EMAIL_SERVER: z.string().min(1),
+    EMAIL_FROM: z.string().min(1),
+    S3_BUCKET: z.string().min(1),
+    BU_SERVER_URL: z.string().url(),
+    BU_SERVER_API_KEY: z.string().min(1),
+    NOTIFIER_POLL_INTERVAL: z.coerce.number().default(1000 * 60 * 5),
+    PORTAL_URL: z.string().min(1),
+    SIGNIN_EMAIL_MAXAGE_IN_SEC: z.coerce.number().default(15 * 60),
+    BU_INFO_LIST_URL: z.string().url(),
   },
 
   /**
@@ -43,10 +50,17 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    EMAIL_SERVER: process.env.EMAIL_SERVER,
+    EMAIL_FROM: process.env.EMAIL_FROM,
+    S3_BUCKET: process.env.S3_BUCKET,
+    BU_SERVER_URL: process.env.BU_SERVER_URL,
+    BU_SERVER_API_KEY: process.env.BU_SERVER_API_KEY,
+    NOTIFIER_POLL_INTERVAL: process.env.NOTIFIER_POLL_INTERVAL,
+    PORTAL_URL: process.env.PORTAL_URL,
+    SIGNIN_EMAIL_MAXAGE_IN_SEC: process.env.SIGNIN_EMAIL_MAXAGE_IN_SEC,
+    BU_INFO_LIST_URL: process.env.BU_INFO_LIST_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

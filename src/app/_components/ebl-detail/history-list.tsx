@@ -1,15 +1,16 @@
 import ConnectDotIcon from "@/app/_icons/connect-dot-icon";
+import { TimeLabel } from "@/components/ui/time-label";
 import { cn } from "@/lib/utils";
 
 type HistoryItemType = {
   actor: string;
-  actedBy: string;
+  actorName: string;
   actedAt: string;
   action: string;
   target: string;
   targetedAt: string;
-  notes: string;
-  notesAltered: boolean;
+  note: string;
+  noteAltered: boolean;
 };
 
 const HistoryListHeader = () => (
@@ -37,21 +38,21 @@ const HistoryListRow = ({
         <div
           className={cn(
             "h-[1.125rem] w-[1px]",
-            !first && "border-l border-dashed border-[#004DE3]",
+            !first && "border-l border-dashed border-secondary1",
           )}
         ></div>
         <ConnectDotIcon className="h-[1.125rem] w-[1.125rem] text-secondary1" />
         {!last && (
-          <div className="w-[1px] flex-1 border-l border-dashed border-[#004DE3]"></div>
+          <div className="w-[1px] flex-1 border-l border-dashed border-secondary1"></div>
         )}
       </div>
       <div className="border-b border-border-light py-[1.125rem]">
         <div className="">{item.actor}</div>
         <div className="text-[0.625rem] font-normal leading-4 text-main">
-          by {item.actedBy}
+          by {item.actorName}
         </div>
         <div className="text-[0.625rem] font-normal leading-4 text-main">
-          {item.actedAt}
+          <TimeLabel time={item.actedAt} formatStr={"MMM dd, yyyy 'at' hh:mm a"} />
         </div>
       </div>
       <div className="border-b border-border-light py-[1.125rem]">
@@ -61,12 +62,12 @@ const HistoryListRow = ({
       <div className="border-b border-border-light py-[1.125rem]">
         <div className="">{item.target}</div>
         <div className="text-[0.625rem] font-normal leading-4 text-main">
-          {item.targetedAt}
+          <TimeLabel time={item.targetedAt} formatStr={"MMM dd, yyyy 'at' hh:mm a"} />
         </div>
       </div>
 
-      <div className={cn("border-b border-border-light py-[1.125rem]", item.notesAltered && 'text-[#E42525]')}>
-        {item.notes}
+      <div className={cn("border-b border-border-light py-[1.125rem]", item.noteAltered && 'text-warning')}>
+        {item.note}
       </div>
     </>
   );

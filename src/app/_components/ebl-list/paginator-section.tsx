@@ -1,16 +1,29 @@
 "use client";
 
 import Paginator from "@/app/_components/common/paginator";
-import { useState } from "react";
+import type { EBlFilter } from "@/types/ebl";
+import { useRouter } from "next/navigation";
 
-const PaginatorSection = () => {
-  const [page, setPage] = useState(1);
-  return <Paginator
-    total={92}
-    perPage={10}
-    currentPage={page}
-    onPageChanged={(page) => setPage(page)}
-  />;
+const PaginatorSection = ({
+  total,
+  currentPage,
+  filter,
+}: {
+  total: number;
+  currentPage: number;
+  filter: EBlFilter | null | undefined;
+}) => {
+  const router = useRouter();
+  return (
+    <Paginator
+      total={total}
+      perPage={20}
+      currentPage={currentPage}
+      onPageChanged={(page) =>
+        router.push(`/ebls?page=${page ?? 1}&filter=${filter ?? 'action_needed'}`, { scroll: true })
+      }
+    />
+  );
 };
 
 export default PaginatorSection;

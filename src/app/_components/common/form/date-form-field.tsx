@@ -1,4 +1,5 @@
 import CalendarIcon from "@/app/_icons/calendar-icon";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { FormControl, FormField } from "@/components/ui/form";
@@ -22,6 +23,7 @@ type DateFormFieldProps<
   control: Control<TFieldValues>;
   name: TName;
   formItemBuilder?: TFormItemBuilder;
+  className?: string;
 };
 
 const DateFormField = <
@@ -33,6 +35,7 @@ const DateFormField = <
   control,
   name,
   formItemBuilder = hFormItemBuilder,
+  className,
 }: DateFormFieldProps<TFieldValues, TName>) => {
   const TFormItem = formItemBuilder();
   const [pickerOpen, setPickerOpen] = React.useState(false);
@@ -48,9 +51,9 @@ const DateFormField = <
               <FormControl>
                 <Button
                   variant={"outline"}
-                  className="flex h-10 w-[21.25rem] rounded-lg border border-border-dark bg-background px-0 py-2 pl-3 text-[0.8125rem] font-normal leading-[1.125rem] text-main
-                ring-offset-border-light hover:bg-background hover:text-main focus-visible:outline-none focus-visible:ring-2
-                focus-visible:ring-[#3C7EFF] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-[#F1F0F0]"
+                  className={cn(`flex h-10 w-[21.25rem] rounded-lg border border-border-dark bg-background px-0 py-2 pl-3 text-[0.8125rem] font-normal leading-[1.125rem] text-main
+                  ring-offset-border-light hover:bg-background hover:text-main focus-visible:outline-none focus-visible:ring-2
+                  focus-visible:ring-[#3C7EFF] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-[#F1F0F0] ${className}`)}
                 >
                   {field.value ? (
                     format(field.value, "MM/dd/yyyy")

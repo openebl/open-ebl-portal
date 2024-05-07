@@ -1,29 +1,49 @@
+"use server";
+
 import ErrorPage from "@/app/_components/ebl-detail/error-page";
 import MainSection from "@/app/_components/ebl-detail/main-section";
 import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
-import { tryCatchAsync } from "@/lib/tryblock";
+import { latestBillOfLadingEvent } from "@/lib/ebl";
+import { getLogger } from "@/lib/logger";
 import { api } from "@/trpc/server";
 import { TRPCClientError } from "@trpc/client";
-import { Either } from "effect";
 import Link from "next/link";
 
 const Page = async ({ params }: { params: { uuid: string } }) => {
-  const ebl = await tryCatchAsync(async () => { return await api.ebl.find.query(params.uuid)});
-  const block = Either.match(ebl, {
-    onLeft: (err) =>
-      err instanceof TRPCClientError && err.message === "NOT_FOUND" ? (
-        <ErrorPage message="eB/L Not Found" />
-      ) : (
-        <ErrorPage message={`Something went wrong: ${err.message}`} />
-      ),
-    onRight: (ebl) => <MainSection ebl={ebl} />,
-  });
+  let block: JSX.Element | null = null;
+  try {
+    const ebl = await api.ebl.getByID.query(params.uuid);
+    if (!ebl) throw new Error("NOT_FOUND");
+
+    const eblEvent = latestBillOfLadingEvent(ebl)
+    const eblContent = eblEvent?.bill_of_lading
+    if (!eblContent) {
+      throw new TRPCClientError("EBl NOT_FOUND");
+    }
+
+    const hash = String(eblEvent?.metadata?.docHash)
+    const docFile = await api.docFile.findByUuid.query(hash);
+    // TODO: if not found docFile, download from bu server and generate docFile record
+    const images = docFile ? await api.docImage.getUrls.query({ docFileId: docFile.id }) : []
+
+    block = <MainSection ebl={ebl} images={images} />;
+
+  } catch (err) {
+    getLogger().error(err);
+
+    block = err instanceof Error && err.message === "NOT_FOUND" ? (
+      <ErrorPage message="eBL Not Found" />
+    ) : (
+      <ErrorPage message={`Something went wrong`} />
+    )
+  }
 
   return (
     <div className="px-12 py-10 font-content">
       <Link
         className="flex items-center justify-start text-xs font-semibold text-secondary1"
         href="/ebls"
+        prefetch={false}
       >
         <LeftArrowIcon className="mr-2" />
         Back

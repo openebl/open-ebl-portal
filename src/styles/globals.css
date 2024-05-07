@@ -4,6 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
+html body {
+  min-height: 100vh;
+  margin: 0px;
+  font-size: 16px;
+  box-sizing: border-box;
+
+  /* text-rendering: optimizeLegibility; */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
 a {
   color: #004DE3;
   text-decoration: none;

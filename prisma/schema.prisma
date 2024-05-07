@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -35,17 +36,32 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Platform {
+  id           BigInt     @id @default(autoincrement())
+  name         String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now())
+  platformId   String?    @unique
+  admin        Boolean    @default(false)
+  businessInfo Json?
+  activeUsers  User[]
+  userRoles    UserRole[]
+}
+
 model User {
-  id            BigInt     @id @default(autoincrement())
-  name          String?
-  email         String?    @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @default(now())
-  accounts      Account[]
-  sessions      Session[]
-  UserRoles     UserRole[]
+  id               BigInt     @id @default(autoincrement())
+  name             String?
+  email            String?    @unique
+  emailVerified    DateTime?
+  image            String?
+  activePlatformId BigInt
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @default(now())
+  accounts         Account[]
+  DocFile          DocFile[]
+  sessions         Session[]
+  activePlatform   Platform   @relation(fields: [activePlatformId], references: [id])
+  userRoles        UserRole[]
 }
 
 model UserRole {
@@ -56,14 +72,7 @@ model UserRole {
   createdAt  DateTime @default(now())
   platform   Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Platform {
-  id        BigInt     @id @default(autoincrement())
-  name      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @default(now())
-  userRoles UserRole[]
+  @@unique([userId, platformId, role])
 }
 
 model VerificationToken {
@@ -74,27 +83,43 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model EBl {
-  id           String    @id @db.VarChar(48)
-  blNumber     String    @db.VarChar(160)
-  status       EBlStatus @default(DRAFT)
-  blType       String?   @db.VarChar(32)
-  pol          String?   @db.VarChar(16)
-  pod          String?   @db.VarChar(16)
-  shipper      String?   @db.VarChar(160)
-  consignee    String?   @db.VarChar(160)
-  releaseAgent String?   @db.VarChar(160)
-  eta          DateTime?
-  notes        String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @default(now())
-
-  @@index([updatedAt(sort: Desc)], map: "idx_updated_at")
+model DocFile {
+  id         BigInt     @id @default(autoincrement())
+  platformId BigInt
+  uploaderId BigInt
+  filename   String?
+  storagekey String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now())
+  uuid       String?    @unique
+  uploader   User       @relation(fields: [uploaderId], references: [id])
+  docImage   DocImage[]
 }
 
-enum EBlStatus {
-  DRAFT
-  PROCESSING
-  COMPLETED
-  PRINTED
+model DocImage {
+  id         BigInt   @id @default(autoincrement())
+  docFileId  BigInt
+  page       Int
+  thumbnail  Boolean  @default(false)
+  storagekey String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  docFile    DocFile  @relation(fields: [docFileId], references: [id])
+}
+
+model EBlStash {
+  id           BigInt   @id @default(autoincrement())
+  platformId   BigInt
+  eBlId        String
+  status       String
+  currentOwner String
+  createdAt    DateTime @default(now())
+  version      Int
+}
+
+model EBlNotification {
+  id         BigInt   @id @default(autoincrement())
+  eBlStashId BigInt
+  createdAt  DateTime @default(now())
+  name       String
 }

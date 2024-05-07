@@ -1,16 +1,71 @@
+"use server";
 
 import MainSection from "@/app/_components/edit-ebl/main-section";
+import ErrorPage from "@/app/_components/ebl-detail/error-page";
+import { getLogger } from "@/lib/logger";
 import { api } from "@/trpc/server";
-import { defaultEBl } from "@/types/ebl";
+import { TRPCClientError } from "@trpc/client";
+import { type EBlFormType } from "@/types/ebl";
+import { eblParties, latestBillOfLadingEvent } from "@/lib/ebl";
 
 export default async function Page({ params }: { params: { uuid: string } }) {
-  const uuid = params.uuid;
-  const ebl = (uuid === "new") ? defaultEBl : await api.ebl.find.query(uuid);
-  if (!ebl) {
-    return <div>Not found</div>;
-  }
+  const execution = async () => {
+    const ebl = await api.ebl.getByID.query(params.uuid);
+    getLogger().info(`Got eBL from Server: ${JSON.stringify(ebl)}`);
 
-  return (
-    <MainSection ebl={ebl} />
-  );
+    const documentParties = eblParties(ebl, false)
+    const eblEvent = latestBillOfLadingEvent(ebl)
+    const eblContent = eblEvent?.bill_of_lading
+    if (!eblContent) {
+      throw new TRPCClientError("EBl NOT_FOUND");
+    }
+
+    const filename = eblEvent?.file?.name ?? ""
+    const contentType = eblEvent?.file?.file_type ?? ""
+    const hash = String(eblEvent?.metadata?.docHash)
+    const docFile = await api.docFile.findByUuid.query(hash);
+    if (!docFile) {
+      // TODO: If not found docFile, download from bu server and generate docFile record
+    }
+
+    // TODO: wait for openAPI documentation to update
+    const polLocation = eblContent?.shipmentLocations?.[0]?.location as { locationName: string, UNLocationCode: string }
+    const podLocation = eblContent?.shipmentLocations?.[1]?.location as { locationName: string, UNLocationCode: string }
+    const eblForm: EBlFormType = {
+      metadata: {
+        username: "",
+        docHash: hash,
+      },
+      file: {
+        name: filename,
+        type: contentType,
+        content: "", // not need to pass current file content to client in edit mode, because if not upload new file, pass "" and bu server will use old file automatically
+      },
+      bl_number: eblContent?.transportDocumentReference ?? "",
+      bl_doc_type: eblEvent?.doc_type ?? "HouseBillOfLading",
+      to_order: false,
+      pol: {
+        locationName: polLocation?.locationName ?? "",
+        UNLocationCode: polLocation?.UNLocationCode ?? "",
+      },
+      pod: {
+        locationName: podLocation?.locationName ?? "",
+        UNLocationCode: podLocation?.UNLocationCode ?? "",
+      },
+      shipper: documentParties?.shipper ?? "",
+      consignee: documentParties?.consignee ?? "",
+      release_agent: documentParties?.releaser ?? "",
+      note: eblEvent?.note,
+      draft: false,
+    }
+    return <MainSection eblForm={eblForm} eblRecord={ebl} />;
+  };
+
+  return execution().catch((err) => {
+    return err instanceof TRPCClientError && err.message === "NOT_FOUND" ? (
+      <ErrorPage message="eBL Not Found" />
+    ) : (
+      <ErrorPage message={`Something went wrong: ${err}`} />
+    );
+  });
 }

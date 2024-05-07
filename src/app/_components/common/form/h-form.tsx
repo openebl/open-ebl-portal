@@ -17,7 +17,7 @@ const HFormItem = ({
   <FormItem className="flex items-start justify-between space-y-0">
     <FormLabel className="w-[8.75rem] flex-none bg-transparent text-[0.8125rem] font-semibold leading-10 text-light">
       {label}
-      {required && <span className="ml-1 text-[#E42525]">*</span>}
+      {required && <span className="ml-1 text-warning">*</span>}
     </FormLabel>
     <div className="flex flex-col">
       <FormControl>{children}</FormControl>

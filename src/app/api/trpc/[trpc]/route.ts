@@ -4,6 +4,9 @@ import { type NextRequest } from "next/server";
 import { env } from "@/env";
 import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
+import { s3StorageService } from "@/server/services/storage-service";
+import { bxDocExtraction } from "@/add-ons/doc-reader/doc-extraction";
+import { SmtpEmailService } from "@/server/services/email-service";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -12,6 +15,9 @@ import { createTRPCContext } from "@/server/api/trpc";
 const createContext = async (req: NextRequest) => {
   return createTRPCContext({
     headers: req.headers,
+    emailService: SmtpEmailService,
+    storageService: s3StorageService,
+    docExtraction: bxDocExtraction,
   });
 };
 

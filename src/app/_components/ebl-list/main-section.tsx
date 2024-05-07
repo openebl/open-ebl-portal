@@ -1,24 +1,58 @@
+"use server";
+
+import Link from "next/link";
+
 import SearchBox from "@/app/_components/common/searchbox";
 import AddIcon from "@/app/_icons/add-icon";
 import { Button } from "@/components/ui/button";
-import { type EBlListType } from "@/types/ebl";
-import Link from "next/link";
+import { api } from "@/trpc/server";
+import type { EBlFilter } from "@/types/ebl";
 import EblSection from "./ebl-section";
+import PaginatorSection from "./paginator-section";
 
-const MainSection = ({ list }: { list: EBlListType }) => {
+const MainSection = async ({
+  page,
+  filter,
+}: {
+  page: number;
+  filter: EBlFilter | undefined;
+}) => {
+  const recordList = await api.ebl.list.query({
+    filter,
+    offset: (page - 1) * 20,
+    limit: 20,
+  });
+
   return (
     <div className="px-12 py-10 font-content">
-      <div className="text-2xl font-bold leading-9 text-main">eB/L</div>
+      <div className="text-2xl font-bold leading-9 text-main">eBL</div>
       <div className="flex flex-row justify-between py-[1.875rem]">
         <SearchBox />
-        <Link href="/ebls/new/edit">
+        <Link href="/ebls/new">
           <Button className="bor h-11 w-[11.25rem] font-medium">
             <AddIcon className="mr-1" />
-            New eB/L
+            New eBL
           </Button>
         </Link>
       </div>
-      <EblSection list={list} />
+
+      <div className="flex w-full flex-col items-start justify-start gap-4">
+        <EblSection
+          filter={filter}
+          recordList={recordList}
+          stats={{
+            action_needed: recordList.report?.action_needed ?? 0,
+            upcoming: recordList.report?.upcoming ?? 0,
+            sent: recordList.report?.sent ?? 0,
+            archive: recordList.report?.archive ?? 0
+          }}
+        />
+        <PaginatorSection
+          total={recordList.total ?? 0}
+          currentPage={page}
+          filter={filter}
+        />
+      </div>
     </div>
   );
 };

@@ -11,8 +11,11 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+import { type DocExtractionType } from "@/add-ons/doc-reader/types";
 import { getServerAuthSession } from "@/server/auth";
 import { db } from "@/server/db";
+import { type EmailServiceType } from "@/server/services/email-service";
+import { type StorageServiceType } from "@/server/services/storage-service";
 
 /**
  * 1. CONTEXT
@@ -26,7 +29,12 @@ import { db } from "@/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts: {
+  storageService: StorageServiceType;
+  emailService: EmailServiceType;
+  docExtraction: DocExtractionType;
+  headers: Headers;
+}) => {
   const session = await getServerAuthSession();
 
   return {

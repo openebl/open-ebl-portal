@@ -33,6 +33,7 @@ type ComboboxProps = {
   noResultsMsg?: string;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
   unselect?: boolean;
   unselectMsg?: string;
   loading?: boolean;
@@ -52,6 +53,7 @@ export function Combobox({
   noResultsMsg = "No results found",
   placeholder = "Select",
   className,
+  disabled = false,
   loading = false,
   unselect = false,
   unselectMsg = "Nenhum",
@@ -88,6 +90,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          disabled={disabled}
           className={cn(
             "flex items-center justify-between rounded-lg border border-border-dark bg-background py-2 pl-3 pr-0 text-[0.8125rem] font-normal leading-[1.125rem] text-main shadow-inner ring-offset-white hover:text-main focus:outline-none focus:ring-2 focus:ring-secondary1 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
             className,
@@ -136,6 +139,7 @@ export function Combobox({
   );
 }
 
+// TODO: virtualized list to improve rendering, maybe use react-window (TBD)
 function buildScrollableContent(
   noResultsMsg: string,
   unselect: boolean,

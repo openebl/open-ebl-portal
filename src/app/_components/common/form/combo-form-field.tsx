@@ -2,6 +2,7 @@
 
 import { FormField } from "@/components/ui/form";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   type Control,
   type FieldPath,
@@ -20,10 +21,12 @@ type ComboboxFieldProps<
   required?: boolean;
   control: Control<TFieldValues>;
   name: TName;
+  disabled?: boolean;
   placeholder?: string;
   searchPlaceholder?: string;
   noResultsMsg?: string;
   formItemBuilder?: TFormItemBuilder;
+  className?: string;
   useFilterItems: (keyword: string) => {
     items: ComboBoxItemType[];
     loading: boolean;
@@ -43,17 +46,19 @@ const ComboboxField = <
   required,
   control,
   name,
+  disabled = false,
   placeholder = "Select",
   searchPlaceholder = "Type in Keyword",
   noResultsMsg = "No results found",
   formItemBuilder = hFormItemBuilder,
+  className,
   useFilterItems,
   useGetItem,
 }: ComboboxFieldProps<TFieldValues, TName>) => {
   const TFormItem = formItemBuilder();
   const [currentValue, setCurrentValue] = useState("");
   const [keyword, setKeyword] = useState("");
-  const { items, loading, isError } = useFilterItems(keyword);
+  const { items, loading } = useFilterItems(keyword);
   const { item } = useGetItem(currentValue);
   const renderItems = uniqBy(
     [...(item ? [item] : []), ...items],
@@ -67,11 +72,12 @@ const ComboboxField = <
       render={({ field }) => (
         <TFormItem label={label} required={required}>
           <Combobox
-            className="h-10 w-[21.25rem]"
+            className={cn(`h-10 w-[21.25rem] ${className}`)}
             value={field.value}
             onSelect={field.onChange}
             items={renderItems}
             loading={loading}
+            disabled={disabled}
             placeholder={placeholder}
             searchPlaceholder={searchPlaceholder}
             noResultsMsg={noResultsMsg}

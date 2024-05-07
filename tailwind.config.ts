@@ -35,6 +35,8 @@ const config = {
         'header-text': '#FFF',
         main: '#18335E',
         light: '#607497',
+        hover: '#F6F6F6',
+        press: '#E6E6E6',
         disabled: '#99AED2',
         hint: '#C9CFDA',
         link: '#004DE3',

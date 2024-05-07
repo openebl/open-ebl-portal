@@ -1,13 +1,22 @@
+import { sendUserSignin } from "@/emails/send-user-signin";
+import { env } from "@/env";
+import { getLogger } from "@/lib/logger";
+import { sleep } from "@/lib/utils";
+import { db } from "@/server/db";
+import { UserRoleSchema, type UserRoleType } from "@/types/user";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { type Platform, type PrismaClient } from "@prisma/client";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
+  type Session,
 } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-
-import { env } from "@/env";
-import { db } from "@/server/db";
+import EmailProvider from "next-auth/providers/email";
+import { authenticationId } from "./fx/auth-id";
+import { permissions, type PermissionType } from "./permissions";
+import { SmtpEmailService } from "./services/email-service";
+// import GoogleProvider from "next-auth/providers/google";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -18,16 +27,21 @@ import { db } from "@/server/db";
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
-      id: string;
+      id: bigint;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
+    platform: Platform;
+    platformRoles: { platform: Platform; role: UserRoleType }[];
+    authenticationId: string;
+    permissions: PermissionType[];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    activePlatformId: number;
+    // ...other properties
+    // role: UserRole;
+  }
 }
 
 /**
@@ -37,21 +51,83 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
+    session: async ({ session, user }) => {
+      const [platform, userRoles] = await Promise.all([
+        db.platform.findUnique({
+          where: {
+            id: user.activePlatformId,
+          },
+        }),
+        db.userRole.findMany({
+          where: {
+            userId: BigInt(user.id),
+          },
+          include: {
+            platform: true,
+          },
+        }),
+      ]);
+
+      if (!platform) {
+        throw new Error("Platform not found");
+      }
+
+      const platformRoles = userRoles.map((n) => ({
+        platform: n.platform,
+        role: n.role,
+      }));
+      const activePlatformId = BigInt(user.activePlatformId);
+      const roles = platformRoles
+        .filter((n) => n.platform.id === activePlatformId)
+        .map((n) => UserRoleSchema.parse(n.role));
+
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: BigInt(user.id),
+        },
+        platform,
+        platformRoles,
+        authenticationId: await authenticationId(platform),
+        permissions: permissions({ roles, platform }),
+      } as Session;
+    },
+    async signIn({ user }) {
+      if (user.name && user.activePlatformId) {
+        return true;
+      } else {
+        // not a valid user
+        // sleep 2 seconds and redirect to verify-request page
+        // so others cannot brute force the email
+        await sleep(2000);
+        return "/auth/verify-request";
+      }
+    },
+  },
+  adapter: PrismaAdapter(db as PrismaClient),
+  providers: [
+    EmailProvider({
+      server: env.EMAIL_SERVER,
+      from: env.EMAIL_FROM,
+      maxAge: env.SIGNIN_EMAIL_MAXAGE_IN_SEC,
+      async sendVerificationRequest(params) {
+        const { identifier, url } = params;
+        sendUserSignin({
+          service: SmtpEmailService,
+          receiver: identifier,
+          url,
+        }).catch((err) =>
+          getLogger().error(`Failed to send signin email: ${err}`),
+        );
       },
     }),
-  },
-  adapter: PrismaAdapter(db),
-  providers: [
-    GoogleProvider({
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-    }),
   ],
+  pages: {
+    signIn: "/auth/signin",
+    // error: "/auth/error",
+    verifyRequest: "/auth/verify-request",
+  },
 };
 
 /**

@@ -1,8 +1,20 @@
-import SendIcon from "@/app/_icons/send-icon";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { type EBlRecordType } from "@/types/ebl";
+import ActionPanel from "./action-panel";
+import { api } from "@/trpc/server";
+import {
+  type EBlStatusType,
+  currentStatus,
+  eblParties,
+  getNextPartyIDByCurrentStatus,
+} from "@/lib/ebl";
+import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon";
 
 type TrackerPosition = "first" | "middle" | "last";
 
@@ -28,57 +40,90 @@ const ProgressTracker = ({
   position;
   return (
     <Tooltip>
-  <div
-      className={cn(
-        "flex min-w-0 max-w-[26%] flex-auto flex-col items-start justify-center bg-[#004DE3] py-[1.0625rem] pl-[1.875rem] pr-8",
-        className,
-        position === "first" ? "pl-[1.875rem]" : "-ml-[10px] pl-9",
-      )}
-      style={{
-        clipPath: TrackerPositionClipPath[position],
-      }}
-    >
-      <div className="whitespace-nowrap text-xs font-semibold leading-[1.125rem] text-[#86A1BC]">
-        {title}
+      <div
+        className={cn(
+          "flex min-w-0 max-w-[26%] flex-auto flex-col items-start justify-center bg-secondary1 py-[1.0625rem] pl-[1.875rem] pr-8",
+          className,
+          position === "first" ? "pl-[1.875rem]" : "-ml-[10px] pl-9",
+        )}
+        style={{
+          clipPath: TrackerPositionClipPath[position],
+        }}
+      >
+        <div className="whitespace-nowrap text-xs font-semibold leading-[1.125rem] text-[#86A1BC]">
+          {title}
+        </div>
+        <TooltipTrigger asChild>
+          <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg font-bold leading-7 text-white">
+            {name}
+          </div>
+        </TooltipTrigger>
       </div>
-      <TooltipTrigger asChild>
-      <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg font-bold leading-7 text-white">
-        {name}
-      </div>
-      </TooltipTrigger>
-    </div>
-    <TooltipContent>
-      <p>{name}</p>
-    </TooltipContent>
+      <TooltipContent>
+        <p>{name}</p>
+      </TooltipContent>
     </Tooltip>
   );
 };
 
-const ProgressTrackerBar = () => {
+const getBuLegalBusinessName = async (buId: string | undefined | null) => {
+  if (!buId) return "";
+
+  return api.buinfo.legalBusinessName.query(buId);
+};
+
+const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
+  const active = "bg-secondary1";
+  const inactive = "bg-[#0D447A]";
+  const accomplished = "bg-[#039912]";
+  const printed = "bg-warning";
+
+  const documentParties = eblParties(ebl);
+  const issuerID = documentParties?.issuer ?? "";
+  const shipperID = documentParties?.shipper ?? "";
+  const consigneeID = documentParties?.consignee ?? "";
+  const releaseAgentID = documentParties?.releaser ?? "";
+  const [issuerName, shipperName, consigneeName, releaseAgentName] =
+    await Promise.all([
+      getBuLegalBusinessName(issuerID),
+      getBuLegalBusinessName(shipperID),
+      getBuLegalBusinessName(consigneeID),
+      getBuLegalBusinessName(releaseAgentID),
+    ]);
+
+  const getClassName = (ebl: EBlRecordType, partyID: string) => {
+    const status = currentStatus(ebl);
+    if (status === "PRINT" && ebl.bl?.current_owner === partyID) return printed;
+    if (status === "ACCOMPLISH" && ebl.bl?.current_owner === partyID)
+      return accomplished;
+    if (ebl.bl?.current_owner === partyID) return active;
+    return inactive;
+  };
+
   return (
     <div className="flex w-full max-w-full justify-evenly">
       <ProgressTracker
         title="Issuing Agent"
-        name="ABC Freight Forwarder Forwarder Forwarder Forwarder Forwarder"
-        className="bg-[#004DE3]"
+        name={issuerName}
+        className={getClassName(ebl, issuerID)}
         position="first"
       />
       <ProgressTracker
         title="Shipper"
-        name="Foxconn Inc. Forwarder Forwarder Forwarder"
-        className="bg-[#0D447A]"
+        name={shipperName}
+        className={getClassName(ebl, shipperID)}
         position="middle"
       />
       <ProgressTracker
         title="Consignee"
-        name="Samsung"
-        className="bg-[#0D447A]"
+        name={consigneeName}
+        className={getClassName(ebl, consigneeID)}
         position="middle"
       />
       <ProgressTracker
         title="Release Agent"
-        name="DEF Freight Forwarder"
-        className="bg-[#0D447A]"
+        name={releaseAgentName}
+        className={getClassName(ebl, releaseAgentID)}
         position="last"
       />
     </div>
@@ -102,46 +147,87 @@ const ProgressStatusItem = ({
   </div>
 );
 
-const ProgressStatus = () => {
+const ProgressStatusText = ({ status }: { status: EBlStatusType }) => (
+  <ProgressStatusItem title="Status">
+    {status === "PRINT" && <p className="text-warning">Printed to Paper</p>}
+    {status === "SURRENDER" && (
+      <div className="flex items-center gap-x-1">
+        Not accomplished yet {<CircleInCheckIcon className="text-hint" />}
+      </div>
+    )}
+    {status === "ACCOMPLISH" && (
+      <div className="flex items-center gap-x-1">
+        Accomplished {<CircleInCheckIcon className="text-[#42BE25]" />}
+      </div>
+    )}
+  </ProgressStatusItem>
+);
+
+const ProgressStatus = async ({
+  ebl,
+  sessionPlatformId,
+}: {
+  ebl: EBlRecordType;
+  sessionPlatformId: string | undefined;
+}) => {
+  // TODO: try not to get bu list all the time
+  const status = currentStatus(ebl);
+  const nextPartyID = getNextPartyIDByCurrentStatus(ebl, status);
+  const currentOwnerName = await getBuLegalBusinessName(ebl.bl?.current_owner);
+  const nextOwnerName = await getBuLegalBusinessName(nextPartyID);
+
+  const showNextOwner = !["SURRENDER", "ACCOMPLISH", "PRINT"].includes(status);
+  const showStatus = !showNextOwner;
+
   return (
     <div className="flex h-[3.875rem] w-full items-start justify-start gap-[3.75rem] px-[1.875rem]">
-      <ProgressStatusItem title="Last Update">
-        Jan 14, 2024 at 09:23 AM
-      </ProgressStatusItem>
-
       <ProgressStatusItem title="Current Owner">
-        ABC Freight Forwarder{" "}
-        <span className="text-xs leading-[1.125rem] text-disabled">(You)</span>
+        {currentOwnerName}
+        {sessionPlatformId === ebl.bl?.current_owner && (
+          <span className="text-xs leading-[1.125rem] text-disabled">
+            {" "}
+            (You)
+          </span>
+        )}
       </ProgressStatusItem>
 
-      <ProgressStatusItem title="Next Owner">Foxconn Inc.</ProgressStatusItem>
+      {showNextOwner && (
+        <ProgressStatusItem title="Next Owner">
+          {nextOwnerName}
+          {sessionPlatformId === nextPartyID && (
+            <span className="text-xs leading-[1.125rem] text-disabled">
+              {" "}
+              (You)
+            </span>
+          )}
+        </ProgressStatusItem>
+      )}
+
+      {showStatus && <ProgressStatusText status={status} />}
     </div>
   );
 };
 
-const ShippingProgress = () => {
+const ShippingProgress = ({
+  ebl,
+  sessionPlatformId,
+}: {
+  ebl: EBlRecordType;
+  sessionPlatformId: string | undefined;
+}) => {
   return (
     <TooltipProvider>
-    <section className="border-bolder-light flex w-full flex-col items-start gap-[1.875rem] rounded-lg border border-solid bg-white py-[1.875rem] shadow-lg">
-      <header className="whitespace-nowrap px-[1.875rem] text-[1.375rem] font-semibold leading-8 text-main">
-        Progress
-      </header>
+      <section className="border-bolder-light flex w-full flex-col items-start gap-[1.875rem] rounded-lg border border-solid bg-white py-[1.875rem] shadow-lg">
+        <header className="whitespace-nowrap px-[1.875rem] text-[1.375rem] font-semibold leading-8 text-main">
+          Progress
+        </header>
 
-      <ProgressTrackerBar />
+        <ProgressTrackerBar ebl={ebl} />
 
-      <ProgressStatus />
+        <ProgressStatus ebl={ebl} sessionPlatformId={sessionPlatformId} />
 
-      <div className="flex w-full px-[1.875rem]">
-        <Textarea placeholder="Leave notes" className="h-[7.5rem]" />
-      </div>
-
-      <div className="flex w-full items-center justify-end px-[1.875rem]">
-        <Button className="flex h-[2.75rem] w-[12.5rem] items-center justify-start gap-2.5">
-          <SendIcon className="text-white" />
-          Transfer
-        </Button>
-      </div>
-    </section>
+        <ActionPanel ebl={ebl} />
+      </section>
     </TooltipProvider>
   );
 };

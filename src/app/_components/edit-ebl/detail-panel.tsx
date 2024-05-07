@@ -1,101 +1,113 @@
 "use client";
 
 import ComboboxField from "@/app/_components/common/form/combo-form-field";
-import DateFormField from "@/app/_components/common/form/date-form-field";
 import { HFormItem } from "@/app/_components/common/form/h-form";
 import SelectFormField from "@/app/_components/common/form/select-form-field";
-import { useFilterConsignees, useGetConsignee } from "@/app/_hooks/consignee-filter";
+import {
+  useFilterBusinessUnits,
+  useGetBusinessUnit,
+} from "@/app/_hooks/business-unit-filter";
 import { useFilterPorts, useGetPort } from "@/app/_hooks/ports-filter";
-import { useFilterShippers, useGetShipper } from "@/app/_hooks/shippers-filter";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { type EBlDraftFormType } from "@/types/ebl";
+import { type EBlFormType } from "@/types/ebl";
 import { type UseFormReturn } from "react-hook-form";
 
-const DetailPanel = ({ form }: { form: UseFormReturn<EBlDraftFormType> }) => {
-  const blTypes = [{ name: "HBL Non-negotiable", value: "hbl-non-negotiable" }];
-
-  function onSubmit(values: EBlDraftFormType) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-  }
-
+const DetailPanel = ({
+  form,
+  isAmendMode,
+}: {
+  form: UseFormReturn<EBlFormType>;
+  isAmendMode: boolean;
+}) => {
+  const blDocTypes = [
+    { name: "HBL Non-negotiable", value: "HouseBillOfLading" },
+  ];
   return (
     <div className="flex w-[35rem] flex-none flex-col items-stretch py-[1.875rem] pl-[3.125rem] pr-[1.875rem]">
       <p className="text-xl font-bold leading-[1.875rem]">Details</p>
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="my-[1.875rem] flex flex-col gap-2.5"
-        >
+        <form className="my-[1.875rem] flex flex-col gap-2.5">
           <FormField
             control={form.control}
-            name="blNumber"
+            name="bl_number"
             render={({ field }) => (
-              <HFormItem label="B/L No." required={true}>
-                <Input className="h-10 w-[21.25rem] shadow-inner" {...field} />
+              <HFormItem label="BL No." required={true}>
+                <Input
+                  className={`h-10 w-[21.25rem] shadow-inner ${form.formState.errors.bl_number && "!border-warning"}`}
+                  {...field}
+                />
               </HFormItem>
             )}
           />
-
           <SelectFormField
             control={form.control}
-            label="B/L Type"
+            label="BL Type"
             required={true}
-            name="blType"
-            items={blTypes}
+            name="bl_doc_type"
+            items={blDocTypes}
+            className={form.formState.errors.bl_doc_type && "!border-warning"}
           />
           <ComboboxField
             control={form.control}
             label="POL"
             required={true}
-            name="pol"
+            name="pol.UNLocationCode"
             useFilterItems={useFilterPorts}
             useGetItem={useGetPort}
+            className={form.formState.errors.pol && "!border-warning"}
           />
           <ComboboxField
             control={form.control}
             label="POD"
             required={true}
-            name="pod"
+            name="pod.UNLocationCode"
             useFilterItems={useFilterPorts}
             useGetItem={useGetPort}
-          />
-          <DateFormField
-            control={form.control}
-            label="ETA"
-            required={true}
-            name="eta"
+            className={form.formState.errors.pod && "!border-warning"}
           />
           <ComboboxField
             control={form.control}
             label="Shipper"
             required={true}
+            disabled={isAmendMode}
             name="shipper"
-            useFilterItems={useFilterShippers}
-            useGetItem={useGetShipper}
+            useFilterItems={useFilterBusinessUnits}
+            useGetItem={useGetBusinessUnit}
+            className={form.formState.errors.shipper && "!border-warning"}
           />
           <ComboboxField
             control={form.control}
             label="Consignee"
             required={true}
+            disabled={isAmendMode}
             name="consignee"
-            useFilterItems={useFilterConsignees}
-            useGetItem={useGetConsignee}
+            useFilterItems={useFilterBusinessUnits}
+            useGetItem={useGetBusinessUnit}
+            className={form.formState.errors.consignee && "!border-warning"}
           />
-
+          <ComboboxField
+            control={form.control}
+            label="Release Agent"
+            required={true}
+            disabled={isAmendMode}
+            name="release_agent"
+            useFilterItems={useFilterBusinessUnits}
+            useGetItem={useGetBusinessUnit}
+            className={form.formState.errors.release_agent && "!border-warning"}
+          />
           <FormField
             control={form.control}
-            name="notes"
+            name="note"
             render={({ field }) => (
-              <HFormItem label="Notes" required={false}>
+              <HFormItem label="Notes" required={isAmendMode}>
                 <Textarea
                   placeholder=""
-                  className="h-[10.625rem] w-[21.25rem] resize-none font-normal"
+                  className={`h-[10.625rem] w-[21.25rem] resize-none font-normal ${form.formState.errors.note && "!border-warning"}`}
                   {...field}
-                />
+                  value={field.value ?? ""}
+                ></Textarea>
               </HFormItem>
             )}
           />

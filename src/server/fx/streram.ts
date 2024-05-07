@@ -1,0 +1,19 @@
+const readRequestBodyToBuffer = async (
+  stream: ReadableStream<Uint8Array> | null | undefined,
+) => {
+  if (!stream) {
+    throw new Error("No readable stream is provided");
+  }
+
+  const reader = stream.getReader();
+  let result = await reader.read();
+  const chunks = [];
+  while (!result.done) {
+    chunks.push(result.value);
+    result = await reader.read();
+  }
+  return Buffer.concat(chunks);
+};
+
+
+export { readRequestBodyToBuffer };

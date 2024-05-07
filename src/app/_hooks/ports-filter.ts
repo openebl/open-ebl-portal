@@ -2,11 +2,11 @@ import { api } from "@/trpc/react";
 
 export const useFilterPorts = (keyword: string) => {
   const {
-    data,
+    data: ports,
     isLoading: loading,
     isError,
   } = api.port.list.useQuery({ keyword }, { staleTime: 1000 * 60 * 10 });
-  const items = data ? data.map((p) => ({ label: p.label, value: p.id })) : [];
+  const items = ports ?? [];
   return { items, loading, isError };
 };
 

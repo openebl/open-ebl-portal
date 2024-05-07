@@ -1,0 +1,207 @@
+import { z } from "zod";
+
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { db } from "@/server/db";
+import { UserFormSchema, UserRoleSchema } from "@/types/user";
+import { hasPermission } from "@/server/permissions";
+import { sendUserInvitation } from "@/emails/send-user-invitation";
+import { getLogger } from "nodemailer/lib/shared";
+
+export const userRouter = createTRPCRouter({
+  list: protectedProcedure.query(({ ctx }) => {
+    return ctx.db.user.findMany({
+      include: {
+        userRoles: {
+          where: {
+            platformId: ctx.session.platform.id,
+          },
+        },
+      },
+      where: {
+        userRoles: {
+          some: {
+            platformId: ctx.session.platform.id,
+          },
+        },
+      },
+    });
+  }),
+
+  get: protectedProcedure.input(z.string()).query(({ ctx, input }) => {
+    if (!hasPermission("read:settings/users", ctx.session.permissions)) {
+      throw new Error("You are not authorized to get user");
+    }
+
+    return ctx.db.user.findUnique({
+      where: {
+        id: BigInt(input),
+      },
+      include: { userRoles: true },
+    });
+  }),
+
+  invite: protectedProcedure
+    .input(UserFormSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!hasPermission("write:settings/users", ctx.session.permissions)) {
+        throw new Error("You are not authorized to invite users");
+      }
+
+      const newUser = await ctx.db.user.upsert({
+        where: { email: input.email },
+        update: {
+          userRoles: {
+            create: {
+              role: input.role,
+              platformId: ctx.session.platform.id,
+            },
+          },
+        },
+        create: {
+          name: input.name,
+          email: input.email,
+          activePlatform: {
+            connect: {
+              id: ctx.session.platform.id,
+            },
+          },
+          userRoles: {
+            create: {
+              role: input.role,
+              platformId: ctx.session.platform.id,
+            },
+          },
+        },
+      });
+
+      if (!newUser.emailVerified) {
+        sendUserInvitation({
+          service: ctx.emailService,
+          receiver: newUser,
+          sender: ctx.session.user,
+        }).catch((err) =>
+          getLogger().error(`Failed to send user invitation: ${err}`),
+        );
+      }
+
+      return true;
+    }),
+
+  sendInvitation: protectedProcedure
+    .input(z.object({ id: z.bigint() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!hasPermission("write:settings/users", ctx.session.permissions)) {
+        throw new Error("You are not authorized to invite users");
+      }
+      const user = await ctx.db.user.findUnique({where: { id: input.id }});
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      sendUserInvitation({
+        service: ctx.emailService,
+        receiver: user,
+        sender: ctx.session.user,
+      }).catch((err) =>
+        getLogger().error(`Failed to send user invitation: ${err}`),
+      );
+  }),
+
+  updateInfo: protectedProcedure
+    .input(z.object({ name: z.string() }))
+    .mutation(({ ctx, input }) => {
+      return ctx.db.user.update({
+        where: { id: ctx.session.user.id },
+        data: { name: input.name },
+      });
+    }),
+
+  updateRole: protectedProcedure
+    .input(z.object({ id: z.string(), role: UserRoleSchema }))
+    .mutation(async ({ ctx, input }) => {
+      if (!hasPermission("write:settings/users", ctx.session.permissions)) {
+        throw new Error("You are not authorized to update user role");
+      }
+
+      const userId = BigInt(input.id);
+      if (userId === ctx.session.user.id) {
+        throw new Error("You cannot update your own role");
+      }
+
+      if (
+        (await ctx.db.user.count({
+          where: { id: userId, activePlatformId: ctx.session.platform.id },
+        })) === 0
+      ) {
+        throw new Error("You can update role of users from your platform");
+      }
+
+      return db.$transaction(async (tx) => {
+        await tx.userRole.deleteMany({
+          where: { userId, platformId: ctx.session.platform.id },
+        });
+
+        await tx.userRole.create({
+          data: {
+            userId,
+            platformId: ctx.session.platform.id,
+            role: input.role,
+          },
+        });
+      });
+    }),
+
+  // update current user's active platform
+  updateActivePlatform: protectedProcedure
+    .input(z.object({ platformId: z.bigint() }))
+    .mutation(({ ctx, input }) => {
+      return ctx.db.user.update({
+        where: { id: ctx.session.user.id },
+        data: {
+          activePlatform: {
+            connect: {
+              id: BigInt(input.platformId),
+            },
+          },
+        },
+      });
+    }),
+
+  // remove specific user from current platform
+  delete: protectedProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      if (!hasPermission("write:settings/users", ctx.session.permissions)) {
+        throw new Error("You are not authorized to delete user");
+      }
+
+      const userId = BigInt(input);
+      if (userId === ctx.session.user.id) {
+        throw new Error("You cannot delete yourself");
+      }
+
+      return ctx.db.$transaction(async (tx) => {
+        await tx.userRole.deleteMany({
+          where: { userId, platformId: ctx.session.platform.id },
+        });
+
+        const userRoles = await tx.userRole.findMany({ where: { userId } });
+        if (userRoles.length === 0) {
+          await tx.user.delete({ where: { id: userId } });
+        } else {
+          await tx.user.update({
+            where: { id: userId },
+            data: {
+              activePlatform: {
+                connect: {
+                  id: userRoles[0]!.platformId,
+                },
+              },
+            },
+          });
+        }
+
+        return true;
+      });
+    }),
+});

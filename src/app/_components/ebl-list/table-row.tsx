@@ -1,15 +1,18 @@
 import {
   FourPBadge,
-  HBLBadge,
-  NonNegotiableBadge,
+  HblNonNegotiableBadge,
 } from "@/app/_components/common/ebl-badges";
 import EditIcon from "@/app/_icons/edit-icon";
 import GoalFlagIcon from "@/app/_icons/goal-flag-icon";
 import MailIcon from "@/app/_icons/mail-icon";
-import PrinterIcon from "@/app/_icons/printer-icon";
+import PrintedIcon from "@/app/_icons/printed-icon";
+import { TimeLabel } from "@/components/ui/time-label";
+import { currentStatus, eblParties, getSenderPartyID, latestBillOfLadingEvent } from "@/lib/ebl";
 import { cn } from "@/lib/utils";
-import { type EBlDraftFormType, Status } from "@/types/ebl";
+import { type BusinessInfoListType } from "@/server/fx/buinfo";
+import { EBlFilter, type EBlRecordType } from "@/types/ebl";
 import Link from "next/link";
+import React from "react";
 
 const Stamp = ({
   children,
@@ -47,43 +50,102 @@ const CompletedStamp = () => (
 );
 
 const PrintedStamp = () => (
-  <Stamp className="bg-[#FFE1E1] text-[#E42525]">
-    <PrinterIcon />
+  <Stamp className="bg-[#FFE1E1] text-warning">
+    <PrintedIcon />
   </Stamp>
 );
 
-const TableRow = ({ row }: { row: EBlDraftFormType }) => {
-  const detailLink = row.status === Status.Draft ? `/ebls/${row.id}/edit` : `/ebls/${row.id}`;
+const EBlProgressBar = ({ row }: { row: EBlRecordType }) => {
+  const documentParties = eblParties(row)
+
+  const getClassName = (row: EBlRecordType, partyID: string) => {
+    const inactive = "bg-[#E0EBF6]";
+    const active = "bg-secondary1";
+    if (row.bl?.current_owner === partyID) return active;
+    return inactive;
+  }
+  return (
+    <div className="flex items-center justify-between gap-0.5">
+      <div
+        className={cn(
+          "flex h-2.5 w-[70px] shrink-0 flex-col rounded-l-md",
+          getClassName(row, documentParties?.issuer ?? "")
+        )}
+      />
+      <div
+        className={cn(
+          "flex h-2.5 w-[70px] shrink-0 flex-col",
+          getClassName(row, documentParties?.shipper ?? "")
+        )}
+      />
+      <div
+        className={cn(
+          "flex h-2.5 w-[70px] shrink-0 flex-col",
+          getClassName(row, documentParties?.consignee ?? "")
+        )}
+      />
+      <div
+        className={cn(
+          "flex h-2.5 w-[70px] shrink-0 flex-col rounded-r-md",
+          getClassName(row, documentParties?.releaser ?? "")
+        )}
+      />
+    </div>
+  );
+};
+
+const TableRow = ({
+  row,
+  filter,
+  buList,
+}: {
+  row: EBlRecordType;
+  filter: EBlFilter | null | undefined;
+  buList: BusinessInfoListType | null;
+}) => {
+  const event = latestBillOfLadingEvent(row);
+  const content = event?.bill_of_lading;
+  const status = currentStatus(row)
+  const isEditable = row.allow_actions?.includes("UPDATE_DRAFT");
+  const detailLink = isEditable ? `/ebls/${row.bl?.id}/edit` : `/ebls/${row.bl?.id}`;
+  let description = ""
+  if (!isEditable) {
+    if (!filter || filter === EBlFilter.ACTION_NEEDED) {
+      description = `From: ${buList?.[getSenderPartyID(row)]?.legalBusinessName}`
+    } else if (filter === EBlFilter.UPCOMING || filter === EBlFilter.SENT) {
+      description = `Current Owner: ${buList?.[row.bl?.current_owner ?? ""]?.legalBusinessName}`
+    } else if (filter === EBlFilter.ARCHIVE) {
+      description = status === "ACCOMPLISH" ? "This eBL was accomplished." : "This eBL was printed to paper."
+    }
+  }
   return (
     <Link href={detailLink}>
       <div className="border-b-bolder-light flex w-full items-center justify-center border-b border-solid text-main hover:bg-border-light hover:bg-opacity-20">
-        {row.status === Status.Draft && <DraftStamp />}
-        {row.status === Status.Processing && <InProgessStamp />}
-        {row.status === Status.Completed && <CompletedStamp />}
-        {row.status === Status.Printed && <PrintedStamp />}
+        {isEditable && <DraftStamp />}
+        {(!isEditable && status !== "ACCOMPLISH" && status !== "PRINT") && <InProgessStamp />}
+        {status === "ACCOMPLISH" && <CompletedStamp />}
+        {status === "PRINT" && <PrintedStamp />}
 
         <div className="flex w-full flex-col items-stretch py-5 pr-8">
           <span className="flex w-full items-center justify-between gap-5">
             <div className="text-sm font-bold leading-5">
-              {row.blNumber || "(Drafting)"}
+              {content?.transportDocumentReference}
             </div>
-            <div className="flex items-center justify-between gap-0.5">
-              <div className="flex h-2.5 w-[70px] shrink-0 flex-col rounded-md bg-[#E0EBF6]" />
-              <div className="flex h-2.5 w-[70px] shrink-0 flex-col bg-[#E0EBF6]" />
-              <div className="flex h-2.5 w-[70px] shrink-0 flex-col bg-[#E0EBF6]" />
-              <div className="flex h-2.5 w-[70px] shrink-0 flex-col rounded-none bg-[#E0EBF6]" />
-            </div>
+
+            <EBlProgressBar row={row} />
           </span>
           <span className="mt-[5px] flex w-full items-center justify-between gap-5">
             <div className="flex gap-2 pr-2">
-              <HBLBadge />
-              <NonNegotiableBadge />
-              <FourPBadge title="POL: Shanghai" />
-              <FourPBadge title="POD: Los Angeles" />
+              <HblNonNegotiableBadge />
+              <FourPBadge title={`POL: ${content?.shipmentLocations?.[0]?.location.locationName}`} />
+              <FourPBadge title={`POD: ${content?.shipmentLocations?.[1]?.location.locationName}`} />
+              <div className="flex items-center gap-x-1 text-xs font-normal">
+                {description}
+              </div>
             </div>
             <div className="my-auto text-right text-xs leading-5">
               <span>Last updated on </span>
-              <span className="font-semibold">Jan 11</span>
+              <TimeLabel time={event?.created_at ?? ''} formatStr={'MMM d'} />
             </div>
           </span>
         </div>

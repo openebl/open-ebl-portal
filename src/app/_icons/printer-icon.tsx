@@ -1,18 +1,14 @@
 const PrinterIcon = ({ className }: { className?: string }) => (
   <svg
-    width="24"
-    height="24"
+    width="18"
+    height="18"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...{ className }}
   >
-    <path
-      d="M6.7 13.8 6 14m.7 0c3.5-.5 7-.5 10.6 0m-10.6 0L6.3 18m11-4.2.7.1m-.7 0 .4 4.1.2 2.5a1.1 1.1 0 0 1-1.1 1.3H7.2c-.6 0-1.1-.6-1-1.3l.1-2.5m0 0h-1A2.3 2.3 0 0 1 3 15.7V9.6c0-1.1.8-2 1.8-2.2a48 48 0 0 1 2-.3m10.9 11h1a2.3 2.3 0 0 0 2.3-2.3V9.6c0-1.1-.8-2-1.8-2.2a48 48 0 0 0-2-.3m0 0c-3.4-.3-7-.3-10.4 0m10.4 0V3.4c0-.6-.5-1.1-1-1.1H7.8c-.6 0-1.2.5-1.2 1V7"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    <rect x="5.5" y="2.5" width="7" height="4" rx="0.5" stroke="#18335E" />
+    <path fillRule="evenodd" clipRule="evenodd" d="M3 5C2.44772 5 2 5.44772 2 6V12C2 12.5523 2.44772 13 3 13H4V11C4 10.4477 4.44772 10 5 10H13C13.5523 10 14 10.4477 14 11V13H15C15.5523 13 16 12.5523 16 12V6C16 5.44772 15.5523 5 15 5H3Z" fill="#18335E" />
+    <rect x="4.5" y="10.5" width="9" height="5" rx="0.5" stroke="#18335E" />
   </svg>
 );
 
