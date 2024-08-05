@@ -13,16 +13,16 @@ import {
   type PlatformFormType,
 } from "@/types/admin-platform";
 import EditPlatformPanel from "./edit-platform-panel";
-import { type Platform } from "@prisma/client";
 import { hasPermission, type PermissionType } from "@/server/permissions";
 import PermissionedSection from "@/app/_components/common/permissioned-section";
 import { BusinessInfoSchema } from "@/types/business-info";
+import { Platforms } from "@/drizzle/schema";
 
 const EditPlatformSection = ({
   platform,
   permissions,
 }: {
-  platform: Platform;
+  platform: typeof Platforms.$inferSelect;
   permissions?: PermissionType[];
 }) => {
   const router = useRouter();

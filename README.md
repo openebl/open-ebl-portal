@@ -219,3 +219,14 @@ Join our Discord Server
 
 -   2024.03.31
     -   Initial version of README written by Jordan
+
+
+
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+
+
+    "postinstall": "prisma generate",
+    "migrate-dev": "prisma migrate dev",
+    "migrate": "prisma migrate deploy",

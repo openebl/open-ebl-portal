@@ -1,23 +1,27 @@
 import { env } from "@/env.js";
 import { randomId } from "@/lib/utils";
-import { createDb, db } from "@/server/db";
-import { Prisma } from "@prisma/client";
+import { DatabaseType, db } from "@/server/db";
+import { sql } from "drizzle-orm";
+import postgres from "postgres";
 import { groupBy } from "remeda";
+import { drizzle } from "drizzle-orm/postgres-js";
+import * as schema  from "@/drizzle/schema";
 
 export async function spinUpTestPrisma<R>(
-  fn: (testPrisma: typeof db) => Promise<R>,
+  fn: (db: DatabaseType) => Promise<R>,
 ) {
   const schemaName = `test_${randomId(10)}`;
   try {
     await cloneSchema("public", schemaName);
 
     const url = new URL(env.DATABASE_URL);
-    url.searchParams.set("schema", schemaName);
-    url.searchParams.set("connection_limit", "1");
+    // url.searchParams.set("schema", schemaName);
+    // url.searchParams.set("connection_limit", "1");
 
-    const testDb = createDb({ datasourceUrl: url.toString() })
+    const conn = postgres(url.toString(), { max: 1, connection: { search_path: schemaName } });
+    const testDb = drizzle(conn, { schema, logger: true });
     const res = await fn(testDb);
-    await testDb.$disconnect();
+    await conn.end();
     return res;
   } finally {
     await dropSchema(schemaName);
@@ -25,22 +29,22 @@ export async function spinUpTestPrisma<R>(
 }
 
 export async function cloneSchema(source: string, target: string) {
-  await db.$executeRawUnsafe(`CREATE SCHEMA "${target}";`);
+  await db.execute(sql.raw(`CREATE SCHEMA "${target}";`));
 
-  const seqs: Record<string, string>[] = await db.$queryRaw(
-    Prisma.sql`SELECT sequence_name::text FROM information_schema.SEQUENCES WHERE sequence_schema = ${source}`,
+  const seqs: Record<string, string>[] = await db.execute(
+    sql`SELECT sequence_name::text FROM information_schema.SEQUENCES WHERE sequence_schema = ${source}`,
   );
 
   await Promise.all(
     seqs.map(async (seq) => {
       if (!seq.sequence_name || seq.sequence_name.length === 0) return false;
-      return db.$queryRawUnsafe(
-        `CREATE SEQUENCE ${target}."${seq.sequence_name}"`,
+      return db.execute(
+        sql.raw(`CREATE SEQUENCE ${target}."${seq.sequence_name}"`),
       );
     }),
   );
 
-  const enums: { name: string; value: string }[] = await db.$queryRawUnsafe(`
+  const enums: { name: string; value: string }[] = await db.execute(sql.raw(`
     SELECT t.typname AS name,
            e.enumlabel AS value
     FROM pg_type t
@@ -49,21 +53,21 @@ export async function cloneSchema(source: string, target: string) {
     WHERE t.typtype = 'e'
       AND n.nspname = '${source}'
     ORDER BY t.typname, e.enumsortorder;
-  `);
+  `));
 
   await Promise.all(
     Object.entries(groupBy(enums, (item) => item.name)).map(
       ([name, values]) => {
         const enumValues = values.map((item) => item.value).join("', '");
-        return db.$queryRawUnsafe(
-          `CREATE TYPE ${target}."${name}" AS ENUM ('${enumValues}')`,
+        return db.execute(
+          sql.raw(`CREATE TYPE ${target}."${name}" AS ENUM ('${enumValues}')`),
         );
       },
     ),
   );
 
-  const tables: Record<string, string>[] = await db.$queryRaw(
-    Prisma.sql`SELECT table_name::text FROM information_schema.TABLES WHERE table_schema = ${source}`,
+  const tables: Record<string, string>[] = await db.execute(
+    sql`SELECT table_name::text FROM information_schema.TABLES WHERE table_schema = ${source}`,
   );
 
   await Promise.all(
@@ -71,20 +75,20 @@ export async function cloneSchema(source: string, target: string) {
       const tableName = table.table_name;
       if (!tableName || tableName.length === 0) return false;
 
-      await db.$queryRawUnsafe(
-        `CREATE TABLE "${target}"."${tableName}" (LIKE "${source}"."${tableName}" INCLUDING CONSTRAINTS INCLUDING INDEXES INCLUDING DEFAULTS)`,
+      await db.execute(
+        sql.raw(`CREATE TABLE "${target}"."${tableName}" (LIKE "${source}"."${tableName}" INCLUDING CONSTRAINTS INCLUDING INDEXES INCLUDING DEFAULTS)`),
       );
 
       // set default value for seq
       const sourceSchema = source === "public" ? "" : source;
-      const cols: { name: string; defu: string }[] = await db.$queryRawUnsafe(
+      const cols: { name: string; defu: string }[] = await db.execute(sql.raw(
         `SELECT column_name::text as name, column_default::text as defu FROM information_schema.COLUMNS
          WHERE table_schema = '${target}' AND table_name = '${tableName}' AND column_default LIKE 'nextval(%${sourceSchema}%::regclass)'`,
-      );
+      ));
       for (const { name, defu } of cols) {
-        await db.$executeRawUnsafe(
+        await db.execute(sql.raw(
           `ALTER TABLE "${target}"."${tableName}" ALTER COLUMN "${name}" SET DEFAULT ${replaceNextVal(defu, target)}`,
-        );
+        ));
       }
 
       // change enum from public.x to target.x
@@ -92,28 +96,28 @@ export async function cloneSchema(source: string, target: string) {
         column_name: string;
         udt_name: string;
         defu: string;
-      }[] = await db.$queryRawUnsafe(`
+      }[] = await db.execute(sql.raw(`
         SELECT column_name, udt_name, column_default::text as defu FROM information_schema.columns
           WHERE table_schema = '${source}' AND table_name = '${tableName}'
-          AND data_type = 'USER-DEFINED'`);
+          AND data_type = 'USER-DEFINED'`));
 
       for (const { column_name, udt_name, defu } of enumColumns) {
         if (!defu) {
-          await db.$executeRawUnsafe(`
+          await db.execute(sql.raw(`
           ALTER TABLE ${target}."${tableName}"
           ALTER COLUMN "${column_name}" DROP DEFAULT,
           ALTER COLUMN "${column_name}"
           SET DATA TYPE ${target}."${udt_name}"
-          USING "${column_name}"::text::${target}."${udt_name}"`);
+          USING "${column_name}"::text::${target}."${udt_name}"`));
         } else {
           const newDefault = defu.replace("::", `::${target}.`);
-          await db.$executeRawUnsafe(`
+          await db.execute(sql.raw(`
           ALTER TABLE ${target}."${tableName}"
           ALTER COLUMN "${column_name}" DROP DEFAULT,
           ALTER COLUMN "${column_name}"
           SET DATA TYPE ${target}."${udt_name}"
           USING "${column_name}"::text::${target}."${udt_name}",
-          ALTER COLUMN ${column_name} SET DEFAULT ${newDefault}`);
+          ALTER COLUMN ${column_name} SET DEFAULT ${newDefault}`));
         }
       }
     }),
@@ -129,5 +133,5 @@ function replaceNextVal(str: string, targetSchema: string) {
 }
 
 async function dropSchema(schemaName: string) {
-  return db.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);
+  return db.execute(sql.raw(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`));
 }

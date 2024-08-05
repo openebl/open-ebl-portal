@@ -141,12 +141,12 @@ const EditPlatformUserSection = ({ platformId }: { platformId: string }) => {
   };
 
   const onEditUser = async (userId: bigint) => {
-    const userRole = query.data?.userRoles.find((ur) => ur.userId === userId);
+    const userRole = query.data?.UserRoles.find((ur) => ur.userId === userId);
     if (userRole) {
       setUserAction("edit");
       form.reset({
-        email: userRole.user.email ?? "",
-        name: userRole.user.name ?? "",
+        email: userRole.User.email ?? "",
+        name: userRole.User.name ?? "",
         role: UserRoleSchema.parse(userRole.role),
       });
       setAddUserOpen(true);
@@ -189,13 +189,13 @@ const EditPlatformUserSection = ({ platformId }: { platformId: string }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {query.data?.userRoles.map((userRole, index) => (
+          {query.data?.UserRoles.map((userRole, index) => (
             <TableRow key={index} className="h-[3.75rem] cursor-pointer">
               <TableCell className="px-[1.875rem]">
-                {String(userRole.user.id)}
+                {String(userRole.User.id)}
               </TableCell>
-              <TableCell>{userRole.user.name}</TableCell>
-              <TableCell>{userRole.user.email}</TableCell>
+              <TableCell>{userRole.User.name}</TableCell>
+              <TableCell>{userRole.User.email}</TableCell>
               <TableCell>
                 {userRoleMapping[UserRoleSchema.parse(userRole.role)]}
               </TableCell>

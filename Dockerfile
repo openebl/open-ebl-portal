@@ -27,10 +27,9 @@ ENV BU_INFO_LIST_URL=https://example.com/business-info-list.json
 
 # Build next.js app
 ADD . /app
-RUN npm run postinstall
 RUN npm run build
-RUN npx tsup prisma/seed.ts src/daemons/email-notify-daemon.ts
-RUN ls -la  /app/dist
+RUN npx tsup src/drizzle/seed.ts src/drizzle/migrate.ts src/daemons/email-notify-daemon.ts
+RUN ls -la dist
 
 # Build the production image
 FROM node:18-slim
@@ -50,15 +49,13 @@ RUN adduser --system --uid 1001 nextjs
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# install prisma for migration
-RUN npm i prisma -g
-
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/dist/prisma/seed.cjs ./seed.cjs
-COPY --from=builder --chown=nextjs:nodejs /app/dist/src/daemons/email-notify-daemon.cjs ./email-notify-daemon.cjs
-ADD ./prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/dist/drizzle/migrate.cjs ./migrate.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/dist/drizzle/seed.cjs ./seed.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/dist/daemons/email-notify-daemon.cjs ./email-notify-daemon.cjs
+ADD ./src/drizzle ./drizzle
 ADD ./bin/launch.sh ./launch.sh
 ADD ./bin/migrate.sh ./migrate.sh
 

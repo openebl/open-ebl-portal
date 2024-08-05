@@ -22,7 +22,7 @@ export default async function Page({ params }: { params: { id: string } }) {
     redirect("/settings/user-info");
   }
 
-  const userRole = user.userRoles[0]?.role ?? "viewonly";
+  const userRole = user.roles[0] ?? "viewonly";
 
   return (
     <div className="px-12 py-10 font-content">

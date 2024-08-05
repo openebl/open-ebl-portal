@@ -1,11 +1,11 @@
+import { Platforms, UserRoles } from "@/drizzle/schema";
 import { sendUserSignin } from "@/emails/send-user-signin";
 import { env } from "@/env";
 import { getLogger } from "@/lib/logger";
 import { sleep } from "@/lib/utils";
 import { db } from "@/server/db";
 import { UserRoleSchema, type UserRoleType } from "@/types/user";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { type Platform, type PrismaClient } from "@prisma/client";
+import { eq } from "drizzle-orm";
 import {
   getServerSession,
   type DefaultSession,
@@ -13,10 +13,10 @@ import {
   type Session,
 } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import { DrizzleAuthAdapter } from "./auth_adapter";
 import { authenticationId } from "./fx/auth-id";
 import { permissions, type PermissionType } from "./permissions";
 import { SmtpEmailService } from "./services/email-service";
-// import GoogleProvider from "next-auth/providers/google";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -31,14 +31,23 @@ declare module "next-auth" {
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
-    platform: Platform;
-    platformRoles: { platform: Platform; role: UserRoleType }[];
+    platform: {
+      id: bigint;
+      name: string;
+      admin: boolean
+      businessInfo?: Record<string, unknown> | null;
+    };
+    businessUnitId: string;
+    platformRoles: {
+      platform: { id: bigint; name: string };
+      role: UserRoleType;
+    }[];
     authenticationId: string;
     permissions: PermissionType[];
   }
 
   interface User {
-    activePlatformId: number;
+    activePlatformId: bigint;
     // ...other properties
     // role: UserRole;
   }
@@ -52,31 +61,28 @@ declare module "next-auth" {
 export const authOptions: NextAuthOptions = {
   callbacks: {
     session: async ({ session, user }) => {
-      const [platform, userRoles] = await Promise.all([
-        db.platform.findUnique({
-          where: {
-            id: user.activePlatformId,
-          },
-        }),
-        db.userRole.findMany({
-          where: {
-            userId: BigInt(user.id),
-          },
-          include: {
-            platform: true,
-          },
-        }),
-      ]);
+      const userPlatformRoles = await db
+        .select({
+          userRole: UserRoles,
+          platform: Platforms,
+        })
+        .from(UserRoles)
+        .innerJoin(Platforms, eq(Platforms.id, UserRoles.platformId))
+        .where(eq(UserRoles.userId, BigInt(user.id)))
+        .execute();
 
+      const activePlatformId = BigInt(user.activePlatformId);
+      const platform = userPlatformRoles.find(
+        (n) => n.platform.id === activePlatformId,
+      )?.platform;
       if (!platform) {
         throw new Error("Platform not found");
       }
 
-      const platformRoles = userRoles.map((n) => ({
+      const platformRoles = userPlatformRoles.map((n) => ({
         platform: n.platform,
-        role: n.role,
+        role: n.userRole.role,
       }));
-      const activePlatformId = BigInt(user.activePlatformId);
       const roles = platformRoles
         .filter((n) => n.platform.id === activePlatformId)
         .map((n) => UserRoleSchema.parse(n.role));
@@ -87,12 +93,15 @@ export const authOptions: NextAuthOptions = {
           ...session.user,
           id: BigInt(user.id),
         },
-        platform,
+        platform: platformRoles.find((n) => n.platform.id === activePlatformId)
+          ?.platform,
+        businessUnitId: platform.platformId,
         platformRoles,
         authenticationId: await authenticationId(platform),
         permissions: permissions({ roles, platform }),
       } as Session;
     },
+
     async signIn({ user }) {
       if (user.name && user.activePlatformId) {
         return true;
@@ -105,7 +114,7 @@ export const authOptions: NextAuthOptions = {
       }
     },
   },
-  adapter: PrismaAdapter(db as PrismaClient),
+  adapter: DrizzleAuthAdapter,
   providers: [
     EmailProvider({
       server: env.EMAIL_SERVER,

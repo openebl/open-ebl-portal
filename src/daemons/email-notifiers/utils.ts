@@ -1,5 +1,8 @@
+import { EBlNotifications, Users } from "@/drizzle/schema";
 import { render } from "@react-email/components";
+import { eq, InferSelectModel } from "drizzle-orm";
 import { type Address } from "nodemailer/lib/mailer";
+import { isEmpty } from "remeda";
 
 import AccomplishNotification from "@/emails/accomplish-notification";
 import AmendRequestNotification from "@/emails/amend-reqeuest-notification";
@@ -10,8 +13,7 @@ import TransferNotification from "@/emails/transfer-notification";
 import { getLogger } from "@/lib/logger";
 import { type DatabaseType } from "@/server/db";
 import { type EmailServiceType } from "@/server/services/email-service";
-import { type EBlStash } from "@prisma/client";
-import { isEmpty } from "remeda";
+import { EBlStashes } from "@/drizzle/schema";
 
 export const sendStandardNotification = async (props: {
   template: keyof typeof emailTemplates;
@@ -96,18 +98,15 @@ const emailTemplates = {
 export const touchEmailNotification = async ({
   db,
   name,
-  stash,
+  stashId,
 }: {
   db: DatabaseType;
   name: string;
-  stash: EBlStash;
+  stashId: bigint;
 }) => {
-  return db.eBlNotification
-    .create({
-      data: {
+  return db.insert(EBlNotifications).values({
         name,
-        eBlStashId: stash.id,
-      },
+        eBlStashId: stashId,
     })
     .catch((err) =>
       getLogger().error(`Failed to touch eBlNotification: ${err}`),
@@ -118,16 +117,11 @@ export const activePlatformUsers = async (
   db: DatabaseType,
   platformId: bigint,
 ) => {
-  const platform = await db.platform.findUnique({
-    where: {
-      id: platformId,
-    },
-    include: {
-      activeUsers: true,
-    },
-  });
+  const activeUsers = await db.select().from(Users).where(
+      eq(Users.activePlatformId, platformId)
+  ).execute();
 
-  return platform?.activeUsers
+  return activeUsers
     ?.filter((u) => u.email)
     ?.map((u) => ({ address: u.email!, name: u.name ?? "" }));
 };

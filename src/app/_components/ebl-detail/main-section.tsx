@@ -120,7 +120,7 @@ const MainSection = async ({
       <FileDetails ebl={ebl} images={images} />
       <ShippingProgress
         ebl={ebl}
-        sessionPlatformId={String(session?.platform.platformId)}
+        businessUnitId={String(session?.businessUnitId)}
       />
       <HistoryList history={history} />
     </div>

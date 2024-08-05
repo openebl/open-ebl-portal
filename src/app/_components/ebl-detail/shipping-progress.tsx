@@ -165,10 +165,10 @@ const ProgressStatusText = ({ status }: { status: EBlStatusType }) => (
 
 const ProgressStatus = async ({
   ebl,
-  sessionPlatformId,
+  businessUnitId,
 }: {
   ebl: EBlRecordType;
-  sessionPlatformId: string | undefined;
+  businessUnitId: string | undefined;
 }) => {
   // TODO: try not to get bu list all the time
   const status = currentStatus(ebl);
@@ -183,7 +183,7 @@ const ProgressStatus = async ({
     <div className="flex h-[3.875rem] w-full items-start justify-start gap-[3.75rem] px-[1.875rem]">
       <ProgressStatusItem title="Current Owner">
         {currentOwnerName}
-        {sessionPlatformId === ebl.bl?.current_owner && (
+        {businessUnitId === ebl.bl?.current_owner && (
           <span className="text-xs leading-[1.125rem] text-disabled">
             {" "}
             (You)
@@ -194,7 +194,7 @@ const ProgressStatus = async ({
       {showNextOwner && (
         <ProgressStatusItem title="Next Owner">
           {nextOwnerName}
-          {sessionPlatformId === nextPartyID && (
+          {businessUnitId === nextPartyID && (
             <span className="text-xs leading-[1.125rem] text-disabled">
               {" "}
               (You)
@@ -210,10 +210,10 @@ const ProgressStatus = async ({
 
 const ShippingProgress = ({
   ebl,
-  sessionPlatformId,
+  businessUnitId,
 }: {
   ebl: EBlRecordType;
-  sessionPlatformId: string | undefined;
+  businessUnitId: string | undefined;
 }) => {
   return (
     <TooltipProvider>
@@ -224,7 +224,7 @@ const ShippingProgress = ({
 
         <ProgressTrackerBar ebl={ebl} />
 
-        <ProgressStatus ebl={ebl} sessionPlatformId={sessionPlatformId} />
+        <ProgressStatus ebl={ebl} businessUnitId={businessUnitId} />
 
         <ActionPanel ebl={ebl} />
       </section>

@@ -43,8 +43,6 @@ export const pdf2Image = async ({filename, onPage, onComplete}: {
 const createPoppler = () => {
   if (os.platform() === "linux") {
     return new Poppler("/usr/bin");
-  } else if (os.platform() === "darwin") {
-    return new Poppler("/opt/homebrew/Cellar/poppler/24.02.0/bin");
   }
 
   return new Poppler();

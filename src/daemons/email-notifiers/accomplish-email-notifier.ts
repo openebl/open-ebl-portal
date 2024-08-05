@@ -43,7 +43,7 @@ export const accomplishEmailNotifier: EmailNotifier = async ({
     touchEmailNotification({
       db,
       name: notificationName,
-      stash: newStash,
+      stashId: newStash.id!,
     }),
 
     sendStandardNotification({

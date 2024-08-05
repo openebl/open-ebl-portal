@@ -15,12 +15,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserRoleSchema, userRoleMapping } from "@/types/user";
-import { type User } from "@prisma/client";
 
-type UserType = User & {
-  userRoles: {
-    role: string;
-  }[];
+type UserType = {
+  id: bigint;
+  name: string | null;
+  email: string | null;
+  emailVerified: Date | null;
+  roles: string[];
 };
 
 const ResendInvitationLink = ({ userId }: { userId: bigint }) => {
@@ -70,8 +71,8 @@ const UserList = ({ users }: { users: UserType[] }) => {
           >
             <TableCell className="px-[1.875rem]">{user.name}</TableCell>
             <TableCell>
-              {user.userRoles
-                .map((r) => userRoleMapping[UserRoleSchema.parse(r.role)])
+              {user.roles
+                .map((r) => userRoleMapping[UserRoleSchema.parse(r)])
                 .join(" / ")}
             </TableCell>
             <TableCell>{user.email}</TableCell>

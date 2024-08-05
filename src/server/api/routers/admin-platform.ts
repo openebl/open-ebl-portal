@@ -1,16 +1,28 @@
+import { Platforms, type UserRoles, Users } from "@/drizzle/schema";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { hasPermission } from "@/server/permissions";
 import { PlatformFormSchema } from "@/types/admin-platform";
 import { UserFormSchema } from "@/types/user";
+import { eq, type InferSelectModel, sql } from "drizzle-orm";
 import { z } from "zod";
+
+interface UserRoleWithUser extends InferSelectModel<typeof UserRoles> {
+  User: InferSelectModel<typeof Users>;
+}
+
+interface PlatformWithUserRoles extends InferSelectModel<typeof Platforms> {
+  UserRoles: UserRoleWithUser[];
+}
+
+// console.log(PlatformRelations, UserRoleRelations);
 
 export const adminPlatformRouter = createTRPCRouter({
   list: protectedProcedure.query(({ ctx }) => {
     if (!hasPermission("read:admin/platforms", ctx.session.permissions))
       throw new Error("You are not authorized to list platforms");
 
-    return ctx.db.platform.findMany({
-      orderBy: { id: "asc" },
+    return ctx.db.query.Platforms.findMany({
+      orderBy: Users.id,
     });
   }),
 
@@ -18,7 +30,9 @@ export const adminPlatformRouter = createTRPCRouter({
     if (!hasPermission("read:admin/platforms", ctx.session.permissions))
       throw new Error("You are not authorized to get platforms");
 
-    return ctx.db.platform.findUnique({ where: { id: BigInt(input) } });
+    return ctx.db.query.Platforms.findFirst({
+      where: eq(Platforms.id, BigInt(input)),
+    });
   }),
 
   getWithUserRoles: protectedProcedure
@@ -27,14 +41,14 @@ export const adminPlatformRouter = createTRPCRouter({
       if (!hasPermission("read:admin/platforms", ctx.session.permissions))
         throw new Error("You are not authorized to get platforms");
 
-      return ctx.db.platform.findUnique({
-        where: { id: BigInt(input.id) },
-        include: {
-          userRoles: {
-            include: { user: true },
+      return ctx.db.query.Platforms.findFirst({
+        where: eq(Platforms.id, BigInt(input.id)),
+        with: {
+          UserRoles: {
+            with: { User: true },
           },
         },
-      });
+      }) as Promise<PlatformWithUserRoles | null>;
     }),
 
   create: protectedProcedure
@@ -44,7 +58,11 @@ export const adminPlatformRouter = createTRPCRouter({
         throw new Error("You are not authorized to create platforms");
 
       const { name, platformId, ...businessInfo } = input;
-      return ctx.db.platform.create({ data: { name, platformId, businessInfo } });
+      return ctx.db.insert(Platforms).values({
+        name,
+        platformId,
+        businessInfo,
+      });
     }),
 
   update: protectedProcedure
@@ -54,10 +72,14 @@ export const adminPlatformRouter = createTRPCRouter({
         throw new Error("You are not authorized to create platforms");
 
       const { id, name, platformId, ...businessInfo } = input;
-      return ctx.db.platform.update({
-        where: { id: BigInt(id) },
-        data: { name, platformId, businessInfo },
-      });
+      return ctx.db
+        .update(Platforms)
+        .set({
+          name,
+          platformId,
+          businessInfo,
+        })
+        .where(eq(Platforms.id, id));
     }),
 
   addUser: protectedProcedure
@@ -66,45 +88,56 @@ export const adminPlatformRouter = createTRPCRouter({
       if (!hasPermission("write:admin/platforms", ctx.session.permissions))
         throw new Error("You are not authorized to update platforms");
 
-      return ctx.db.$transaction(async (tx) => {
-        const platform = await tx.platform.findUnique({
-          where: { id: BigInt(input.platformId) },
-        });
-        if (!platform) throw new Error("Platform not found");
+      const result = await ctx.db.execute(sql`
+        WITH platform AS (
+          SELECT * FROM "Platform"
+          WHERE "id" = ${BigInt(input.platformId)}
+        ),
+        upserted_user AS (
+          INSERT INTO "User" ("email", "name", "activePlatformId")
+          SELECT ${input.email}, ${input.name}, "id"
+          FROM platform
+          WHERE EXISTS (SELECT 1 FROM platform)
+          ON CONFLICT ("email") DO UPDATE
+          SET "updatedAt" = now()
+          RETURNING *
+        ),
+        deleted_roles AS (
+          DELETE FROM "UserRole"
+          WHERE "userId" = (SELECT "id" FROM upserted_user)
+            AND "platformId" = (SELECT "id" FROM platform)
+            AND  EXISTS (SELECT 1 FROM platform)
+          RETURNING 1
+        ),
+        new_role AS (
+          INSERT INTO "UserRole" ("userId", "platformId", "role")
+          SELECT
+            (SELECT "id" FROM upserted_user),
+            (SELECT "id" FROM platform),
+            ${input.role}
+          WHERE EXISTS (SELECT 1 FROM platform)
+            AND (EXISTS (SELECT 1 FROM deleted_roles) OR 1 = 1)
+          RETURNING *
+        )
+        SELECT
+          CASE
+            WHEN NOT EXISTS (SELECT 1 FROM platform) THEN 'platform_not_found'
+            WHEN NOT EXISTS (SELECT 1 FROM new_role) THEN 'user_creation_failed'
+            ELSE 'success'
+          END AS result,
+          upserted_user.*
+        FROM upserted_user`);
 
-        const user = await tx.user.upsert({
-          where: { email: input.email },
-          update: {
-            name: input.name,
-          },
-          create: {
-            email: input.email,
-            name: input.name,
-            activePlatform: {
-              connect: {
-                id: platform.id,
-              },
-            },
-          },
-        });
-
-        await tx.userRole.deleteMany({
-          where: { userId: user.id, platformId: platform.id },
-        });
-
-        return tx.userRole.create({
-          data: {
-            userId: user.id,
-            platformId: platform.id,
-            role: input.role,
-          },
-        });
-      });
+      if (result.length === 0) {
+        throw new Error("User creation failed");
+      }
+      if (result[0]!.result !== "success")
+        throw new Error(String(result[0]!.result));
     }),
 
   removeUser: protectedProcedure
     .input(z.object({ userId: z.bigint(), platformId: z.string() }))
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       if (!hasPermission("write:admin/platforms", ctx.session.permissions))
         throw new Error("You are not authorized to update platforms");
 
@@ -117,28 +150,42 @@ export const adminPlatformRouter = createTRPCRouter({
         throw new Error("You cannot delete yourself");
       }
 
-      return ctx.db.$transaction(async (tx) => {
-        await tx.userRole.deleteMany({
-          where: { userId, platformId },
-        });
+      // This query performs the following operations in a single transaction:
+      // 1. Deletes specified user roles
+      // 2. Checks for remaining roles for the user
+      // 3. Either deletes the user (if no roles remain) or updates their active platform
+      // The query uses Common Table Expressions (CTEs) to break down the operation into logical steps:
+      // - deleted_roles: Deletes specified user roles
+      // - remaining_roles: Checks for any roles the user still has, excluding the one being deleted
+      // - user_delete: Attempts to delete the user if no roles remain
+      // - user_update: Attempts to update the user's active platform if roles remain
+      const result = await ctx.db.execute(sql`
+        WITH
+        deleted_roles AS (
+          DELETE FROM "UserRole"
+          WHERE "userId" = ${userId} AND "platformId" = ${platformId}
+          RETURNING 1
+        ),
+        remaining_roles AS (
+          SELECT "platformId"
+          FROM "UserRole"
+          WHERE "userId" = ${userId} AND "platformId" <> ${platformId}
+          FOR UPDATE
+        ),
+        user_delete AS (
+          DELETE FROM "User"
+          WHERE "id" = ${userId} AND NOT EXISTS (SELECT 1 FROM remaining_roles)
+          RETURNING 1
+        ),
+        user_update AS (
+          UPDATE "User"
+          SET "activePlatformId" = (SELECT "platformId" FROM remaining_roles LIMIT 1)
+          WHERE "id" = ${userId} AND EXISTS (SELECT 1 FROM remaining_roles)
+          RETURNING 1
+        )
+        SELECT * FROM user_update, user_delete
+      `);
 
-        const userRoles = await tx.userRole.findMany({ where: { userId } });
-        if (userRoles.length === 0) {
-          await tx.user.delete({ where: { id: userId } });
-        } else {
-          await tx.user.update({
-            where: { id: userId },
-            data: {
-              activePlatform: {
-                connect: {
-                  id: userRoles[0]!.platformId,
-                },
-              },
-            },
-          });
-        }
-
-        return true;
-      });
+      return true;
     }),
 });
