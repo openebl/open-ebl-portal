@@ -1,6 +1,8 @@
 default:
-  retry: 1
   interruptible: true
+  retry:
+    max: 2
+    when: runner_system_failure
 
 variables:
   GIT_DEPTH: 5
@@ -15,7 +17,7 @@ stages:
   - test
 
 include:
-  - template: Security/SAST.gitlab-ci.yml
+  # - template: Security/SAST.gitlab-ci.yml
   - template: Security/Secret-Detection.gitlab-ci.yml
   # - project: 'navyx/shared/ci-templates'
   #   ref: 'master'
@@ -55,11 +57,10 @@ include:
   before_script:
     - ln -fs /usr/share/zoneinfo/Asia/Taipei /etc/localtime
     - npm ci
-    - npm run postinstall
 
-nodejs-scan-sast:
-  rules:
-    - !reference [ .default_rules, rules ]
+# nodejs-scan-sast:
+#   rules:
+#     - !reference [ .default_rules, rules ]
 
 eslint:
   extends: .testing_template

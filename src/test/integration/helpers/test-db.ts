@@ -1,6 +1,6 @@
 import { env } from "@/env.js";
 import { randomId } from "@/lib/utils";
-import { DatabaseType, db } from "@/server/db";
+import { type DatabaseType, db } from "@/server/db";
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import { groupBy } from "remeda";

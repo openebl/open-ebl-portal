@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Platforms } from "@/drizzle/schema";
+import type { Platforms } from "@/drizzle/schema";
 
 type Platform = typeof Platforms.$inferSelect;
 

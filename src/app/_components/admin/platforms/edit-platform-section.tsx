@@ -16,7 +16,7 @@ import EditPlatformPanel from "./edit-platform-panel";
 import { hasPermission, type PermissionType } from "@/server/permissions";
 import PermissionedSection from "@/app/_components/common/permissioned-section";
 import { BusinessInfoSchema } from "@/types/business-info";
-import { Platforms } from "@/drizzle/schema";
+import type { Platforms } from "@/drizzle/schema";
 
 const EditPlatformSection = ({
   platform,

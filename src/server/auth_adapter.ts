@@ -2,7 +2,7 @@ import { Accounts, Sessions, Users, VerificationTokens } from "@/drizzle/schema"
 import { db } from "@/server/db";
 import { randomBytes } from "crypto";
 import { and, eq } from "drizzle-orm";
-import {
+import type {
   AdapterAccount,
   AdapterSession,
   AdapterUser,
@@ -177,19 +177,19 @@ export const DrizzleAuthAdapter = {
       .then((res) => res[0] ?? null) as Promise<AdapterAccount | null>;
   },
 
-  async createAuthenticator(data: unknown) {
+  async createAuthenticator(_data: unknown) {
     throw new Error("Method not implemented.");
   },
 
-  async getAuthenticator(credentialID: string) {
+  async getAuthenticator(_credentialID: string) {
     throw new Error("Method not implemented.");
   },
 
-  async listAuthenticatorsByUserId(userId: string) {
+  async listAuthenticatorsByUserId(_userId: string) {
     throw new Error("Method not implemented.");
   },
 
-  async updateAuthenticatorCounter(credentialID: string, newCounter: number) {
+  async updateAuthenticatorCounter(_credentialID: string, _newCounter: number) {
     throw new Error("Method not implemented.");
   },
 };

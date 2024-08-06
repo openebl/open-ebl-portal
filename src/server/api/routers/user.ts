@@ -1,12 +1,19 @@
 import { z } from "zod";
 
-import { UserRoles, Users } from "@/drizzle/schema";
+import { UserAgreements, UserRoles, Users } from "@/drizzle/schema";
 import { sendUserInvitation } from "@/emails/send-user-invitation";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { hasPermission } from "@/server/permissions";
 import { UserFormSchema, UserRoleSchema } from "@/types/user";
-import { and, count, eq, sql } from "drizzle-orm";
-import { getLogger } from "nodemailer/lib/shared";
+import { and, count, eq, max, sql } from "drizzle-orm";
+import { getLogger } from "@/lib/logger";
+
+interface PendingAgreement {
+  name: string;
+  service: string;
+  version: number;
+  url: string;
+}
 
 export const userRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -39,7 +46,7 @@ export const userRouter = createTRPCRouter({
       throw new Error("You are not authorized to get user");
     }
 
-    const result = await ctx.db
+    const [user] = await ctx.db
       .select({
         id: Users.id,
         name: Users.name,
@@ -54,11 +61,66 @@ export const userRouter = createTRPCRouter({
         UserRoles,
         and(eq(Users.id, UserRoles.userId), eq(Users.id, BigInt(input))),
       )
-      .groupBy(Users.id)
-      .execute();
+      .groupBy(Users.id);
 
-    return result[0];
+    return user;
   }),
+
+  pendingAgreements: protectedProcedure.query(async ({ ctx }) => {
+    const [agreements, accepted] = await Promise.all([
+      ctx.agreementManifest.get(),
+      ctx.db
+        .select({
+          service: UserAgreements.service,
+          name: UserAgreements.name,
+          version: max(UserAgreements.version),
+        })
+        .from(UserAgreements)
+        .where(eq(UserAgreements.userId, ctx.session.user.id))
+        .groupBy(UserAgreements.service, UserAgreements.name),
+    ]);
+
+    getLogger().info(`all agreements: ${JSON.stringify(agreements)}`);
+    getLogger().info(`accepted agreements: ${JSON.stringify(accepted)}`);
+
+    return agreements.filter((agreement) => {
+      const wasAccepted = accepted.find(
+        (a) => a.service === agreement.service && a.name === agreement.name,
+      );
+      return !wasAccepted || (wasAccepted.version ?? 0) < agreement.version;
+    }) as PendingAgreement[];
+  }),
+
+  acceptAgreement: protectedProcedure
+    .input(
+      z.object({
+        service: z.string(),
+        name: z.string(),
+        version: z.number(),
+        acceptedAt: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db
+        .insert(UserAgreements)
+        .values({
+          userId: ctx.session.user.id,
+          platformId: ctx.session.platform.id,
+          requesterId: ctx.session.requesterId,
+          service: input.service,
+          name: input.name,
+          version: input.version,
+          acceptedAt: new Date(input.acceptedAt),
+        })
+        .onConflictDoNothing({
+          target: [
+            UserAgreements.userId,
+            UserAgreements.service,
+            UserAgreements.name,
+            UserAgreements.version,
+          ],
+        });
+    }),
 
   invite: protectedProcedure
     .input(UserFormSchema)
@@ -76,7 +138,10 @@ export const userRouter = createTRPCRouter({
             email: input.email,
             activePlatformId: ctx.session.platform.id,
           })
-          .onConflictDoUpdate({ target: Users.email, set: { updatedAt: sql`now()` } })
+          .onConflictDoUpdate({
+            target: Users.email,
+            set: { updatedAt: sql`now()` },
+          })
           .returning();
 
         if (!user) {
@@ -157,11 +222,13 @@ export const userRouter = createTRPCRouter({
         throw new Error("You cannot update your own role");
       }
 
-      const [{ total }] = await ctx.db
+      const [{ total }] = (await ctx.db
         .select({ total: count() })
         .from(Users)
-        .where(sql`id = ${userId} AND activePlatformId = ${ctx.session.platform.id}`)
-        .execute() as [{ total: number }];
+        .where(
+          sql`id = ${userId} AND activePlatformId = ${ctx.session.platform.id}`,
+        )
+        .execute()) as [{ total: number }];
 
       if (!total) {
         throw new Error("You can update role of users from your platform");

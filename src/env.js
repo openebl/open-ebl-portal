@@ -32,6 +32,7 @@ export const env = createEnv({
     PORTAL_URL: z.string().min(1),
     SIGNIN_EMAIL_MAXAGE_IN_SEC: z.coerce.number().default(15 * 60),
     BU_INFO_LIST_URL: z.string().url(),
+    AGREEMENT_MANIFEST_URL: z.string().url().default("https://www.bluextrade.com/agreements-manifest.json"),
   },
 
   /**
@@ -61,6 +62,7 @@ export const env = createEnv({
     PORTAL_URL: process.env.PORTAL_URL,
     SIGNIN_EMAIL_MAXAGE_IN_SEC: process.env.SIGNIN_EMAIL_MAXAGE_IN_SEC,
     BU_INFO_LIST_URL: process.env.BU_INFO_LIST_URL,
+    AGREEMENT_MANIFEST_URL: process.env.AGREEMENT_MANIFEST_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

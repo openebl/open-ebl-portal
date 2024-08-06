@@ -7,6 +7,7 @@ import { createTRPCContext } from "@/server/api/trpc";
 import { s3StorageService } from "@/server/services/storage-service";
 import { bxDocExtraction } from "@/add-ons/doc-reader/doc-extraction";
 import { SmtpEmailService } from "@/server/services/email-service";
+import { EBlAgreementManifestService } from "@/server/services/agreement-manifest-service";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -18,6 +19,7 @@ const createContext = async (req: NextRequest) => {
     emailService: SmtpEmailService,
     storageService: s3StorageService,
     docExtraction: bxDocExtraction,
+    agreementManifest: EBlAgreementManifestService,
   });
 };
 

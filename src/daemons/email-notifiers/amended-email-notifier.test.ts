@@ -1,13 +1,15 @@
 import { describe } from "vitest";
 
-import {
-  testWithDb,
-  type TestDbType,
-} from "@/test/integration/fixtures/db-fixtures";
+import { testWithDb } from "@/test/integration/fixtures/db-fixtures";
 import { amendedEBlRecord } from "@/test/integration/fixtures/test-amended-ebl";
 import { useTestEmailService } from "@/test/integration/helpers/test-email";
+import {
+  countEBlNotifications,
+  createPlatform,
+  createPlatformAndUsers,
+  createTransferEBlStash,
+} from "@/test/integration/helpers/test-helper";
 import { amendedEmailNotifier } from "./amended-email-notifier";
-import { countEBlNotifications, createPlatform, createPlatformAndUsers, createTransferEBlStash } from "@/test/integration/helpers/test-helper";
 
 describe.concurrent("Email notification", () => {
   describe("Send amended notification", () => {
@@ -36,9 +38,7 @@ describe.concurrent("Email notification", () => {
         });
 
         expect(watcher).toHaveLength(1);
-        expect(watcher[0]?.subject).toEqual(
-          "BL-001-1 has been amended",
-        );
+        expect(watcher[0]?.subject).toEqual("BL-001-1 has been amended");
         expect(watcher[0]?.to).toEqual([
           {
             name: "User A",
@@ -65,7 +65,9 @@ describe.concurrent("Email notification", () => {
           },
         ]);
 
-        expect(await countEBlNotifications(db, "amended", newStash.id)).toEqual(1);
+        expect(await countEBlNotifications(db, "amended", newStash.id)).toEqual(
+          1,
+        );
       },
     );
 
@@ -90,7 +92,9 @@ describe.concurrent("Email notification", () => {
         });
 
         expect(watcher).toHaveLength(0);
-        expect(await countEBlNotifications(db, "amended", newStash.id)).toEqual(1);
+        expect(await countEBlNotifications(db, "amended", newStash.id)).toEqual(
+          1,
+        );
       },
     );
 

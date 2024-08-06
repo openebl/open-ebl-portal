@@ -5,7 +5,7 @@ import { transferEmailNotifier } from "./transfer-email-notifier";
 import { returnEmailNotifier } from "./return-email-notifier";
 import { accomplishEmailNotifier } from "./accomplish-email-notifier";
 import { amendRequestEmailNotifier } from "./amend-request-email-notifier";
-import { EBlStashes, Platforms } from "@/drizzle/schema";
+import type { EBlStashes, Platforms } from "@/drizzle/schema";
 
 type EBlRecordType = components["schemas"]["BillOfLadingRecord"];
 

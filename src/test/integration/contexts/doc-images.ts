@@ -1,6 +1,6 @@
-import { InferSelectModel } from "drizzle-orm";
+import { type InferSelectModel } from "drizzle-orm";
 import { type TestDbType } from "../fixtures/db-fixtures";
-import { DocFiles, DocImages } from "@/drizzle/schema";
+import { type DocFiles, DocImages } from "@/drizzle/schema";
 
 export const withDocImages = ({
   db,

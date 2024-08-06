@@ -4,7 +4,7 @@ import {
   Platforms,
   Users,
 } from "@/drizzle/schema";
-import { DatabaseType } from "@/server/db";
+import { type DatabaseType } from "@/server/db";
 import { and, count, eq } from "drizzle-orm";
 
 export async function countEBlNotifications(

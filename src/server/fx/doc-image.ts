@@ -2,8 +2,8 @@ import { sortBy } from "remeda";
 
 import { DocImages } from "@/drizzle/schema";
 import { type StorageServiceType } from "@/server/services/storage-service";
-import { eq, InferSelectModel, sql } from "drizzle-orm";
-import { DatabaseType } from "../db";
+import { eq, type InferSelectModel, sql } from "drizzle-orm";
+import type { DatabaseType } from "../db";
 
 export const getDocImagesByDocFileUuid = async (
   db: DatabaseType,

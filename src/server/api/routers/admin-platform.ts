@@ -159,7 +159,7 @@ export const adminPlatformRouter = createTRPCRouter({
       // - remaining_roles: Checks for any roles the user still has, excluding the one being deleted
       // - user_delete: Attempts to delete the user if no roles remain
       // - user_update: Attempts to update the user's active platform if roles remain
-      const result = await ctx.db.execute(sql`
+      await ctx.db.execute(sql`
         WITH
         deleted_roles AS (
           DELETE FROM "UserRole"

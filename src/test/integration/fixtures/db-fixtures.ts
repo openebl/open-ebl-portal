@@ -1,7 +1,7 @@
 import { test } from 'vitest';
 
 import { spinUpTestPrisma } from '@/test/integration/helpers/test-db';
-import { DatabaseType } from '@/server/db';
+import type { DatabaseType } from '@/server/db';
 
 export type TestDbType = DatabaseType;
 

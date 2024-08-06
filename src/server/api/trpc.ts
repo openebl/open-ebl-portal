@@ -16,6 +16,7 @@ import { getServerAuthSession } from "@/server/auth";
 import { db } from "@/server/db";
 import { type EmailServiceType } from "@/server/services/email-service";
 import { type StorageServiceType } from "@/server/services/storage-service";
+import { type AgreementManifestServiceType } from "../services/agreement-manifest-service";
 
 /**
  * 1. CONTEXT
@@ -33,6 +34,7 @@ export const createTRPCContext = async (opts: {
   storageService: StorageServiceType;
   emailService: EmailServiceType;
   docExtraction: DocExtractionType;
+  agreementManifest: AgreementManifestServiceType;
   headers: Headers;
 }) => {
   const session = await getServerAuthSession();

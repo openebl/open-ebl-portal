@@ -1,23 +1,18 @@
 import { describe } from "vitest";
 
-import {
-  EBlNotifications,
-  EBlStashes,
-  Platforms,
-  Users,
-} from "@/drizzle/schema";
+import { Platforms, Users } from "@/drizzle/schema";
 import {
   type TestDbType,
   testWithDb,
 } from "@/test/integration/fixtures/db-fixtures";
 import { transferredEBlRecord } from "@/test/integration/fixtures/test-transferred-ebl";
 import { useTestEmailService } from "@/test/integration/helpers/test-email";
-import { and, count, eq } from "drizzle-orm";
-import { transferEmailNotifier } from "./transfer-email-notifier";
 import {
+  countEBlNotifications,
   createPlatform,
   createTransferEBlStash,
 } from "@/test/integration/helpers/test-helper";
+import { transferEmailNotifier } from "./transfer-email-notifier";
 
 describe.concurrent("Email notification", () => {
   describe("Send transferred notification", () => {
@@ -32,8 +27,7 @@ describe.concurrent("Email notification", () => {
           name: "Test Company",
           platformId: did,
         })
-        .returning()
-        .execute();
+        .returning();
 
       const users = await db
         .insert(Users)
@@ -49,8 +43,7 @@ describe.concurrent("Email notification", () => {
             activePlatformId: platform!.id,
           },
         ])
-        .returning()
-        .execute();
+        .returning();
       return { platform: platform!, users: users };
     };
 
@@ -105,18 +98,9 @@ describe.concurrent("Email notification", () => {
             path: "./public/email-transferred.png",
           },
         ]);
-
-        const [{ total }] = (await db
-          .select({ total: count() })
-          .from(EBlNotifications)
-          .where(
-            and(
-              eq(EBlNotifications.name, "transferred"),
-              eq(EBlNotifications.eBlStashId, newStash.id),
-            ),
-          )
-          .execute()) as [{ total: number }];
-        expect(total).toEqual(1);
+        expect(
+          await countEBlNotifications(db, "transferred", newStash.id),
+        ).toEqual(1);
       },
     );
 
@@ -142,18 +126,9 @@ describe.concurrent("Email notification", () => {
         });
 
         expect(watcher).toHaveLength(0);
-        const [{ total }] = (await db
-          .select({ total: count() })
-          .from(EBlNotifications)
-          .where(
-            and(
-              eq(EBlNotifications.name, "transferred"),
-              eq(EBlNotifications.eBlStashId, newStash.id),
-            ),
-          )
-          .execute()) as [{ total: number }];
-
-        expect(total).toEqual(1);
+        expect(
+          await countEBlNotifications(db, "transferred", newStash.id),
+        ).toEqual(1);
       },
     );
 

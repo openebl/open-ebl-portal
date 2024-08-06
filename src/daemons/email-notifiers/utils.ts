@@ -1,6 +1,6 @@
 import { EBlNotifications, Users } from "@/drizzle/schema";
 import { render } from "@react-email/components";
-import { eq, InferSelectModel } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { type Address } from "nodemailer/lib/mailer";
 import { isEmpty } from "remeda";
 
@@ -13,7 +13,6 @@ import TransferNotification from "@/emails/transfer-notification";
 import { getLogger } from "@/lib/logger";
 import { type DatabaseType } from "@/server/db";
 import { type EmailServiceType } from "@/server/services/email-service";
-import { EBlStashes } from "@/drizzle/schema";
 
 export const sendStandardNotification = async (props: {
   template: keyof typeof emailTemplates;

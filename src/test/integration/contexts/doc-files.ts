@@ -1,5 +1,5 @@
-import { DocFiles, Platforms, Users } from "@/drizzle/schema";
-import { InferSelectModel } from "drizzle-orm";
+import { DocFiles, type Platforms, type Users } from "@/drizzle/schema";
+import type { InferSelectModel } from "drizzle-orm";
 import { type TestDbType } from "../fixtures/db-fixtures";
 
 export const withDocFile = async ({

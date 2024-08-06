@@ -33,6 +33,7 @@ describe.concurrent("ports API", () => {
       platform: {
         id: 168n,
         name: "",
+        admin: false,
       },
       businessUnitId: "",
       authenticationId: "",

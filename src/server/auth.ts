@@ -15,6 +15,7 @@ import {
 import EmailProvider from "next-auth/providers/email";
 import { DrizzleAuthAdapter } from "./auth_adapter";
 import { authenticationId } from "./fx/auth-id";
+import { createRequester } from "./fx/requester";
 import { permissions, type PermissionType } from "./permissions";
 import { SmtpEmailService } from "./services/email-service";
 
@@ -34,7 +35,7 @@ declare module "next-auth" {
     platform: {
       id: bigint;
       name: string;
-      admin: boolean
+      admin: boolean;
       businessInfo?: Record<string, unknown> | null;
     };
     businessUnitId: string;
@@ -44,6 +45,7 @@ declare module "next-auth" {
     }[];
     authenticationId: string;
     permissions: PermissionType[];
+    requesterId: string;
   }
 
   interface User {
@@ -87,6 +89,11 @@ export const authOptions: NextAuthOptions = {
         .filter((n) => n.platform.id === activePlatformId)
         .map((n) => UserRoleSchema.parse(n.role));
 
+      const requesterId = createRequester({
+        platformId: activePlatformId,
+        userId: BigInt(user.id),
+      });
+
       return {
         ...session,
         user: {
@@ -99,6 +106,7 @@ export const authOptions: NextAuthOptions = {
         platformRoles,
         authenticationId: await authenticationId(platform),
         permissions: permissions({ roles, platform }),
+        requesterId,
       } as Session;
     },
 

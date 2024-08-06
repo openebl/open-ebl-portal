@@ -201,7 +201,7 @@ export const DocFiles = pgTable(
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
     uploaderId: bigint("uploaderId", { mode: "bigint" }).notNull().references(
       () => Users.id,
-      { onDelete: "set null", onUpdate: "cascade" },
+      { onDelete: "restrict", onUpdate: "cascade" },
     ),
     filename: text("filename"),
     storagekey: text("storagekey"),
@@ -234,6 +234,46 @@ export const EBlNotifications = pgTable("EBlNotification", {
   createdAt: timestamp("createdAt", { precision: 3 }).defaultNow().notNull(),
   name: text("name").notNull(),
 });
+
+export const Requesters = pgTable("Requester", {
+  id: text("id").primaryKey().notNull(),
+  session: text("session"),
+  platformId: bigint("platformId", { mode: "bigint" }),
+  userId: bigint("userId", { mode: "bigint" }),
+  ip: text("ip"),
+  userAgent: text("userAgent"),
+  acceptLanguage: text("acceptLanguage"),
+  createdAt: timestamp("createdAt", { precision: 3 }).defaultNow().notNull(),
+});
+
+export const UserAgreements = pgTable(
+  "UserAgreement",
+  {
+    id: bigserial("id", { mode: "bigint" }).primaryKey().notNull(),
+    userId: bigint("userId", { mode: "bigint" }).references(() => Users.id, {
+      onDelete: "restrict",
+      onUpdate: "cascade",
+    }),
+    platformId: bigint("platformId", { mode: "bigint" }),
+    requesterId: text("requesterId").notNull(),
+    service: text("service").notNull(),
+    name: text("name").notNull(),
+    version: integer("version"),
+    acceptedAt: timestamp("acceptedAt", { precision: 3 }),
+    createdAt: timestamp("createdAt", { precision: 3 }).defaultNow().notNull(),
+  },
+  (table) => {
+    return {
+      uuid_key: uniqueIndex("UserAgreement_user_service_name_key").using(
+        "btree",
+        table.userId,
+        table.service,
+        table.name,
+				table.version,
+      ),
+    };
+  },
+);
 
 //---------------------------------------------------------------------
 // Relations

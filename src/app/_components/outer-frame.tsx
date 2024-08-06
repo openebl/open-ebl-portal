@@ -15,6 +15,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Signout from "./signout";
+import { PolicyDialog } from "./dialogs/policy-dialog";
+import { api } from "@/trpc/server";
 
 const AvatarButton = ({ session }: { session: Session | null }) => {
   if (!session) return null;
@@ -100,6 +102,18 @@ const OuterFrame = async ({
   session: Session | null;
   children: React.ReactNode;
 }) => {
+  const pending = session ? await api.user.pendingAgreements.query() : [];
+  const pendingAgreements = await Promise.all(
+    pending.map(async (n) => {
+      return {
+        service: n.service,
+        name: n.name,
+        version: n.version,
+        content: await (await fetch(n.url)).text()
+      };
+    }),
+  );
+
   return (
     <main className="relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header">
       <div className="flex h-16 w-full items-center justify-between bg-header text-header-text">
@@ -122,6 +136,9 @@ const OuterFrame = async ({
       </div>
 
       {children}
+      {pendingAgreements.length > 0 && (
+        <PolicyDialog manifests={pendingAgreements} />
+      )}
     </main>
   );
 };

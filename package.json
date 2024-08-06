@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "next build",
+    "migrate": "drizzle-kit migrate",
     "dev": "next dev | pino-pretty",
     "email:dev": "email dev -d ./src/emails",
     "lint": "next lint",

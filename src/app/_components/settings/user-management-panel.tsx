@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/server";
 import UserList from "./user-list-table";
 
-
 const UserManagementPanel = async () => {
   const users = await api.user.list.query();
 

@@ -1,10 +1,6 @@
 import { describe } from "vitest";
 
-import { EBlStashes, Platforms } from "@/drizzle/schema";
-import {
-  testWithDb,
-  type TestDbType,
-} from "@/test/integration/fixtures/db-fixtures";
+import { testWithDb } from "@/test/integration/fixtures/db-fixtures";
 import { returnedEBlRecord } from "@/test/integration/fixtures/test-returned-ebl";
 import { useTestEmailService } from "@/test/integration/helpers/test-email";
 import {

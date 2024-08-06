@@ -1,14 +1,15 @@
 import { describe } from "vitest";
 
-import {
-  type TestDbType,
-  testWithDb,
-} from "@/test/integration/fixtures/db-fixtures";
+import { testWithDb } from "@/test/integration/fixtures/db-fixtures";
 import { amendRequestedEBlRecord } from "@/test/integration/fixtures/test-amend-requested-ebl";
 import { useTestEmailService } from "@/test/integration/helpers/test-email";
+import {
+  countEBlNotifications,
+  createPlatform,
+  createPlatformAndUsers,
+  createTransferEBlStash,
+} from "@/test/integration/helpers/test-helper";
 import { amendRequestEmailNotifier } from "./amend-request-email-notifier";
-import { countEBlNotifications, createPlatform, createPlatformAndUsers, createTransferEBlStash } from "@/test/integration/helpers/test-helper";
-import { count } from "console";
 
 describe.concurrent("Email notification", () => {
   describe("Send amendRequested notification", () => {
@@ -38,9 +39,7 @@ describe.concurrent("Email notification", () => {
         });
 
         expect(watcher).toHaveLength(1);
-        expect(watcher[0]?.subject).toEqual(
-          "BL-001 Amendment request",
-        );
+        expect(watcher[0]?.subject).toEqual("BL-001 Amendment request");
         expect(watcher[0]?.to).toEqual([
           {
             name: "User A",
@@ -54,9 +53,7 @@ describe.concurrent("Email notification", () => {
         expect(watcher[0]?.html).toContain(
           "A Factory Co., Ltd has requested an amendment for eBL <strong>BL-001</strong>.",
         );
-        expect(watcher[0]?.html).toContain(
-          `<strong>requested by XXX</strong>`,
-        );
+        expect(watcher[0]?.html).toContain(`<strong>requested by XXX</strong>`);
 
         expect(watcher[0]?.attachments).toEqual([
           {
@@ -71,7 +68,9 @@ describe.concurrent("Email notification", () => {
           },
         ]);
 
-        expect(await countEBlNotifications(db, "amend_requested", newStash.id)).toEqual(1);
+        expect(
+          await countEBlNotifications(db, "amend_requested", newStash.id),
+        ).toEqual(1);
       },
     );
 
@@ -97,7 +96,9 @@ describe.concurrent("Email notification", () => {
         });
 
         expect(watcher).toHaveLength(0);
-        expect(await countEBlNotifications(db, "amend_requested", newStash.id)).toEqual(1);
+        expect(
+          await countEBlNotifications(db, "amend_requested", newStash.id),
+        ).toEqual(1);
       },
     );
 

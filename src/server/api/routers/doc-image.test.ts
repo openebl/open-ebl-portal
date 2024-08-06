@@ -43,7 +43,6 @@ describe.concurrent("docImage API", () => {
           const docFile = await withDocFile({ db, platform, user });
           await withDocImages({ db, docFile });
           const { caller } = useCaller({ db, session });
-          console.log('-----------------------------')
           const url = await caller.docImage.getUrl({
             docFileId: docFile.id,
             page: 1,

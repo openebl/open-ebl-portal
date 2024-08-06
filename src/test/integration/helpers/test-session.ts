@@ -1,4 +1,4 @@
-import { Platforms, Users } from "@/drizzle/schema";
+import type { Platforms, Users } from "@/drizzle/schema";
 import type { Session } from "next-auth";
 
 export const buildTestSession = ({
@@ -17,6 +17,7 @@ export const buildTestSession = ({
     platform,
     businessUnitId: platform.platformId,
     authenticationId: '',
+    requesterId: 'test-requester-id',
     expires: "1",
     permissions: [],
     platformRoles: [],

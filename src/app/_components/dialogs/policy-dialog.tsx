@@ -7,7 +7,9 @@ import { useState } from "react";
 import { PolicyScrollView } from "./policy-scroll-view";
 
 export type PolicyManifest = {
-  title: string;
+  service: string;
+  name: string;
+  version: number;
   content: string;
 };
 
@@ -16,43 +18,38 @@ export const PolicyDialog = ({
 }: {
   manifests: PolicyManifest[];
 }) => {
+  const [open, setOpen] = useState(true);
   const [selected, setSelected] = useState(0);
   const [agreedList, setAgreedList] = useState<number[]>([]);
-
-  const nextUnagreedManifest = (startIndex: number) => {
-    for (let i = startIndex + 1; i < manifests.length; i++) {
-      if (!agreedList.includes(i)) {
-        return i;
-      }
-    }
-    return -1; // Return -1 if all manifests are agreed
-  };
 
   const onPolicySelected = (idx: number) => {
     setSelected(idx);
   };
 
   const onPolicyAgreed = () => {
-    setAgreedList([...agreedList, selected]);
-    const nextIdx = nextUnagreedManifest(selected);
+    const newAgreedList = [...agreedList, selected];
+    setAgreedList(newAgreedList);
+
+    const nextIdx = nextUnagreedManifest(selected, manifests, newAgreedList);
     if (nextIdx >= 0) {
       setSelected(nextIdx);
       return;
     }
-    const earliestUnagreed = nextUnagreedManifest(-1);
+    const earliestUnagreed = nextUnagreedManifest(-1, manifests, newAgreedList);
     if (earliestUnagreed >= 0) {
       setSelected(earliestUnagreed);
       return;
     }
 
     // all policies are agreed
+    setOpen(false);
   };
 
   return (
-    <AlertDialog open={true}>
+    <AlertDialog open={open}>
       <AlertDialogContent className="max-w-fit font-content">
         <div className="flex h-[50rem] w-[73.75rem]">
-          <div className="flex h-full w-[17.5rem] flex-none flex-col bg-background py-12">
+          <div className="flex h-full w-[17.5rem] flex-none flex-col rounded-l-lg bg-background py-12">
             <h3 className="mb-3 px-7 text-base font-semibold text-main">
               BlueX Open eBL Agreements
             </h3>
@@ -72,18 +69,32 @@ export const PolicyDialog = ({
                   <CircleInCheckIcon className="h-6 w-6 text-hint" />
                 )}
 
-                <p className="ml-[0.625rem]">{manifest.title}</p>
+                <p className="ml-[0.625rem]">{manifest.name}</p>
               </div>
             ))}
           </div>
 
           <PolicyScrollView
             key={selected}
-            content={manifests[selected]?.content ?? ""}
+            info={manifests[selected]!}
+            canAccept={!agreedList.includes(selected)}
             onAgreed={onPolicyAgreed}
           />
         </div>
       </AlertDialogContent>
     </AlertDialog>
   );
+};
+
+const nextUnagreedManifest = (
+  startIndex: number,
+  manifests: PolicyManifest[],
+  agreedList: number[],
+) => {
+  for (let i = startIndex + 1; i < manifests.length; i++) {
+    if (!agreedList.includes(i)) {
+      return i;
+    }
+  }
+  return -1; // Return -1 if all manifests are agreed
 };
