@@ -99,17 +99,16 @@ export const PolicyDialog = ({
               </div>
             ))}
 
-            {allRead && (
-              <div className="flex justify-center">
-                <Button
-                  className="mt-8 w-[13.75rem]"
-                  loading={accepting}
-                  onClick={onAcceptClick}
-                >
-                  I agree to all the agreements
-                </Button>
-              </div>
-            )}
+            <div className="flex justify-center">
+              <Button
+                className="mt-8 w-[13.75rem]"
+                disabled={!allRead}
+                loading={accepting}
+                onClick={onAcceptClick}
+              >
+                I agree to all the agreements
+              </Button>
+            </div>
           </div>
 
           <PolicyScrollView
