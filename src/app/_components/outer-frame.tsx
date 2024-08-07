@@ -14,9 +14,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Signout from "./signout";
-import { PolicyDialog } from "./dialogs/policy-dialog";
 import { api } from "@/trpc/server";
+import { PolicyDialog } from "./dialogs/policy-dialog";
+import Signout from "./signout";
 
 const AvatarButton = ({ session }: { session: Session | null }) => {
   if (!session) return null;
@@ -102,6 +102,7 @@ const OuterFrame = async ({
   session: Session | null;
   children: React.ReactNode;
 }) => {
+  const currentYear = new Date().getFullYear();
   const pending = session ? await api.user.pendingAgreements.query() : [];
   const pendingAgreements = await Promise.all(
     pending.map(async (n) => {
@@ -109,13 +110,13 @@ const OuterFrame = async ({
         service: n.service,
         name: n.name,
         version: n.version,
-        content: await (await fetch(n.url)).text()
+        content: await (await fetch(n.url)).text(),
       };
     }),
   );
 
   return (
-    <main className="relative mx-auto h-full min-h-screen min-w-[1280px] bg-background font-header">
+    <main className="mx-auto flex h-full min-h-screen min-w-[1280px] flex-col bg-background font-header">
       <div className="flex h-16 w-full items-center justify-between bg-header text-header-text">
         <div className="mx-12 flex items-center justify-start">
           <Link href="/ebls" tabIndex={-1}>
@@ -136,6 +137,41 @@ const OuterFrame = async ({
       </div>
 
       {children}
+
+      <div className="flex-1"></div>
+
+      <footer className="flex h-[3.125rem] w-full items-center justify-between bg-white px-[3.125rem] font-content text-xs font-semibold text-main">
+        <div>© 2020-{currentYear} All Rights Reserved</div>
+        <div>
+          <a
+            className="text-main"
+            href="https://www.bluextrade.com/ebl-agreement/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Terms of Service
+          </a>
+          <span className="mx-2">|</span>
+          <a
+            className="text-main"
+            href="https://www.bluextrade.com/bluextrade-privacy-policy/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Privacy Policy
+          </a>
+          <span className="mx-2">|</span>
+          <a
+            className="text-main"
+            href="https://www.bluextrade.com/cookie-policy/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Cookie Policy
+          </a>
+        </div>
+      </footer>
+
       {pendingAgreements.length > 0 && (
         <PolicyDialog manifests={pendingAgreements} />
       )}
