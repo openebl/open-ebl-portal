@@ -1,9 +1,9 @@
 import { env } from "@/env.js";
 import { randomId } from "@/lib/utils";
-import { type DatabaseType, db } from "@/server/db";
+import type { DatabaseType } from "@/server/db";
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
-import { groupBy } from "remeda";
+import { clone, groupBy } from "remeda";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema  from "@/drizzle/schema";
 
@@ -11,24 +11,25 @@ export async function spinUpTestPrisma<R>(
   fn: (db: DatabaseType) => Promise<R>,
 ) {
   const schemaName = `test_${randomId(10)}`;
+  const cloneConn = postgres(env.DATABASE_URL, { max: 1 });
+  const cloneDb = drizzle(cloneConn, { schema, logger: true });
+
   try {
-    await cloneSchema("public", schemaName);
+    await cloneSchema(cloneDb, "public", schemaName);
 
     const url = new URL(env.DATABASE_URL);
-    // url.searchParams.set("schema", schemaName);
-    // url.searchParams.set("connection_limit", "1");
-
     const conn = postgres(url.toString(), { max: 1, connection: { search_path: schemaName } });
     const testDb = drizzle(conn, { schema, logger: true });
     const res = await fn(testDb);
     await conn.end();
     return res;
   } finally {
-    await dropSchema(schemaName);
+    await dropSchema(cloneDb, schemaName);
+    await cloneConn.end();
   }
 }
 
-export async function cloneSchema(source: string, target: string) {
+export async function cloneSchema(db: DatabaseType, source: string, target: string) {
   await db.execute(sql.raw(`CREATE SCHEMA "${target}";`));
 
   const seqs: Record<string, string>[] = await db.execute(
@@ -132,6 +133,6 @@ function replaceNextVal(str: string, targetSchema: string) {
   );
 }
 
-async function dropSchema(schemaName: string) {
+async function dropSchema(db: DatabaseType, schemaName: string) {
   return db.execute(sql.raw(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`));
 }
