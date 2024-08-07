@@ -10,30 +10,50 @@ import { processFileDocUploadReq } from "./ebl";
 import { useTestDocExtraction } from "@/test/integration/helpers/test-doc-extraction";
 import { and, eq } from "drizzle-orm";
 import { DocFiles, DocImages } from "@/drizzle/schema";
+import { createPlatformAndUsers } from "@/test/integration/helpers/test-helper";
+
+type User = {
+  id: bigint;
+  name: string | null;
+  email: string | null;
+};
+
+type Platform = {
+  id: bigint;
+  name: string;
+  admin: boolean;
+};
+
+const getSession = ({
+  platform,
+  user,
+}: {
+  platform: Platform;
+  user: User;
+}) =>
+  ({
+    user,
+    platform,
+    requesterId: "",
+    businessUnitId: "",
+    platformRoles: [],
+    permissions: [],
+    authenticationId: "",
+    expires: "1",
+  }) as Session;
 
 describe.concurrent("EBl Fx", () => {
   describe("processFileDocUploadReq", () => {
-    const session: Session = {
-      user: {
-        id: 123n,
-        name: "John Doe",
-        email: "jogn.doe@example.com",
-      },
-      platform: {
-        id: 168n,
-        name: "",
-      },
-      businessUnitId: "",
-      platformRoles: [],
-      permissions: [],
-      authenticationId: "",
-      expires: "1",
-    };
+    const currentDid = "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614";
     const pdfFile = readFileSync("./src/test/integration/fixtures/ebl.pdf");
 
     testWithDb(
       "upload a valid PDF file, it converts PDF to images and store to storage and database",
       async ({ expect, db }) => {
+        const { platform, users } = await createPlatformAndUsers(
+          db,
+          currentDid,
+        );
         const req = createNextRequest(pdfFile, {
           "X-Filename": "ebl.pdf",
           "Content-Type": "application/pdf",
@@ -42,7 +62,7 @@ describe.concurrent("EBl Fx", () => {
         const { docExtraction } = useTestDocExtraction();
         const { uuid: docFileUuid } = await processFileDocUploadReq({
           req,
-          session,
+          session: getSession({ platform, user: users[0]! }),
           db,
           storage: storageService,
           docExtraction,

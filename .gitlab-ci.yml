@@ -56,7 +56,7 @@ include:
     BU_INFO_LIST_URL: https://example.com/business-info-list.json
   before_script:
     - ln -fs /usr/share/zoneinfo/Asia/Taipei /etc/localtime
-    - npm ci
+    - npm install -g pnpm && pnpm install --frozen-lockfile
 
 # nodejs-scan-sast:
 #   rules:
@@ -66,7 +66,7 @@ eslint:
   extends: .testing_template
   stage: test
   script:
-    - npm run lint
+    - pnpm run lint
   rules:
     - !reference [ .default_rules, rules ]
 
@@ -83,8 +83,8 @@ unittest:
     POSTGRES_PASSWORD: root
   script:
     - apt-get update && apt-get install -y libssl-dev poppler-data poppler-utils
-    - npm run migrate
-    - npm run test:unit
+    - pnpm run migrate
+    - pnpm run test:unit
   rules:
     - !reference [ .default_rules, rules ]
 

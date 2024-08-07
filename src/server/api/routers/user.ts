@@ -91,27 +91,31 @@ export const userRouter = createTRPCRouter({
     }) as PendingAgreement[];
   }),
 
-  acceptAgreement: protectedProcedure
+  acceptAgreements: protectedProcedure
     .input(
-      z.object({
-        service: z.string(),
-        name: z.string(),
-        version: z.number(),
-        acceptedAt: z.number(),
-      }),
+      z.array(
+        z.object({
+          service: z.string(),
+          name: z.string(),
+          version: z.number(),
+          acceptedAt: z.number(),
+        }),
+      ),
     )
     .mutation(async ({ ctx, input }) => {
       return ctx.db
         .insert(UserAgreements)
-        .values({
-          userId: ctx.session.user.id,
-          platformId: ctx.session.platform.id,
-          requesterId: ctx.session.requesterId,
-          service: input.service,
-          name: input.name,
-          version: input.version,
-          acceptedAt: new Date(input.acceptedAt),
-        })
+        .values(
+          input.map((a) => ({
+            userId: ctx.session.user.id,
+            platformId: ctx.session.platform.id,
+            requesterId: ctx.session.requesterId,
+            service: a.service,
+            name: a.name,
+            version: a.version,
+            acceptedAt: new Date(a.acceptedAt),
+          })),
+        )
         .onConflictDoNothing({
           target: [
             UserAgreements.userId,

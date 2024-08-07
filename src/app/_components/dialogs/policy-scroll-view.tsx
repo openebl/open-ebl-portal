@@ -1,9 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { api } from "@/trpc/react";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import AutoResizeIFrame from "../common/auto-resize-iframe";
 
 interface PolicyInfo {
@@ -15,35 +13,15 @@ interface PolicyInfo {
 
 export const PolicyScrollView = ({
   info,
-  canAccept,
-  onAgreed,
+  wasRead,
+  onRead,
 }: {
   info: PolicyInfo;
-  canAccept: boolean;
-  onAgreed: () => void;
+  wasRead: boolean;
+  onRead: () => void;
 }) => {
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(false);
-  const [accepting, setAccepting] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const acceptMutation = api.user.acceptAgreement.useMutation({
-    onError: (error) => {
-      setAccepting(false);
-      toast.error(`Failed to send invitation: ${error.message}`);
-    },
-    onSuccess: () => {
-      setAccepting(false);
-      onAgreed();
-    },
-  });
-
-  const onAcceptClick = () => {
-    setAccepting(true);
-    acceptMutation.mutate({
-      ...info,
-      acceptedAt: Date.now(),
-    });
-  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,14 +57,19 @@ export const PolicyScrollView = ({
           content={info.content || ""}
         />
       </div>
-      <Button
-        loading={accepting}
-        className="mb-[1.875rem] mt-5 w-fit"
-        disabled={!isScrolledToBottom || !canAccept}
-        onClick={onAcceptClick}
-      >
-        I’ve read the agreement
-      </Button>
+      {wasRead ? (
+        <div className="mb-[1.875rem] mt-5 h-[2.75rem] w-fit font-content text-sm text-main">
+          You have read the agreement.
+        </div>
+      ) : (
+        <Button
+          className="mb-[1.875rem] mt-5 w-[11.25rem]"
+          disabled={!isScrolledToBottom}
+          onClick={onRead}
+        >
+          I’ve read the agreement
+        </Button>
+      )}
     </div>
   );
 };

@@ -5,6 +5,9 @@ import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { PolicyScrollView } from "./policy-scroll-view";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export type PolicyManifest = {
   service: string;
@@ -20,15 +23,28 @@ export const PolicyDialog = ({
 }) => {
   const [open, setOpen] = useState(true);
   const [selected, setSelected] = useState(0);
-  const [agreedList, setAgreedList] = useState<number[]>([]);
+  const [readList, setReadList] = useState<number[]>([]);
+  const [allRead, setAllRead] = useState(false);
+  const [accepting, setAccepting] = useState(false);
+
+  const acceptMutation = api.user.acceptAgreements.useMutation({
+    onError: (error) => {
+      setAccepting(false);
+      toast.error(`Failed to send acknowledge: ${error.message}`);
+    },
+    onSuccess: () => {
+      setAccepting(false);
+      setOpen(false);
+    },
+  });
 
   const onPolicySelected = (idx: number) => {
     setSelected(idx);
   };
 
-  const onPolicyAgreed = () => {
-    const newAgreedList = [...agreedList, selected];
-    setAgreedList(newAgreedList);
+  const onPolicyRead = () => {
+    const newAgreedList = [...readList, selected];
+    setReadList(newAgreedList);
 
     const nextIdx = nextUnagreedManifest(selected, manifests, newAgreedList);
     if (nextIdx >= 0) {
@@ -41,8 +57,18 @@ export const PolicyDialog = ({
       return;
     }
 
-    // all policies are agreed
-    setOpen(false);
+    // all policies are read
+    setAllRead(true);
+  };
+
+  const onAcceptClick = () => {
+    setAccepting(true);
+    acceptMutation.mutate(
+      manifests.map((m) => ({
+        ...m,
+        acceptedAt: Date.now(),
+      })),
+    );
   };
 
   return (
@@ -63,7 +89,7 @@ export const PolicyDialog = ({
                 )}
                 onClick={() => onPolicySelected(idx)}
               >
-                {agreedList.includes(idx) ? (
+                {readList.includes(idx) ? (
                   <CircleInCheckIcon className="h-6 w-6 text-[#42BE25]" />
                 ) : (
                   <CircleInCheckIcon className="h-6 w-6 text-hint" />
@@ -72,13 +98,25 @@ export const PolicyDialog = ({
                 <p className="ml-[0.625rem]">{manifest.name}</p>
               </div>
             ))}
+
+            {allRead && (
+              <div className="flex justify-center">
+                <Button
+                  className="mt-8 w-[13.75rem]"
+                  loading={accepting}
+                  onClick={onAcceptClick}
+                >
+                  I agree to all the agreements
+                </Button>
+              </div>
+            )}
           </div>
 
           <PolicyScrollView
             key={selected}
             info={manifests[selected]!}
-            canAccept={!agreedList.includes(selected)}
-            onAgreed={onPolicyAgreed}
+            wasRead={readList.includes(selected)}
+            onRead={onPolicyRead}
           />
         </div>
       </AlertDialogContent>
@@ -89,10 +127,10 @@ export const PolicyDialog = ({
 const nextUnagreedManifest = (
   startIndex: number,
   manifests: PolicyManifest[],
-  agreedList: number[],
+  readList: number[],
 ) => {
   for (let i = startIndex + 1; i < manifests.length; i++) {
-    if (!agreedList.includes(i)) {
+    if (!readList.includes(i)) {
       return i;
     }
   }

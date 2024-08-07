@@ -1,6 +1,6 @@
 FROM node:18-slim as base
 WORKDIR /app
-COPY package*.json ./
+COPY package.json pnpm*.yaml ./
 
 FROM base as builder
 RUN apt-get update && \
@@ -8,7 +8,8 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-RUN npm ci
+RUN npm install -g pnpm \
+  && pnpm install --frozen-lockfile
 
 # set these only for build
 ENV DATABASE_URL=postgres://localhost:5432/database
@@ -27,7 +28,7 @@ ENV BU_INFO_LIST_URL=https://example.com/business-info-list.json
 
 # Build next.js app
 ADD . /app
-RUN npm run build
+RUN pnpm run build
 RUN npx tsup src/drizzle/seed.ts src/drizzle/migrate.ts src/daemons/email-notify-daemon.ts
 RUN ls -la dist
 
