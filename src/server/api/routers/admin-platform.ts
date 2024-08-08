@@ -14,8 +14,6 @@ interface PlatformWithUserRoles extends InferSelectModel<typeof Platforms> {
   UserRoles: UserRoleWithUser[];
 }
 
-// console.log(PlatformRelations, UserRoleRelations);
-
 export const adminPlatformRouter = createTRPCRouter({
   list: protectedProcedure.query(({ ctx }) => {
     if (!hasPermission("read:admin/platforms", ctx.session.permissions))
@@ -35,52 +33,46 @@ export const adminPlatformRouter = createTRPCRouter({
     });
   }),
 
-  getWithUserRoles: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .query(({ ctx, input }) => {
-      if (!hasPermission("read:admin/platforms", ctx.session.permissions))
-        throw new Error("You are not authorized to get platforms");
+  getWithUserRoles: protectedProcedure.input(z.object({ id: z.string() })).query(({ ctx, input }) => {
+    if (!hasPermission("read:admin/platforms", ctx.session.permissions))
+      throw new Error("You are not authorized to get platforms");
 
-      return ctx.db.query.Platforms.findFirst({
-        where: eq(Platforms.id, BigInt(input.id)),
-        with: {
-          UserRoles: {
-            with: { User: true },
-          },
+    return ctx.db.query.Platforms.findFirst({
+      where: eq(Platforms.id, BigInt(input.id)),
+      with: {
+        UserRoles: {
+          with: { User: true },
         },
-      }) as Promise<PlatformWithUserRoles | null>;
-    }),
+      },
+    }) as Promise<PlatformWithUserRoles | null>;
+  }),
 
-  create: protectedProcedure
-    .input(PlatformFormSchema)
-    .mutation(({ ctx, input }) => {
-      if (!hasPermission("write:admin/platforms", ctx.session.permissions))
-        throw new Error("You are not authorized to create platforms");
+  create: protectedProcedure.input(PlatformFormSchema).mutation(({ ctx, input }) => {
+    if (!hasPermission("write:admin/platforms", ctx.session.permissions))
+      throw new Error("You are not authorized to create platforms");
 
-      const { name, platformId, ...businessInfo } = input;
-      return ctx.db.insert(Platforms).values({
+    const { name, platformId, ...businessInfo } = input;
+    return ctx.db.insert(Platforms).values({
+      name,
+      platformId,
+      businessInfo,
+    });
+  }),
+
+  update: protectedProcedure.input(PlatformFormSchema.and(z.object({ id: z.bigint() }))).mutation(({ ctx, input }) => {
+    if (!hasPermission("write:admin/platforms", ctx.session.permissions))
+      throw new Error("You are not authorized to create platforms");
+
+    const { id, name, platformId, ...businessInfo } = input;
+    return ctx.db
+      .update(Platforms)
+      .set({
         name,
         platformId,
         businessInfo,
-      });
-    }),
-
-  update: protectedProcedure
-    .input(PlatformFormSchema.and(z.object({ id: z.bigint() })))
-    .mutation(({ ctx, input }) => {
-      if (!hasPermission("write:admin/platforms", ctx.session.permissions))
-        throw new Error("You are not authorized to create platforms");
-
-      const { id, name, platformId, ...businessInfo } = input;
-      return ctx.db
-        .update(Platforms)
-        .set({
-          name,
-          platformId,
-          businessInfo,
-        })
-        .where(eq(Platforms.id, id));
-    }),
+      })
+      .where(eq(Platforms.id, id));
+  }),
 
   addUser: protectedProcedure
     .input(UserFormSchema.and(z.object({ platformId: z.string() })))
@@ -131,8 +123,7 @@ export const adminPlatformRouter = createTRPCRouter({
       if (result.length === 0) {
         throw new Error("User creation failed");
       }
-      if (result[0]!.result !== "success")
-        throw new Error(String(result[0]!.result));
+      if (result[0]!.result !== "success") throw new Error(String(result[0]!.result));
     }),
 
   removeUser: protectedProcedure
@@ -143,10 +134,7 @@ export const adminPlatformRouter = createTRPCRouter({
 
       const userId = input.userId;
       const platformId = BigInt(input.platformId);
-      if (
-        input.userId === ctx.session.user.id &&
-        platformId === ctx.session.platform.id
-      ) {
+      if (input.userId === ctx.session.user.id && platformId === ctx.session.platform.id) {
         throw new Error("You cannot delete yourself");
       }
 

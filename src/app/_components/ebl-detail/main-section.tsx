@@ -7,6 +7,8 @@ import HistoryList from "./history-list";
 import ShippingProgress from "./shipping-progress";
 import { getServerAuthSession } from "@/server/auth";
 import { api } from "@/trpc/server";
+import { env } from "@/env";
+import PaymentRequestSection from "./payment-request-section";
 
 const actionMapping: Record<EBlAllowAction, string> = {
   UPDATE_DRAFT: "Updated draft",
@@ -26,14 +28,15 @@ const getBuLegalBusinessName = async (buId: string | undefined | null) => {
   return api.buinfo.legalBusinessName.query(buId);
 };
 
-const MainSection = async ({
-  ebl,
-  images,
-}: {
-  ebl: EBlRecordType;
-  images: ImageType[];
-}) => {
+const MainSection = async ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[] }) => {
   const session = await getServerAuthSession();
+  const eBlId = ebl.bl!.id!;
+  const paymentRequestRec = await api.paymentRequest.get.query({ eBlId });
+
+  const paymentRequest = paymentRequestRec
+    ? { ...paymentRequestRec, payerName: await getBuLegalBusinessName(paymentRequestRec.payerBusinessUnitId) }
+    : undefined;
+
   const history = await Promise.all(
     ebl.bl?.events?.map(async (event, index) => {
       let action = "";
@@ -90,14 +93,10 @@ const MainSection = async ({
         note = event.print_to_paper?.note ?? "";
       } else if (event.amendment_request) {
         action = actionMapping.REQUEST_AMEND;
-        actor = await getBuLegalBusinessName(
-          event.amendment_request.request_by,
-        );
+        actor = await getBuLegalBusinessName(event.amendment_request.request_by);
         actorName = event.amendment_request.metadata?.username ?? "";
         actedAt = event.amendment_request.request_at ?? "";
-        target = await getBuLegalBusinessName(
-          event.amendment_request.request_to,
-        );
+        target = await getBuLegalBusinessName(event.amendment_request.request_to);
         targetedAt = actedAt;
         note = event.amendment_request?.note ?? "";
         noteAltered = true;
@@ -113,15 +112,20 @@ const MainSection = async ({
         note,
         noteAltered,
       };
-    }) ?? []);
+    }) ?? [],
+  );
 
   return (
     <div className="mt-[1.875rem] flex flex-col gap-y-5">
       <FileDetails ebl={ebl} images={images} />
-      <ShippingProgress
-        ebl={ebl}
-        businessUnitId={String(session?.businessUnitId)}
-      />
+      {env.PANAMA_DEMO && (
+        <PaymentRequestSection
+          ebl={ebl}
+          businessUnitId={String(session?.businessUnitId)}
+          paymentRequest={paymentRequest}
+        />
+      )}
+      <ShippingProgress ebl={ebl} businessUnitId={String(session?.businessUnitId)} />
       <HistoryList history={history} />
     </div>
   );

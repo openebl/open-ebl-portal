@@ -22,6 +22,13 @@
       "when": 1722946700624,
       "tag": "0002_add-user-agreements",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1723107062246,
+      "tag": "0003_create-payment-requests",
+      "breakpoints": true
     }
   ]
 }

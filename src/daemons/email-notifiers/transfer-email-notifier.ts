@@ -3,19 +3,9 @@ import { currentStatus, eBlNo, lastEvent } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
 import { businessInfoList } from "@/server/fx/buinfo";
 import { type EmailNotifier } from ".";
-import {
-  activePlatformUsers,
-  sendStandardNotification,
-  touchEmailNotification,
-} from "./utils";
+import { activePlatformUsers, sendStandardNotification, touchEmailNotification } from "./utils";
 
-export const transferEmailNotifier: EmailNotifier = async ({
-  db,
-  service,
-  platform,
-  rec,
-  newStash,
-}) => {
+export const transferEmailNotifier: EmailNotifier = async ({ db, service, platform, rec, newStash }) => {
   if (!["TRANSFER", "SURRENDER"].includes(currentStatus(rec))) {
     return;
   }
@@ -32,23 +22,21 @@ export const transferEmailNotifier: EmailNotifier = async ({
   const number = eBlNo(rec);
   const sender = buList?.[event?.transfer?.transfer_by ?? ""]?.legalBusinessName ?? "";
 
-  await Promise.all([
-    touchEmailNotification({
-      db,
-      name: notificationName,
-      stashId: newStash.id!,
-    }),
+  await sendStandardNotification({
+    template: notificationName,
+    service,
+    receivers: (await activePlatformUsers(db, platform.id)) ?? [],
+    subject: `${number} has been issued to you`,
+    companyName: platform.name,
+    sender,
+    eBlNo: number ?? "",
+    note: event?.transfer?.note ?? "",
+    url: new URL(`/ebls/${rec.bl?.id}`, env.PORTAL_URL).toString(),
+  });
 
-    sendStandardNotification({
-      template: notificationName,
-      service,
-      receivers: (await activePlatformUsers(db, platform.id)) ?? [],
-      subject: `${number} has been issued to you`,
-      companyName: platform.name,
-      sender,
-      eBlNo: number ?? "",
-      note: event?.transfer?.note ?? "",
-      url: new URL(`/ebls/${rec.bl?.id}`, env.PORTAL_URL).toString(),
-    }),
-  ]);
+  await touchEmailNotification({
+    db,
+    name: notificationName,
+    stashId: newStash.id!,
+  });
 };

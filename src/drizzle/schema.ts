@@ -1,15 +1,17 @@
 import { relations } from "drizzle-orm";
 import {
-	bigint,
-	bigserial,
-	boolean,
-	integer,
-	jsonb,
-	pgTable,
-	text,
-	timestamp,
-	uniqueIndex,
-	varchar,
+  bigint,
+  bigserial,
+  boolean,
+  integer,
+  jsonb,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 export const _prisma_migrations = pgTable("_prisma_migrations", {
@@ -22,9 +24,7 @@ export const _prisma_migrations = pgTable("_prisma_migrations", {
     withTimezone: true,
     mode: "string",
   }),
-  started_at: timestamp("started_at", { withTimezone: true, mode: "string" })
-    .defaultNow()
-    .notNull(),
+  started_at: timestamp("started_at", { withTimezone: true, mode: "string" }).defaultNow().notNull(),
   applied_steps_count: integer("applied_steps_count").default(0).notNull(),
 });
 
@@ -37,13 +37,12 @@ export const VerificationTokens = pgTable(
   },
   (table) => {
     return {
-      identifier_token_key: uniqueIndex(
-        "VerificationToken_identifier_token_key",
-      ).using("btree", table.identifier, table.token),
-      token_key: uniqueIndex("VerificationToken_token_key").using(
+      identifier_token_key: uniqueIndex("VerificationToken_identifier_token_key").using(
         "btree",
+        table.identifier,
         table.token,
       ),
+      token_key: uniqueIndex("VerificationToken_token_key").using("btree", table.token),
     };
   },
 );
@@ -91,18 +90,16 @@ export const Accounts = pgTable(
     scope: text("scope"),
     id_token: text("id_token"),
     session_state: text("session_state"),
-    createdAt: timestamp("createdAt", { precision: 3, mode: "string" })
-      .defaultNow()
-      .notNull(),
-    updatedAt: timestamp("updatedAt", { precision: 3, mode: "string" })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp("createdAt", { precision: 3, mode: "string" }).defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt", { precision: 3, mode: "string" }).defaultNow().notNull(),
   },
   (table) => {
     return {
-      provider_providerAccountId_key: uniqueIndex(
-        "Account_provider_providerAccountId_key",
-      ).using("btree", table.provider, table.providerAccountId),
+      provider_providerAccountId_key: uniqueIndex("Account_provider_providerAccountId_key").using(
+        "btree",
+        table.provider,
+        table.providerAccountId,
+      ),
     };
   },
 );
@@ -120,10 +117,7 @@ export const Sessions = pgTable(
   },
   (table) => {
     return {
-      sessionToken_key: uniqueIndex("Session_sessionToken_key").using(
-        "btree",
-        table.sessionToken,
-      ),
+      sessionToken_key: uniqueIndex("Session_sessionToken_key").using("btree", table.sessionToken),
     };
   },
 );
@@ -148,9 +142,12 @@ export const UserRoles = pgTable(
   },
   (table) => {
     return {
-      userId_platformId_role_key: uniqueIndex(
-        "UserRole_userId_platformId_role_key",
-      ).using("btree", table.userId, table.platformId, table.role),
+      userId_platformId_role_key: uniqueIndex("UserRole_userId_platformId_role_key").using(
+        "btree",
+        table.userId,
+        table.platformId,
+        table.role,
+      ),
     };
   },
 );
@@ -168,10 +165,7 @@ export const Platforms = pgTable(
   },
   (table) => {
     return {
-      platformId_key: uniqueIndex("Platform_platformId_key").using(
-        "btree",
-        table.platformId,
-      ),
+      platformId_key: uniqueIndex("Platform_platformId_key").using("btree", table.platformId),
     };
   },
 );
@@ -179,12 +173,10 @@ export const Platforms = pgTable(
 export const DocImages = pgTable("DocImage", {
   id: bigserial("id", { mode: "bigint" }).primaryKey().notNull(),
   // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-  docFileId: bigint("docFileId", { mode: "bigint" })
-    .notNull()
-    .references(() => DocFiles.id, {
-      onDelete: "restrict",
-      onUpdate: "cascade",
-    }),
+  docFileId: bigint("docFileId", { mode: "bigint" }).references(() => DocFiles.id, {
+    onDelete: "restrict",
+    onUpdate: "cascade",
+  }),
   page: integer("page").notNull(),
   thumbnail: boolean("thumbnail").default(false).notNull(),
   storagekey: text("storagekey"),
@@ -199,10 +191,12 @@ export const DocFiles = pgTable(
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
     platformId: bigint("platformId", { mode: "bigint" }).notNull(),
     // You can use { mode: "bigint" } if numbers are exceeding js number limitations
-    uploaderId: bigint("uploaderId", { mode: "bigint" }).notNull().references(
-      () => Users.id,
-      { onDelete: "restrict", onUpdate: "cascade" },
-    ),
+    uploaderId: bigint("uploaderId", { mode: "bigint" })
+      .notNull()
+      .references(() => Users.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
     filename: text("filename"),
     storagekey: text("storagekey"),
     createdAt: timestamp("createdAt", { precision: 3 }).defaultNow().notNull(),
@@ -269,11 +263,45 @@ export const UserAgreements = pgTable(
         table.userId,
         table.service,
         table.name,
-				table.version,
+        table.version,
       ),
     };
   },
 );
+
+export const PaymentRequestStatusEnum = pgEnum("PaymentRequestStatus", [
+  "REQUESTED",
+  "PAID",
+  "CONFIRMED",
+  "REJECTED",
+  "CANCELLED",
+  "EXPIRED",
+]);
+
+export const PaymentRequests = pgTable("PaymentRequest", {
+  id: bigserial("id", { mode: "bigint" }).primaryKey().notNull(),
+  eBlId: text("eBlId").notNull(),
+  status: PaymentRequestStatusEnum("status").default("REQUESTED").notNull(),
+  requestPlatformId: bigint("requestPlatformId", { mode: "bigint" }),
+  requestUserId: bigint("requestUserId", { mode: "bigint" }),
+  requesterBusinessUnitId: text("requesterBusinessUnitId").notNull(),
+  payerBusinessUnitId: text("payerBusinessUnitId").notNull(),
+  invoiceAmount: numeric("invoiceAmount", { precision: 24, scale: 4 }).notNull(),
+  message: text("message").notNull(),
+
+  createdAt: timestamp("createdAt", { precision: 3 }).defaultNow().notNull(),
+});
+
+export const PaymentRequestDocs = pgTable("PaymentRequestDoc", {
+  id: bigserial("id", { mode: "bigint" }).primaryKey().notNull(),
+  paymentRequestId: bigint("paymentRequestId", { mode: "bigint" }).references(() => PaymentRequests.id, {
+    onDelete: "restrict",
+    onUpdate: "cascade",
+  }),
+  fileName: text("fileName").notNull(),
+  docId: text("docId"),
+  docType: text("docType").notNull(),
+});
 
 //---------------------------------------------------------------------
 // Relations
@@ -331,5 +359,24 @@ export const DocFileRelations = relations(DocFiles, ({ one, many }) => ({
   User: one(Users, {
     fields: [DocFiles.uploaderId],
     references: [Users.id],
+  }),
+}));
+
+export const PaymentRequestRelations = relations(PaymentRequests, ({ one, many }) => ({
+  RequestUser: one(Users, {
+    fields: [PaymentRequests.requestUserId],
+    references: [Users.id],
+  }),
+  RequestPlatform: one(Platforms, {
+    fields: [PaymentRequests.requestPlatformId],
+    references: [Platforms.id],
+  }),
+  PaymentRequestDocs: many(PaymentRequestDocs),
+}));
+
+export const PaymentRequestDocRelations = relations(PaymentRequestDocs, ({ one }) => ({
+  PaymentRequest: one(PaymentRequests, {
+    fields: [PaymentRequestDocs.paymentRequestId],
+    references: [PaymentRequests.id],
   }),
 }));

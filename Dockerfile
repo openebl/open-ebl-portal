@@ -1,6 +1,5 @@
 FROM node:18-slim as base
 WORKDIR /app
-COPY package.json pnpm*.yaml ./
 
 FROM base as builder
 RUN apt-get update && \
@@ -8,6 +7,7 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+COPY package.json pnpm*.yaml ./
 RUN npm install -g pnpm \
   && pnpm install --frozen-lockfile
 
@@ -33,7 +33,7 @@ RUN npx tsup src/drizzle/seed.ts src/drizzle/migrate.ts src/daemons/email-notify
 RUN ls -la dist
 
 # Build the production image
-FROM node:18-slim
+FROM base
 
 RUN apt-get update && \
   apt-get install -y libssl-dev dumb-init poppler-data poppler-utils && \

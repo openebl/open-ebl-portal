@@ -1,18 +1,7 @@
 import React from "react";
 
 import { env } from "@/env";
-import {
-  Column,
-  Container,
-  Font,
-  Head,
-  Html,
-  Img,
-  Preview,
-  Row,
-  Section,
-  Text,
-} from "@react-email/components";
+import { Column, Container, Font, Head, Html, Img, Preview, Row, Section, Text } from "@react-email/components";
 
 interface TempalteProps {
   headerUrl?: string;
@@ -22,24 +11,13 @@ interface TempalteProps {
   children: React.ReactNode;
 }
 
-export function NotificationTemplate({
-  headerUrl,
-  logoUrl,
-  preview,
-  title,
-  children,
-}: TempalteProps) {
+export function NotificationTemplate({ headerUrl, logoUrl, preview, title, children }: TempalteProps) {
   const { host } = new URL(env.PORTAL_URL);
   return (
     <Html>
       <Preview>{preview}</Preview>
       <Head key="head">
-        <Font
-          fontFamily="Arial"
-          fallbackFontFamily="Verdana"
-          fontWeight={400}
-          fontStyle="normal"
-        />
+        <Font fontFamily="Arial" fallbackFontFamily="Verdana" fontWeight={400} fontStyle="normal" />
       </Head>
       <Section
         style={{
@@ -96,9 +74,7 @@ export function NotificationTemplate({
         }}
       >
         {/* Main Content */}
-        <Container
-          style={{ width: "100%", maxWidth: "600px", padding: "30px" }}
-        >
+        <Container style={{ width: "100%", maxWidth: "600px", padding: "30px" }}>
           <Text
             style={{
               width: "100%",
@@ -130,11 +106,7 @@ export function NotificationTemplate({
         >
           <Row>
             <Column>
-              <Text
-                style={{ margin: "0", fontSize: "0.875rem", fontWeight: "600" }}
-              >
-                BlueX Open eBL
-              </Text>
+              <Text style={{ margin: "0", fontSize: "0.875rem", fontWeight: "600" }}>BlueX Open eBL</Text>
               <Text
                 style={{
                   margin: "0",
@@ -144,7 +116,7 @@ export function NotificationTemplate({
                   color: "#999",
                 }}
               >
-                { host }
+                {host}
               </Text>
               <Text
                 style={{
@@ -171,7 +143,7 @@ export function NotificationTemplate({
                   lineHeight: "1rem",
                 }}
               >
-                Copyright (C) 2024 BlueX Trade. All rights reserved.
+                Copyright (C) {new Date().getFullYear()} BlueX Trade. All rights reserved.
               </Text>
             </Column>
             <Column>{/* TODO: Add social media links */}</Column>
