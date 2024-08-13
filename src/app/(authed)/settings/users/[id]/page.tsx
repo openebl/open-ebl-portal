@@ -1,7 +1,7 @@
 "use server";
 
 import UserEditSection from "@/app/_components/settings/user-edit-section";
-import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
+import LeftArrowIcon from "@/app/_icons/left-arrow-icon.svg";
 import { getServerAuthSession } from "@/server/auth";
 import { hasPermission } from "@/server/permissions";
 import { api } from "@/trpc/server";
@@ -12,7 +12,7 @@ import { redirect } from "next/navigation";
 export default async function Page({ params }: { params: { id: string } }) {
   const session = await getServerAuthSession();
   if (!session) return null;
-  if (!hasPermission('read:settings/users', session.permissions)) {
+  if (!hasPermission("read:settings/users", session.permissions)) {
     redirect("/settings/user-info");
   }
 

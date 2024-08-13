@@ -4,7 +4,7 @@ import { type Session } from "next-auth";
 import Link from "next/link";
 import { groupBy } from "remeda";
 
-import BlueXLogo from "@/app/_icons/bluex-logo";
+import BlueXLogo from "@/app/_icons/bluex-logo.svg";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,

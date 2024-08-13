@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import MakePaymentDialog from "./make-payment-dialog";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
-import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon";
+import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon.svg";
 import { ConfirmationDialog } from "../dialogs/confirmation-dialog";
 
 interface PaymentRequest {

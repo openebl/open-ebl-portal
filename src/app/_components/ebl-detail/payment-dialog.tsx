@@ -1,7 +1,7 @@
 import { ConfirmationDialog, type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
-import AccomplishDialogIcon from "@/app/_icons/accomplish-dialog-icon";
-import DocIcon from "@/app/_icons/doc-icon";
-import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
+import AccomplishDialogIcon from "@/app/_icons/accomplish-dialog-icon.svg";
+import DocIcon from "@/app/_icons/doc-icon.svg";
+import PaperPlaneIcon from "@/app/_icons/paper-plane-icon.svg";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

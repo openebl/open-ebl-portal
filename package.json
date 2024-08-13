@@ -98,6 +98,7 @@
     "@storybook/react": "^8.2.7",
     "@storybook/test": "^8.2.7",
     "@storybook/testing-library": "^0.2.2",
+    "@svgr/webpack": "^8.1.0",
     "@types/eslint": "^8.56.11",
     "@types/node": "^18.19.43",
     "@types/nodemailer": "^6.4.15",

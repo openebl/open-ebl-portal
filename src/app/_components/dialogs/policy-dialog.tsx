@@ -1,6 +1,6 @@
 "use client";
 
-import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon";
+import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon.svg";
 import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -16,11 +16,7 @@ export type PolicyManifest = {
   content: string;
 };
 
-export const PolicyDialog = ({
-  manifests,
-}: {
-  manifests: PolicyManifest[];
-}) => {
+export const PolicyDialog = ({ manifests }: { manifests: PolicyManifest[] }) => {
   const [open, setOpen] = useState(true);
   const [selected, setSelected] = useState(0);
   const [readList, setReadList] = useState<number[]>([]);
@@ -76,9 +72,7 @@ export const PolicyDialog = ({
       <AlertDialogContent className="max-w-fit font-content">
         <div className="flex h-[50rem] w-[73.75rem]">
           <div className="flex h-full w-[17.5rem] flex-none flex-col rounded-l-lg bg-background py-12">
-            <h3 className="mb-3 px-7 text-base font-semibold text-main">
-              BlueX Open eBL Agreements
-            </h3>
+            <h3 className="mb-3 px-7 text-base font-semibold text-main">BlueX Open eBL Agreements</h3>
 
             {manifests.map((manifest, idx) => (
               <div
@@ -100,12 +94,7 @@ export const PolicyDialog = ({
             ))}
 
             <div className="flex justify-center">
-              <Button
-                className="mt-8 w-[13.75rem]"
-                disabled={!allRead}
-                loading={accepting}
-                onClick={onAcceptClick}
-              >
+              <Button className="mt-8 w-[13.75rem]" disabled={!allRead} loading={accepting} onClick={onAcceptClick}>
                 I agree to all the agreements
               </Button>
             </div>
@@ -123,11 +112,7 @@ export const PolicyDialog = ({
   );
 };
 
-const nextUnagreedManifest = (
-  startIndex: number,
-  manifests: PolicyManifest[],
-  readList: number[],
-) => {
+const nextUnagreedManifest = (startIndex: number, manifests: PolicyManifest[], readList: number[]) => {
   for (let i = startIndex + 1; i < manifests.length; i++) {
     if (!readList.includes(i)) {
       return i;

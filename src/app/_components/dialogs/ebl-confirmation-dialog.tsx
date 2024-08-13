@@ -1,17 +1,17 @@
-import AccomplishDialogIcon from "@/app/_icons/accomplish-dialog-icon";
-import PaperPlaneIcon from "@/app/_icons/paper-plane-icon";
-import PrintToPaperIcon from "@/app/_icons/print-to-paper-icon";
+import AccomplishDialogIcon from "@/app/_icons/accomplish-dialog-icon.svg";
+import PaperPlaneIcon from "@/app/_icons/paper-plane-icon.svg";
+import PrintToPaperIcon from "@/app/_icons/print-to-paper-icon.svg";
 import { type EBlAllowAction } from "@/types/ebl";
 import { type DialogState, ConfirmationDialog } from "./confirmation-dialog";
 
-export type DialogActionType = EBlAllowAction | "ISSUE" | "SAVE_DRAFT"
+export type DialogActionType = EBlAllowAction | "ISSUE" | "SAVE_DRAFT";
 
 const generateDialogContent = (actionType: DialogActionType, nextPartyName: string) => {
-  let confirmTitle = '';
-  let confirmMessage = '';
-  let confirmButton = 'Ok';
-  let completedIcon = <PaperPlaneIcon />
-  let completedMessage = ''
+  let confirmTitle = "";
+  let confirmMessage = "";
+  let confirmButton = "Ok";
+  let completedIcon = <PaperPlaneIcon />;
+  let completedMessage = "";
 
   switch (actionType) {
     case "ISSUE":
@@ -36,14 +36,14 @@ const generateDialogContent = (actionType: DialogActionType, nextPartyName: stri
     case "ACCOMPLISH":
       confirmTitle = "Are you sure you want to accomplish this eBL?";
       completedMessage = "The eBL has been accomplished";
-      completedIcon = <AccomplishDialogIcon />
+      completedIcon = <AccomplishDialogIcon />;
       break;
     case "PRINT":
       confirmTitle = "Are you sure you want to print this eBL to paper?";
       confirmMessage = "The whole transferring process will be terminated.";
       confirmButton = "Print to Paper";
       completedMessage = "The eBL has been printed to paper.";
-      completedIcon = <PrintToPaperIcon />
+      completedIcon = <PrintToPaperIcon />;
       break;
     case "RETURN":
       confirmTitle = `Are you sure you want to return the eBL to ${nextPartyName}?`;
@@ -75,11 +75,11 @@ const generateDialogContent = (actionType: DialogActionType, nextPartyName: stri
       icon: completedIcon,
       message: completedMessage,
       confirmButton: "OK",
-    }
-  }
+    },
+  };
 
   return content;
-}
+};
 
 export const EBlConfirmationDialog = ({
   open,

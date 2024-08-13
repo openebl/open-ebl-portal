@@ -1,6 +1,6 @@
 "use server";
 
-import PenIcon from "@/app/_icons/pen-icon";
+import PenIcon from "@/app/_icons/pen-icon.svg";
 import { type UserRoleType, userRoleMapping } from "@/types/user";
 import Link from "next/link";
 
@@ -10,26 +10,14 @@ interface UserInfoProps {
   roles: UserRoleType[];
 }
 
-function UserInfoItem({
-  label,
-  value,
-  separator,
-}: {
-  label: string;
-  value: string;
-  separator?: boolean;
-}) {
+function UserInfoItem({ label, value, separator }: { label: string; value: string; separator?: boolean }) {
   return (
     <div className="flex w-full flex-col pl-7 pr-3.5 pt-5">
       <div className="flex gap-5">
         <div className="my-auto w-1/3 max-w-[21rem]">{label}</div>
         <div className="font-semibold">{value}</div>
       </div>
-      {separator ? (
-        <div className="mt-5 h-px shrink-0 bg-border-light" />
-      ) : (
-        <div className="mt-5 h-px shrink-0" />
-      )}
+      {separator ? <div className="mt-5 h-px shrink-0 bg-border-light" /> : <div className="mt-5 h-px shrink-0" />}
     </div>
   );
 }
@@ -47,10 +35,7 @@ const UserInfoPanel = ({ name, email, roles }: UserInfoProps) => {
       </div>
       <UserInfoItem label="Name" value={name} separator={true} />
       <UserInfoItem label="Email Address" separator={true} value={email} />
-      <UserInfoItem
-        label="Role"
-        value={roles.map((r) => userRoleMapping[r]).join(" / ")}
-      />
+      <UserInfoItem label="Role" value={roles.map((r) => userRoleMapping[r]).join(" / ")} />
     </div>
   );
 };
