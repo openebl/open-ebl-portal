@@ -23,6 +23,7 @@ ENV S3_BUCKET=example-bucket
 ENV BU_SERVER_URL="http://localhost:8080"
 ENV BU_SERVER_API_KEY=key
 ENV PORTAL_URL="http://localhost:3000"
+ENV BLUEXPAY_URL="http://localhost:3000"
 ENV SYSADMIN_EMAIL=admin@example.com
 ENV BU_INFO_LIST_URL=https://example.com/business-info-list.json
 
@@ -30,10 +31,9 @@ ENV BU_INFO_LIST_URL=https://example.com/business-info-list.json
 ADD . /app
 RUN pnpm run build
 RUN npx tsup src/drizzle/seed.ts src/drizzle/migrate.ts src/daemons/email-notify-daemon.ts
-RUN ls -la dist
 
 # Build the production image
-FROM base
+FROM node:18-slim
 
 RUN apt-get update && \
   apt-get install -y libssl-dev dumb-init poppler-data poppler-utils && \

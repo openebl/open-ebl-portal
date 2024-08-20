@@ -1,3 +1,5 @@
+"use client";
+
 import { ConfirmationDialog } from "@/app/_components/dialogs/confirmation-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { env } from "@/env";
 import { cn, joinUrls } from "@/lib/utils";
 import { type EBlRecordType } from "@/types/ebl";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";

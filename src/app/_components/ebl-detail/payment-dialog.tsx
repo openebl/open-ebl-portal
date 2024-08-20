@@ -1,3 +1,5 @@
+"use client";
+
 import { ConfirmationDialog, type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
 import AccomplishDialogIcon from "@/app/_icons/accomplish-dialog-icon.svg";
 import DocIcon from "@/app/_icons/doc-icon.svg";
@@ -22,10 +24,12 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-const PaymentDialog = ({ open, ebl, onClose }: { open: boolean; ebl: EBlRecordType; onClose: () => void }) => {
+if (typeof window !== "undefined") {
   dotSpinner.register();
-  const router = useRouter();
+}
 
+const PaymentDialog = ({ open, ebl, onClose }: { open: boolean; ebl: EBlRecordType; onClose: () => void }) => {
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "scanning" | "confirming">("idle");
   const [message, setMessage] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);

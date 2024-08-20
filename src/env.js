@@ -29,7 +29,7 @@ export const env = createEnv({
     BU_INFO_LIST_URL: z.string().url(),
     AGREEMENT_MANIFEST_URL: z.string().url().default("https://www.bluextrade.com/agreements-manifest.json"),
     PANAMA_DEMO: z.boolean().default(false), // If true, the app will enable all the Panama demo feature
-    BLUEXPAY_URL: z.string().url().default("http://localhost:3002"),
+    BLUEXPAY_URL: z.string().url(),
   },
 
   /**
@@ -38,7 +38,7 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_BLUEXPAY_URL2: z.string().url().default("http://localhost:3002"),
+    // NEXT_PUBLIC_BLUEXPAY_URL2: z.string().url(),
   },
 
   /**
