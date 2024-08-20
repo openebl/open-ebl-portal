@@ -3,6 +3,7 @@
 import ErrorPage from "@/app/_components/ebl-detail/error-page";
 import MainSection from "@/app/_components/ebl-detail/main-section";
 import LeftArrowIcon from "@/app/_icons/left-arrow-icon.svg";
+import { env } from "@/env";
 import { latestBillOfLadingEvent } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
 import { api } from "@/trpc/server";

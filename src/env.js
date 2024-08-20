@@ -29,6 +29,7 @@ export const env = createEnv({
     BU_INFO_LIST_URL: z.string().url(),
     AGREEMENT_MANIFEST_URL: z.string().url().default("https://www.bluextrade.com/agreements-manifest.json"),
     PANAMA_DEMO: z.boolean().default(false), // If true, the app will enable all the Panama demo feature
+    BLUEXPAY_URL: z.string().url().default("http://localhost:3002"),
   },
 
   /**
@@ -37,7 +38,7 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_BLUEXPAY_URL: z.string().url().default("http://localhost:3002"),
+    // NEXT_PUBLIC_BLUEXPAY_URL2: z.string().url().default("http://localhost:3002"),
   },
 
   /**
@@ -60,7 +61,7 @@ export const env = createEnv({
     BU_INFO_LIST_URL: process.env.BU_INFO_LIST_URL,
     AGREEMENT_MANIFEST_URL: process.env.AGREEMENT_MANIFEST_URL,
     PANAMA_DEMO: process.env.PANAMA_DEMO === "true", // If true, the app will enable all the Panama demo feature
-    NEXT_PUBLIC_BLUEXPAY_URL: process.env.BLUEXPAY_URL, // If true, the app will enable all the Panama demo feature
+    BLUEXPAY_URL: process.env.BLUEXPAY_URL, // If true, the app will enable all the Panama demo feature
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

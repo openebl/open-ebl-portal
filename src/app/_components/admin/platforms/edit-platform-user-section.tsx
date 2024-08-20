@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { ConfirmationDialog } from "@/app/_components/dialogs/confirmation-dialog";
 import ThreeDotIcon from "@/app/_icons/three-dot-icon.svg";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { api } from "@/trpc/react";
 import { UserFormSchema, UserRoleSchema, userRoleMapping, type UserFormType } from "@/types/user";
 import { toast } from "sonner";
-import { ConfirmationDialog } from "@/app/_components/dialogs/confirmation-dialog";
 import AddUserPanel from "./add-user-panel";
 
 const UserActionMenu = ({

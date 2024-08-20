@@ -123,6 +123,7 @@ const MainSection = async ({ ebl, images }: { ebl: EBlRecordType; images: ImageT
           ebl={ebl}
           businessUnitId={String(session?.businessUnitId)}
           paymentRequest={paymentRequest}
+          bxpayUrl={env.BLUEXPAY_URL}
         />
       )}
       <ShippingProgress ebl={ebl} businessUnitId={String(session?.businessUnitId)} />

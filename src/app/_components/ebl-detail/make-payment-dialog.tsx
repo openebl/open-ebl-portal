@@ -14,7 +14,17 @@ import { type EBlRecordType } from "@/types/ebl";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useState } from "react";
 
-const MakePaymentDialog = ({ open, ebl, onClose }: { open: boolean; ebl: EBlRecordType; onClose: () => void }) => {
+const MakePaymentDialog = ({
+  open,
+  ebl,
+  bxpayUrl,
+  onClose,
+}: {
+  open: boolean;
+  ebl: EBlRecordType;
+  bxpayUrl: string;
+  onClose: () => void;
+}) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
 
@@ -70,7 +80,7 @@ const MakePaymentDialog = ({ open, ebl, onClose }: { open: boolean; ebl: EBlReco
         }}
         onConfirm={() => {
           setConfirmOpen(false);
-          window.open(joinUrls(env.NEXT_PUBLIC_BLUEXPAY_URL, `/payables/unpaid/${ebl.bl?.id}`), "_blank");
+          window.open(joinUrls(bxpayUrl, `/payables/unpaid/${ebl.bl?.id}`), "_blank");
         }}
       />
     </>

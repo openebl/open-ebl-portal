@@ -28,9 +28,11 @@ const PaymentRequestSection = ({
   ebl,
   businessUnitId,
   paymentRequest,
+  bxpayUrl,
 }: {
   ebl: EBlRecordType;
   businessUnitId: string | undefined;
+  bxpayUrl: string;
   paymentRequest?: PaymentRequest;
 }) => {
   const router = useRouter();
@@ -75,7 +77,12 @@ const PaymentRequestSection = ({
 
       {openPayment && <PaymentDialog open={openPayment} ebl={ebl} onClose={() => setOpenPayment(false)} />}
       {openMakePayment && (
-        <MakePaymentDialog open={openMakePayment} ebl={ebl} onClose={() => setOpenMakePayment(false)} />
+        <MakePaymentDialog
+          open={openMakePayment}
+          ebl={ebl}
+          bxpayUrl={bxpayUrl}
+          onClose={() => setOpenMakePayment(false)}
+        />
       )}
       {openConfirmPayment && (
         <ConfirmationDialog
