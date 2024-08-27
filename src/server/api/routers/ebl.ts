@@ -46,12 +46,16 @@ export const eBlRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
+      if (!ctx.session.businessUnitId || ctx.session.businessUnitId.length < 32) {
+        return { records: [], total: 0 } as EBlRecordListType
+      }
+
       const res = await fetch(`${env.BU_SERVER_URL}/ebl?offset=${input.offset}&limit=${input.limit}&status=${input.filter}&report=true`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
+          'X-Business-Unit-ID': String(ctx.session.businessUnitId),
         },
         cache: 'no-store'
       })
@@ -66,7 +70,7 @@ export const eBlRouter = createTRPCRouter({
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
+          'X-Business-Unit-ID': String(ctx.session.businessUnitId),
         },
         cache: 'no-store'
       })
@@ -85,7 +89,7 @@ export const eBlRouter = createTRPCRouter({
           'accept': 'application/json',
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
+          'X-Business-Unit-ID': String(ctx.session.businessUnitId),
         },
         body: JSON.stringify(request),
         cache: 'no-store'
@@ -110,7 +114,7 @@ export const eBlRouter = createTRPCRouter({
           'accept': 'application/json',
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
+          'X-Business-Unit-ID': String(ctx.session.businessUnitId),
         },
         body: JSON.stringify(request),
         cache: 'no-store'
@@ -135,7 +139,7 @@ export const eBlRouter = createTRPCRouter({
           'accept': 'application/json',
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': String(ctx.session.platform.platformId),
+          'X-Business-Unit-ID': String(ctx.session.businessUnitId),
         },
         body: JSON.stringify(request),
         cache: 'no-store'
@@ -151,48 +155,48 @@ export const eBlRouter = createTRPCRouter({
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
       const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
-      return await performEBlAction({ request, action: 'transfer', business_unit_id: String(ctx.session.platform.platformId) })
+      return await performEBlAction({ request, action: 'transfer', business_unit_id: String(ctx.session.businessUnitId) })
     }),
 
   return: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
       const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
-      return await performEBlAction({ request, action: 'return', business_unit_id: String(ctx.session.platform.platformId) })
+      return await performEBlAction({ request, action: 'return', business_unit_id: String(ctx.session.businessUnitId) })
     }),
 
   surrender: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
       const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
-      return await performEBlAction({ request, action: 'surrender', business_unit_id: String(ctx.session.platform.platformId) })
+      return await performEBlAction({ request, action: 'surrender', business_unit_id: String(ctx.session.businessUnitId) })
     }),
 
   accomplish: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
       const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
-      return await performEBlAction({ request, action: 'accomplish', business_unit_id: String(ctx.session.platform.platformId) })
+      return await performEBlAction({ request, action: 'accomplish', business_unit_id: String(ctx.session.businessUnitId) })
     }),
 
   print_to_paper: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
       const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
-      return await performEBlAction({ request, action: 'print_to_paper', business_unit_id: String(ctx.session.platform.platformId) })
+      return await performEBlAction({ request, action: 'print_to_paper', business_unit_id: String(ctx.session.businessUnitId) })
     }),
 
   amendment_request: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
       const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
-      return await performEBlAction({ request, action: 'amendment_request', business_unit_id: String(ctx.session.platform.platformId) })
+      return await performEBlAction({ request, action: 'amendment_request', business_unit_id: String(ctx.session.businessUnitId) })
     }),
 
   delete: protectedProcedure
     .input(EBlActionSchemaWithID.omit({ metadata: true, authentication_id: true }))
     .mutation(async ({ ctx, input }) => {
       const request = { ...input, metadata: { username: ctx.session.user.name ?? '' }, authentication_id: ctx.session.authenticationId }
-      return await performEBlAction({ request, action: 'delete', business_unit_id: String(ctx.session.platform.platformId) })
+      return await performEBlAction({ request, action: 'delete', business_unit_id: String(ctx.session.businessUnitId) })
     }),
 });

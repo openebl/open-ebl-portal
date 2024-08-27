@@ -1,7 +1,7 @@
 "use server";
 
 import UserInfoEditPanel from "@/app/_components/settings/user-info-edit-panel";
-import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
+import LeftArrowIcon from "@/app/_icons/left-arrow-icon.svg";
 import { getServerAuthSession } from "@/server/auth";
 import Link from "next/link";
 
@@ -18,10 +18,7 @@ export default async function Page() {
         Back
       </Link>
 
-      <UserInfoEditPanel
-        name={session?.user.name ?? ""}
-        email={session?.user?.email ?? ""}
-      />
+      <UserInfoEditPanel name={session?.user.name ?? ""} email={session?.user?.email ?? ""} />
     </div>
   );
 }

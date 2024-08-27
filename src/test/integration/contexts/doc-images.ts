@@ -1,29 +1,28 @@
-import { type DocFile } from "@prisma/client";
+import { type InferSelectModel } from "drizzle-orm";
 import { type TestDbType } from "../fixtures/db-fixtures";
+import { type DocFiles, DocImages } from "@/drizzle/schema";
 
 export const withDocImages = ({
   db,
   docFile,
 }: {
   db: TestDbType;
-  docFile: DocFile;
+  docFile: InferSelectModel<typeof DocFiles>;
 }) => {
-  return db.docImage.createMany({
-    data: [1, 2, 3]
-      .map((idx) => [
-        {
-          docFileId: docFile.id,
-          page: idx,
-          thumbnail: false,
-          storagekey: `mockimg-${idx}`,
-        },
-        {
-          docFileId: docFile.id,
-          page: idx,
-          thumbnail: true,
-          storagekey: `mockthu-${idx}`,
-        },
-      ])
-      .flat(),
-  });
+  const images = [1, 2, 3].map((idx) => [
+    {
+      docFileId: docFile.id,
+      page: idx,
+      thumbnail: false,
+      storagekey: `mockimg-${idx}`,
+    },
+    {
+      docFileId: docFile.id,
+      page: idx,
+      thumbnail: true,
+      storagekey: `mockthu-${idx}`,
+    },
+  ]).flat();
+
+  return db.insert(DocImages).values(images).returning().execute()
 };

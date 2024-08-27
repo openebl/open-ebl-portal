@@ -3,25 +3,25 @@ import NodeCache from "node-cache";
 
 import { env } from "@/env";
 import { getLogger } from "@/lib/logger";
-import { type Platform } from "@prisma/client";
 import { type paths } from "@/types/bu-scheme";
 
 const memoryCache = new NodeCache({stdTTL: 60 * 60, checkperiod: 10 * 60, maxKeys: 1000});
 
-export const authenticationId: (
-  platform: Platform,
-) => Promise<string | null> = async (platform) => {
-  if (!platform.platformId || platform.platformId.length === 0)
+export const authenticationId: (platform:{
+  id: bigint, // platform id
+  platformId: string | null, // platform businessUnitId
+}) => Promise<string | null> = async ({id, platformId}) => {
+  if (!platformId || platformId.length === 0)
     return Promise.resolve(null);
 
-  const authId = memoryCache.get<string>(platform.platformId);
+  const authId = memoryCache.get<string>(platformId);
   if (authId) return authId;
 
   getLogger().info(
-    `Fetching active authentication for platform ${platform.id}`,
+    `Fetching active authentication for platform ${id}`,
   );
 
-  const latestAuthId = await fetchAutheticationId(platform.platformId).catch(
+  const latestAuthId = await fetchAutheticationId(platformId).catch(
     (err) => {
       getLogger().error(`cannot fetch active authentication: ${err}`);
       return '';
@@ -30,8 +30,8 @@ export const authenticationId: (
 
   if (latestAuthId.length === 0) return null;
 
-  getLogger().info(`Got active authentication for platform ${platform.id}`);
-  memoryCache.set(platform.platformId, latestAuthId, 60 * 60);
+  getLogger().info(`Got active authentication for platform ${id}`);
+  memoryCache.set(platformId, latestAuthId, 60 * 60);
 
   return latestAuthId;
 };

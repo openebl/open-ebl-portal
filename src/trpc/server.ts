@@ -17,6 +17,7 @@ import { createTRPCContext } from "@/server/api/trpc";
 import { SmtpEmailService } from "@/server/services/email-service";
 import { s3StorageService } from "@/server/services/storage-service";
 import { transformer } from "./shared";
+import { EBlAgreementManifestService } from "@/server/services/agreement-manifest-service";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -31,6 +32,7 @@ const createContext = cache(() => {
     emailService: SmtpEmailService,
     storageService: s3StorageService,
     docExtraction: bxDocExtraction,
+    agreementManifest: EBlAgreementManifestService,
   });
 });
 

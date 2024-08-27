@@ -5,18 +5,28 @@ const config: StorybookConfig = {
     "../src/**/*.mdx",
     "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"
   ],
+
   "addons": [
     "@storybook/addon-links",
     "@storybook/addon-essentials",
     "@storybook/addon-onboarding",
-    "@storybook/addon-interactions"
+    "@storybook/addon-interactions",
+    "@chromatic-com/storybook"
   ],
+
   "framework": {
     "name": "@storybook/nextjs",
     "options": {}
   },
-  "docs": {
-    "autodocs": "tag"
+
+  "features": {
+    experimentalRSC: true,
+  },
+
+  "docs": {},
+
+  typescript: {
+    reactDocgen: "react-docgen-typescript"
   }
 };
 export default config;

@@ -1,22 +1,27 @@
-import { type Platform, type User } from "@prisma/client";
+import { DocFiles, type Platforms, type Users } from "@/drizzle/schema";
+import type { InferSelectModel } from "drizzle-orm";
 import { type TestDbType } from "../fixtures/db-fixtures";
 
-export const withDocFile = ({
+export const withDocFile = async ({
   db,
   platform,
   user,
 }: {
   db: TestDbType;
-  platform: Platform;
-  user: User;
+  platform: InferSelectModel<typeof Platforms>;
+  user: InferSelectModel<typeof Users>;
 }) => {
-  return db.docFile.create({
-    data: {
-      uuid: 'mockuuid',
+  const [docFile] = await db
+    .insert(DocFiles)
+    .values({
+      uuid: "mockuuid",
       platformId: platform.id,
       uploaderId: user.id,
       filename: "mockfile",
       storagekey: "mockkey",
-    },
-  });
+    })
+    .returning()
+    .execute();
+
+  return docFile!;
 };

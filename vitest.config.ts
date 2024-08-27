@@ -12,11 +12,11 @@ const vitestConfig = ({ mode }: { mode: string }) => {
       alias: {
         '@/': fileURLToPath(new URL('./src/', import.meta.url))
       },
-      maxWorkers: 4,
+      maxWorkers: 3,
       minWorkers: 2,
       poolOptions: {
         forks: {
-          maxForks: 4,
+          maxForks: 3,
           minForks: 2,
         }
       }

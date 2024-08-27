@@ -1,13 +1,16 @@
 import { type DatabaseType } from "@/server/db";
 import { type EmailServiceType } from "@/server/services/email-service";
 import { type components } from "@/types/bu-scheme";
-import { type EBlStash, type Platform } from "@prisma/client";
 import { transferEmailNotifier } from "./transfer-email-notifier";
 import { returnEmailNotifier } from "./return-email-notifier";
 import { accomplishEmailNotifier } from "./accomplish-email-notifier";
 import { amendRequestEmailNotifier } from "./amend-request-email-notifier";
+import type { EBlStashes, Platforms } from "@/drizzle/schema";
 
 type EBlRecordType = components["schemas"]["BillOfLadingRecord"];
+
+type Platform = typeof Platforms.$inferSelect;
+type EBlStash = typeof EBlStashes.$inferInsert;
 
 export type EmailNotifier = (args: {
   db: DatabaseType;

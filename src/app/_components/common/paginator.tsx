@@ -1,32 +1,22 @@
 "use client";
 
-import EllipsisIcon from "@/app/_icons/ellipsis-icon";
-import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
-import RightArrowIcon from "@/app/_icons/right-arrow-icon";
+import EllipsisIcon from "@/app/_icons/ellipsis-icon.svg";
+import LeftArrowIcon from "@/app/_icons/left-arrow-icon.svg";
+import RightArrowIcon from "@/app/_icons/right-arrow-icon.svg";
 import { cn } from "@/lib/utils";
 
-const PagePrev = ({
-  currentPage,
-  onClick,
-}: {
-  currentPage: number;
-  onClick: (page: number) => void;
-}) => {
+const PagePrev = ({ currentPage, onClick }: { currentPage: number; onClick: (page: number) => void }) => {
   const isActive = currentPage > 1;
   return (
     <div
       className={cn(
         "mr-5 flex select-none",
-        isActive
-          ? "cursor-pointer text-secondary1"
-          : "cursor-not-allowed text-border-dark",
+        isActive ? "cursor-pointer text-secondary1" : "cursor-not-allowed text-border-dark",
       )}
       onClick={() => isActive && onClick(currentPage - 1)}
     >
       <LeftArrowIcon />
-      <div className="my-auto self-center text-center text-xs font-semibold leading-5">
-        Prev
-      </div>
+      <div className="my-auto self-center text-center text-xs font-semibold leading-5">Prev</div>
     </div>
   );
 };
@@ -45,15 +35,11 @@ const PageNext = ({
     <div
       className={cn(
         "ml-5 flex select-none",
-        isActive
-          ? "cursor-pointer text-secondary1"
-          : "cursor-not-allowed text-border-dark",
+        isActive ? "cursor-pointer text-secondary1" : "cursor-not-allowed text-border-dark",
       )}
       onClick={() => isActive && onClick(currentPage + 1)}
     >
-      <div className="my-auto self-center text-center text-xs font-semibold leading-5">
-        Next
-      </div>
+      <div className="my-auto self-center text-center text-xs font-semibold leading-5">Next</div>
       <RightArrowIcon />
     </div>
   );
@@ -69,9 +55,7 @@ const PageNumber = ({
   onClick: (page: number) => void;
 }) => {
   const classNames =
-    page === currentPage
-      ? "bg-main text-white"
-      : "border border-solid border-border-dark text-border-dark";
+    page === currentPage ? "bg-main text-white" : "border border-solid border-border-dark text-border-dark";
 
   return (
     <span
@@ -101,32 +85,18 @@ const PageItem = ({
     return <PagePrev currentPage={currentPage} onClick={onClick} />;
   }
   if (page === "next") {
-    return (
-      <PageNext
-        totalPages={totalPages}
-        currentPage={currentPage}
-        onClick={onClick}
-      />
-    );
+    return <PageNext totalPages={totalPages} currentPage={currentPage} onClick={onClick} />;
   }
   if (page === "start-ellipsis" || page === "end-ellipsis") {
     return <EllipsisIcon className="h-4 w-4 cursor-default text-border-dark" />;
   }
   if (typeof page === "number") {
-    return (
-      <PageNumber page={page} currentPage={currentPage} onClick={onClick} />
-    );
+    return <PageNumber page={page} currentPage={currentPage} onClick={onClick} />;
   }
   return null;
 };
 
-const pagenationItems = ({
-  totalPages,
-  currentPage,
-}: {
-  totalPages: number;
-  currentPage: number;
-}) => {
+const pagenationItems = ({ totalPages, currentPage }: { totalPages: number; currentPage: number }) => {
   const boundaryCount = 1;
   const siblingCount = 1;
 
@@ -136,10 +106,7 @@ const pagenationItems = ({
   };
 
   const startPages = range(1, Math.min(boundaryCount, totalPages));
-  const endPages = range(
-    Math.max(totalPages - boundaryCount + 1, boundaryCount + 1),
-    totalPages,
-  );
+  const endPages = range(Math.max(totalPages - boundaryCount + 1, boundaryCount + 1), totalPages);
 
   const siblingsStart = Math.max(
     Math.min(
@@ -213,17 +180,11 @@ const Paginator = ({
   return (
     <div className="border-bolder-light flex items-center justify-center rounded-[58px] border border-solid bg-white px-5 py-[11px] shadow-xl">
       <div className="my-auto grow self-center whitespace-nowrap text-xs font-semibold leading-5 text-main">
-        {(currentPage-1) * perPage + 1} to {Math.min(currentPage * perPage, total)} of {total} entries
+        {(currentPage - 1) * perPage + 1} to {Math.min(currentPage * perPage, total)} of {total} entries
       </div>
       <div className="mx-5 flex items-center justify-start gap-1.5">
         {pagenationItems({ totalPages, currentPage }).map((page) => (
-          <PageItem
-            key={page}
-            page={page}
-            totalPages={totalPages}
-            currentPage={currentPage}
-            onClick={onPageChanged}
-          />
+          <PageItem key={page} page={page} totalPages={totalPages} currentPage={currentPage} onClick={onPageChanged} />
         ))}
       </div>
     </div>

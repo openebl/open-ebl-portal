@@ -2,7 +2,7 @@
 
 import NewPlatformSection from "@/app/_components/admin/platforms/new-platform-section";
 import PermissionContext from "@/app/_components/permission-context";
-import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
+import LeftArrowIcon from "@/app/_icons/left-arrow-icon.svg";
 import { getServerAuthSession } from "@/server/auth";
 import Link from "next/link";
 

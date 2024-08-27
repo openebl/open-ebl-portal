@@ -35,24 +35,16 @@ const ConfirmContent = ({
   return (
     <>
       <AlertDialogHeader className="min-h-[164px] min-w-[500px]">
-        {content.confirm?.title && (
-          <AlertDialogTitle className="text-main">{content.confirm.title}</AlertDialogTitle>
-        )}
+        {content.confirm?.title && <AlertDialogTitle className="text-main">{content.confirm.title}</AlertDialogTitle>}
         {typeof content.confirm?.message === "string" ? (
-          <AlertDialogDescription className="text-main">
-            {content.confirm?.message}
-          </AlertDialogDescription>
+          <AlertDialogDescription className="text-main">{content.confirm?.message}</AlertDialogDescription>
         ) : (
           content.confirm?.message
         )}
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel onClick={onCancel}>
-          {content.confirm?.cancelButton ?? "Cancel"}
-        </AlertDialogCancel>
-        <AlertDialogAction onClick={onConfirm}>
-          {content.confirm?.confirmButton ?? "OK"}
-        </AlertDialogAction>
+        <AlertDialogCancel onClick={onCancel}>{content.confirm?.cancelButton ?? "Cancel"}</AlertDialogCancel>
+        <AlertDialogAction onClick={onConfirm}>{content.confirm?.confirmButton ?? "OK"}</AlertDialogAction>
       </AlertDialogFooter>
     </>
   );
@@ -76,13 +68,7 @@ const BlankContent = () => {
   );
 };
 
-const CompletedContent = ({
-  content,
-  onConfirm,
-}: {
-  content: DialogContent;
-  onConfirm: () => void;
-}) => {
+const CompletedContent = ({ content, onConfirm }: { content: DialogContent; onConfirm: () => void }) => {
   return (
     <>
       <AlertDialogHeader className="min-h-[164px] min-w-[500px] items-center justify-center space-y-5 p-[1.875rem]">
@@ -90,9 +76,7 @@ const CompletedContent = ({
         <AlertDialogTitle>{content.completed?.message}</AlertDialogTitle>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogAction onClick={onConfirm}>
-          {content.completed?.confirmButton ?? "OK"}
-        </AlertDialogAction>
+        <AlertDialogAction onClick={onConfirm}>{content.completed?.confirmButton ?? "OK"}</AlertDialogAction>
       </AlertDialogFooter>
     </>
   );
@@ -113,7 +97,7 @@ export const ConfirmationDialog = ({
   onCancel?: () => void;
   onConfirm: () => void;
 }) => {
-  const transitions = useTransition(open ? state : 'blank', {
+  const transitions = useTransition(open ? state : "blank", {
     from: { opacity: 0 },
     enter: { opacity: 1 },
     leave: { position: "absolute", opacity: 0 },
@@ -128,11 +112,7 @@ export const ConfirmationDialog = ({
               {!open ? (
                 <BlankContent />
               ) : item === "confirm" ? (
-                <ConfirmContent
-                  content={content}
-                  onCancel={onCancel}
-                  onConfirm={onConfirm}
-                />
+                <ConfirmContent content={content} onCancel={onCancel} onConfirm={onConfirm} />
               ) : item === "waiting" ? (
                 <WaitingContent content={content} />
               ) : (
