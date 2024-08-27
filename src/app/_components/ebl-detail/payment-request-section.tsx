@@ -165,13 +165,13 @@ const PaymentRequestInfo = ({ paymentRequest, isPayer }: { paymentRequest: Payme
     )}
   >
     <p>
-      {isPayer
-        ? "You received a payment request from "
-        : paymentRequest.status === "REQUESTED"
-          ? "You've sent the payment request to "
-          : paymentRequest.status === "PAID"
-            ? "Payment has been made by "
-            : "Payment has been confirmed by "}
+      {paymentRequest.status === "REQUESTED"
+        ? isPayer
+          ? "You received a payment request from "
+          : "You've sent the payment request to "
+        : paymentRequest.status === "PAID"
+          ? "Payment has been made by "
+          : "Payment has been confirmed by "}
       <strong className="font-bold">
         {isPayer || paymentRequest.status === "CONFIRMED" ? paymentRequest.requesterName : paymentRequest.payerName}
       </strong>{" "}
