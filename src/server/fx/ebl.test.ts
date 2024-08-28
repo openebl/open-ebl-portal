@@ -24,13 +24,7 @@ type Platform = {
   admin: boolean;
 };
 
-const getSession = ({
-  platform,
-  user,
-}: {
-  platform: Platform;
-  user: User;
-}) =>
+const getSession = ({ platform, user }: { platform: Platform; user: User }) =>
   ({
     user,
     platform,
@@ -42,7 +36,7 @@ const getSession = ({
     expires: "1",
   }) as Session;
 
-describe.concurrent("EBl Fx", () => {
+describe("EBl Fx", () => {
   describe("processFileDocUploadReq", () => {
     const currentDid = "did:openebl:d2856f4e-e636-4cf0-9110-fbb45304e614";
     const pdfFile = readFileSync("./src/test/integration/fixtures/ebl.pdf");
@@ -50,10 +44,7 @@ describe.concurrent("EBl Fx", () => {
     testWithDb(
       "upload a valid PDF file, it converts PDF to images and store to storage and database",
       async ({ expect, db }) => {
-        const { platform, users } = await createPlatformAndUsers(
-          db,
-          currentDid,
-        );
+        const { platform, users } = await createPlatformAndUsers(db, currentDid);
         const req = createNextRequest(pdfFile, {
           "X-Filename": "ebl.pdf",
           "Content-Type": "application/pdf",

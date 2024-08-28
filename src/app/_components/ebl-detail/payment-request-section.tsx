@@ -14,6 +14,7 @@ import { ConfirmationDialog } from "../dialogs/confirmation-dialog";
 
 interface PaymentRequest {
   payerName: string;
+  requesterName: string;
   createdAt: Date;
   invoiceAmount: string;
   status: string;
@@ -164,8 +165,17 @@ const PaymentRequestInfo = ({ paymentRequest, isPayer }: { paymentRequest: Payme
     )}
   >
     <p>
-      {isPayer ? "You received a payment request from " : "You've sent the payment request to "}
-      <strong className="font-bold">{paymentRequest.payerName}</strong> on
+      {paymentRequest.status === "REQUESTED"
+        ? isPayer
+          ? "You received a payment request from "
+          : "You've sent the payment request to "
+        : paymentRequest.status === "PAID"
+          ? "Payment has been made by "
+          : "Payment has been confirmed by "}
+      <strong className="font-bold">
+        {isPayer || paymentRequest.status === "CONFIRMED" ? paymentRequest.requesterName : paymentRequest.payerName}
+      </strong>{" "}
+      on
     </p>
     <p>
       <strong className="font-bold">

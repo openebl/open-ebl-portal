@@ -1,8 +1,5 @@
-import { activePlatformUsers } from "@/daemons/email-notifiers/utils";
-import { EBlStashes, PaymentRequestDocs, PaymentRequests, Platforms, Users } from "@/drizzle/schema";
-import PaymentMadeNotification from "@/emails/payment-made-notification";
+import { PaymentRequestDocs, PaymentRequests } from "@/drizzle/schema";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
-import { render } from "@react-email/components";
 import { eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 

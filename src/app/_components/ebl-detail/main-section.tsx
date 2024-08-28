@@ -34,7 +34,11 @@ const MainSection = async ({ ebl, images }: { ebl: EBlRecordType; images: ImageT
   const paymentRequestRec = await api.paymentRequest.get.query({ eBlId });
 
   const paymentRequest = paymentRequestRec
-    ? { ...paymentRequestRec, payerName: await getBuLegalBusinessName(paymentRequestRec.payerBusinessUnitId) }
+    ? {
+        ...paymentRequestRec,
+        payerName: await getBuLegalBusinessName(paymentRequestRec.payerBusinessUnitId),
+        requesterName: await getBuLegalBusinessName(paymentRequestRec.requesterBusinessUnitId),
+      }
     : undefined;
 
   const history = await Promise.all(

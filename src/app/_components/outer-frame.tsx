@@ -4,7 +4,7 @@ import { type Session } from "next-auth";
 import Link from "next/link";
 import { groupBy } from "remeda";
 
-import BlueXLogo from "@/app/_icons/bluex-logo.svg";
+import Logo from "@/app/_icons/logo.svg";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -105,11 +105,8 @@ const OuterFrame = async ({ session, children }: { session: Session | null; chil
     <main className="mx-auto flex h-full min-h-screen min-w-[1280px] flex-col bg-background font-header">
       <div className="flex h-16 w-full items-center justify-between bg-header text-header-text">
         <div className="mx-12 flex items-center justify-start">
-          <Link href="/ebls" tabIndex={-1}>
-            <BlueXLogo />
-          </Link>
-          <Link href="/ebls" tabIndex={-1}>
-            <div className="mx-2 text-lg font-semibold text-header-text">Open eBL</div>
+          <Link href="/" tabIndex={-1}>
+            <Logo />
           </Link>
           <div className="mx-20">
             <Menu session={session} />
