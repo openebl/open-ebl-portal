@@ -15,7 +15,7 @@ const Content = async ({ uuid }: { uuid: string }) => {
     if (!ebl) throw new Error("NOT_FOUND");
 
     const eblEvent = latestBillOfLadingEvent(ebl);
-    const eblContent = eblEvent?.bill_of_lading;
+    const eblContent = eblEvent?.bill_of_lading_v3;
     if (!eblContent) {
       throw new TRPCClientError("EBl NOT_FOUND");
     }

@@ -188,6 +188,7 @@ const MainSection = ({ eblForm, eblRecord }: { eblForm: EBlFormType; eblRecord: 
         form.setValue("shipper", formData.shipper);
         form.setValue("consignee", formData.consignee);
         form.setValue("release_agent", formData.release_agent);
+        // form.setValue("notifyParties", formData.notifyParties)
       }
     },
     [form, isAmendMode],

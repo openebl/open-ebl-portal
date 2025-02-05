@@ -3,7 +3,13 @@ import { cn } from "@/lib/utils";
 import { type EBlRecordType } from "@/types/ebl";
 import ActionPanel from "./action-panel";
 import { api } from "@/trpc/server";
-import { type EBlStatusType, currentStatus, eblParties, getNextPartyIDByCurrentStatus } from "@/lib/ebl";
+import {
+  type EBlStatusType,
+  currentStatus,
+  eblParties,
+  getNextPartyIDByCurrentStatus,
+  latestBillOfLadingEvent,
+} from "@/lib/ebl";
 import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon.svg";
 
 type TrackerPosition = "first" | "middle" | "last";
@@ -64,15 +70,18 @@ const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
   const accomplished = "bg-[#039912]";
   const printed = "bg-warning";
 
+  const isToOrder = latestBillOfLadingEvent(ebl)?.bill_of_lading_v3?.isToOrder;
   const documentParties = eblParties(ebl);
   const issuerID = documentParties?.issuer ?? "";
   const shipperID = documentParties?.shipper ?? "";
   const consigneeID = documentParties?.consignee ?? "";
+  const endorseeID = documentParties?.endorsee ?? "";
   const releaseAgentID = documentParties?.releaser ?? "";
-  const [issuerName, shipperName, consigneeName, releaseAgentName] = await Promise.all([
+  const [issuerName, shipperName, consigneeName, endorseeName, releaseAgentName] = await Promise.all([
     getBuLegalBusinessName(issuerID),
     getBuLegalBusinessName(shipperID),
     getBuLegalBusinessName(consigneeID),
+    getBuLegalBusinessName(endorseeID),
     getBuLegalBusinessName(releaseAgentID),
   ]);
 
@@ -92,13 +101,26 @@ const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
         className={getClassName(ebl, issuerID)}
         position="first"
       />
-      <ProgressTracker title="Shipper" name={shipperName} className={getClassName(ebl, shipperID)} position="middle" />
+      <ProgressTracker
+        title="Shipper"
+        name={shipperName}
+        className={getClassName(ebl, shipperID)}
+        position="middle"
+      />
       <ProgressTracker
         title="Consignee"
         name={consigneeName}
         className={getClassName(ebl, consigneeID)}
         position="middle"
       />
+      {isToOrder && (
+        <ProgressTracker
+          title="Endorsee"
+          name={endorseeName}
+          className={getClassName(ebl, endorseeID)}
+          position="middle"
+        />
+      )}
       <ProgressTracker
         title="Release Agent"
         name={releaseAgentName}
@@ -171,7 +193,10 @@ const ShippingProgress = ({ ebl, businessUnitId }: { ebl: EBlRecordType; busines
 
         <ProgressTrackerBar ebl={ebl} />
 
-        <ProgressStatus ebl={ebl} businessUnitId={businessUnitId} />
+        <ProgressStatus
+          ebl={ebl}
+          businessUnitId={businessUnitId}
+        />
 
         <ActionPanel ebl={ebl} />
       </section>

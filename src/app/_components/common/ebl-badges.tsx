@@ -18,6 +18,13 @@ const HblNonNegotiableBadge = () => (
   />
 );
 
+const HblNegotiableBadge = () => (
+  <Badge
+    title="HBL NEGOTIABLE"
+    className="bg-[#2FC0DD] font-semibold text-white"
+  />
+);
+
 const FourPBadge = ({ title }: { title: string }) => (
   <Badge
     title={title}
@@ -25,4 +32,4 @@ const FourPBadge = ({ title }: { title: string }) => (
   />
 );
 
-export { HblNonNegotiableBadge, FourPBadge };
+export { HblNonNegotiableBadge, HblNegotiableBadge, FourPBadge };

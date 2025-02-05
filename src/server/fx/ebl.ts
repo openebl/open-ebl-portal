@@ -25,10 +25,7 @@ const saveContentToTempFile = async (content: Buffer) => {
   return tmpFilename;
 };
 
-const saveImagesToStorage = async (
-  content: Buffer,
-  storage: StorageServiceType,
-) => {
+const saveImagesToStorage = async (content: Buffer, storage: StorageServiceType) => {
   const filename = await saveContentToTempFile(content);
   const imageKeys: KeyPairType[] = [];
   await pdf2Image({
@@ -69,8 +66,7 @@ export const processFileDocUploadReq = async ({
 }): Promise<EBlFileProcessResultType> => {
   const storagekey = `/ebl/${crypto.randomUUID()}`;
   const filename = req.headers.get("X-Filename") ?? "(unknown)";
-  const contentType =
-    req.headers.get("Content-Type") ?? "application/octet-stream";
+  const contentType = req.headers.get("Content-Type") ?? "application/octet-stream";
 
   try {
     // read content from request body
@@ -111,11 +107,7 @@ export const processFileDocUploadReq = async ({
 
       if (contentType === "application/pdf") {
         const keyPairs = await saveImagesToStorage(content, storage);
-        await Promise.all(
-          keyPairs.map((keyPair) =>
-            insertImageRecords(db, docFile.id, keyPair),
-          ),
-        );
+        await Promise.all(keyPairs.map((keyPair) => insertImageRecords(db, docFile.id, keyPair)));
       } else {
         await insertImageRecords(db, docFile.id, {
           imageKey: storagekey,
@@ -126,10 +118,7 @@ export const processFileDocUploadReq = async ({
       return docFile;
     };
 
-    await Promise.all([
-      docExtraction.createExtraction({ uuid, filename, content }),
-      findOrCreateDocFile(),
-    ]);
+    await Promise.all([docExtraction.createExtraction({ uuid, filename, content }), findOrCreateDocFile()]);
 
     return { uuid, fileContentBase64: content.toString("base64") };
   } catch (err) {
@@ -138,11 +127,7 @@ export const processFileDocUploadReq = async ({
   }
 };
 
-const insertImageRecords = async (
-  tx: DatabaseType,
-  docFileId: bigint,
-  keyPair: KeyPairType,
-) => {
+const insertImageRecords = async (tx: DatabaseType, docFileId: bigint, keyPair: KeyPairType) => {
   const [[img1], [img2]] = await Promise.all([
     !keyPair.imageKey
       ? []
@@ -169,8 +154,6 @@ const insertImageRecords = async (
           .execute(),
   ]);
 
-  getLogger().debug(
-    `Page images inserted: ${img1?.id}, ${img2?.id}`,
-  );
+  getLogger().debug(`Page images inserted: ${img1?.id}, ${img2?.id}`);
   return true;
 };

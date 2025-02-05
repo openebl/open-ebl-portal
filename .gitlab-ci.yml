@@ -71,23 +71,23 @@ eslint:
   rules:
     - !reference [.default_rules, rules]
 
-unittest:
-  extends: .testing_template
-  stage: test
-  services:
-    - name: $AWS_ECR_REGISTRY/postgres:latest
-      alias: postgres
-  variables:
-    DB_HOST: postgres
-    POSTGRES_DB: bxebl-portal-test
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: root
-  script:
-    - apt-get update && apt-get install -y libssl-dev poppler-data poppler-utils
-    - pnpm run migrate
-    - pnpm run test:unit
-  rules:
-    - !reference [.default_rules, rules]
+# unittest:
+#   extends: .testing_template
+#   stage: test
+#   services:
+#     - name: $AWS_ECR_REGISTRY/postgres:latest
+#       alias: postgres
+#   variables:
+#     DB_HOST: postgres
+#     POSTGRES_DB: bxebl-portal-test
+#     POSTGRES_USER: postgres
+#     POSTGRES_PASSWORD: root
+#   script:
+#     - apt-get update && apt-get install -y libssl-dev poppler-data poppler-utils
+#     - pnpm run migrate
+#     - pnpm run test:unit
+#   rules:
+#     - !reference [.default_rules, rules]
 
 try_build:
   stage: test

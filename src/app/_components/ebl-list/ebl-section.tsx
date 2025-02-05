@@ -17,7 +17,10 @@ const FilterGroupItem = ({
   value: string;
 }) => {
   return (
-    <Link prefetch={false} href={`/ebls?filter=${value}`}>
+    <Link
+      prefetch={false}
+      href={`/ebls?filter=${value}`}
+    >
       <ToggleGroupItem
         value={value}
         className={cn(
@@ -45,7 +48,10 @@ const FilterList = ({
       value={currentFilter}
       type="single"
     >
-      <FilterGroupItem value="action_needed" className="rounded-none rounded-s-lg border">
+      <FilterGroupItem
+        value="action_needed"
+        className="rounded-none rounded-s-lg border"
+      >
         Action Needed
         {stats.action_needed > 0 && (
           <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
@@ -53,7 +59,10 @@ const FilterList = ({
           </span>
         )}
       </FilterGroupItem>
-      <FilterGroupItem value="upcoming" className="rounded-none border-b border-t">
+      <FilterGroupItem
+        value="upcoming"
+        className="rounded-none border-b border-t"
+      >
         Upcoming
         {stats.upcoming > 0 && (
           <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
@@ -61,7 +70,10 @@ const FilterList = ({
           </span>
         )}
       </FilterGroupItem>
-      <FilterGroupItem value="sent" className="borde-t rounded-none border-b">
+      <FilterGroupItem
+        value="sent"
+        className="borde-t rounded-none border-b"
+      >
         Sent
         {stats.sent > 0 && (
           <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
@@ -69,7 +81,10 @@ const FilterList = ({
           </span>
         )}
       </FilterGroupItem>
-      <FilterGroupItem value="archive" className="rounded-none rounded-e-lg border">
+      <FilterGroupItem
+        value="archive"
+        className="rounded-none rounded-e-lg border"
+      >
         Archive
         {stats.archive > 0 && (
           <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
@@ -118,7 +133,14 @@ const EblTable = async ({
   const buList = await api.buinfo.all.query();
   return (
     <div className="text-content flex min-h-[28rem] w-full flex-col justify-start">
-      {recordList.records?.map((row, index) => <TableRow key={index} row={row} filter={filter} buList={buList} />)}
+      {recordList.records?.map((row, index) => (
+        <TableRow
+          key={index}
+          row={row}
+          filter={filter}
+          buList={buList}
+        />
+      ))}
     </div>
   );
 };
@@ -135,9 +157,15 @@ const EblSection = ({
   return (
     <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">
       <div className="flex w-full items-center justify-start border-b-[1px] border-border-light bg-transparent py-4">
-        <FilterList filter={filter} stats={stats} />
+        <FilterList
+          filter={filter}
+          stats={stats}
+        />
       </div>
-      <EblTable recordList={recordList} filter={filter} />
+      <EblTable
+        recordList={recordList}
+        filter={filter}
+      />
     </div>
   );
 };

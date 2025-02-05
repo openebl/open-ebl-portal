@@ -180,7 +180,10 @@ const ActionPanel = ({ ebl }: { ebl: EBlRecordType }) => {
               <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[15rem] font-header" align="end">
+          <DropdownMenuContent
+            className="w-[15rem] font-header"
+            align="end"
+          >
             {ebl.allow_actions?.map((act) => {
               if (act === action) return null;
               const block = allowActions[act];

@@ -113,13 +113,20 @@ export const eBlRouter = createTRPCRouter({
       },
       cache: "no-store",
     });
-    return (await res.json()) as EBlRecordType;
+    const content = (await res.json()) as EBlRecordType;
+    return content;
   }),
 
   issue: protectedProcedure.input(EBlFormSchema).mutation(async ({ ctx, input }) => {
     const request: EBlRequestType = { ...input, authentication_id: ctx.session.authenticationId };
     request.metadata.username = ctx.session.user.name ?? ""; // TODO: fill it before api call to make QA not be confused
-    getLogger().info("send issue request to Doc Engine", request);
+
+    if (request.bl_doc_type === "HouseNegotiableBillOfLading") {
+      request.to_order = true;
+      request.bl_doc_type = "HouseBillOfLading";
+    }
+
+    getLogger().info(`send issue request to Doc Engine: ${JSON.stringify(request)}`);
     const res = await fetch(`${env.BU_SERVER_URL}/ebl`, {
       method: "POST",
       headers: {
@@ -142,7 +149,12 @@ export const eBlRouter = createTRPCRouter({
     const { ebl_id: id, ...rest } = input;
     const request: EBlRequestType = { ...rest, authentication_id: ctx.session.authenticationId };
     request.metadata.username = ctx.session.user.name ?? ""; // TODO: fill it before api call to make QA not be confused
-    getLogger().info("send issue request to Doc Engine", request);
+    if (request.bl_doc_type === "HouseNegotiableBillOfLading") {
+      request.to_order = true;
+      request.bl_doc_type = "HouseBillOfLading";
+    }
+
+    getLogger().info(`send issue request to Doc Engine: ${JSON.stringify(request)}`);
     const res = await fetch(`${env.BU_SERVER_URL}/ebl/${id}/update`, {
       method: "POST",
       headers: {

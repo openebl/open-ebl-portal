@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { HblNonNegotiableBadge } from "@/app/_components/common/ebl-badges";
+import { HblNegotiableBadge, HblNonNegotiableBadge } from "@/app/_components/common/ebl-badges";
 import LocationIcon from "@/app/_icons/location-icon.svg";
 import PdfIcon from "@/app/_icons/pdf-icon.svg";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ const FileDetails = ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[] 
   const [modalOpen, setModalOpen] = useState(false);
 
   const event = latestBillOfLadingEvent(ebl);
-  const content = event?.bill_of_lading;
+  const content = event?.bill_of_lading_v3;
   const id = ebl.bl?.id;
   const fileName = event?.file?.name;
 
@@ -33,7 +33,7 @@ const FileDetails = ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[] 
         <div className="grow whitespace-nowrap text-[1.375rem] font-semibold leading-8 text-main">
           {content?.transportDocumentReference}
         </div>
-        <HblNonNegotiableBadge />
+        {content?.isToOrder ? <HblNegotiableBadge /> : <HblNonNegotiableBadge />}
       </div>
       <div className="mt-[1.875rem] flex w-full items-stretch justify-between gap-5 self-stretch">
         <div className="flex w-full gap-5">
@@ -61,16 +61,12 @@ const FileDetails = ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[] 
 
               <FileDetailsLine title="Port of Loading">
                 <LocationIcon />
-                <div className="ml-2.5 font-semibold text-main">
-                  {content?.shipmentLocations?.[0]?.location?.locationName}
-                </div>
+                <div className="ml-2.5 font-semibold text-main">{content?.transports.portOfLoading.locationName}</div>
               </FileDetailsLine>
 
               <FileDetailsLine title="Port of Discharge">
                 <LocationIcon />
-                <div className="ml-2.5 font-semibold text-main">
-                  {content?.shipmentLocations?.[1]?.location?.locationName}
-                </div>
+                <div className="ml-2.5 font-semibold text-main">{content?.transports.portOfDischarge.locationName}</div>
               </FileDetailsLine>
             </div>
           </div>
@@ -87,7 +83,10 @@ const FileDetails = ({ ebl, images }: { ebl: EBlRecordType; images: ImageType[] 
           </Button>
         </div>
       </div>
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+      <Dialog
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      >
         <DialogContent
           className={cn(
             "fixed left-1/2 top-1/2 max-h-[90vh] max-w-[50vw] -translate-x-1/2 -translate-y-1/2 transform overflow-auto !rounded-none border-[2px] border-[#738DBC] p-0 font-content",
