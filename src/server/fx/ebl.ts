@@ -191,25 +191,51 @@ export const processFileDocUploadReq = async ({
     const hash = crypto.createHash("md5").update(content).digest("hex");
     const uuid = `${hash}-${randomId(8)}`;
 
-    await Promise.all([
-      docExtraction.createExtraction({ uuid, filename, content }),
-      findOrCreateDocFile({
-        filename,
+    const findOrCreateDocFile = async () => {
+      // find docFile with the hash
+      const existingDocFile = await db.query.DocFiles.findFirst({
+        where: eq(DocFiles.uuid, hash),
+      });
+
+      if (existingDocFile) return existingDocFile;
+
+      // upload file to storage
+      await storage.putObject({
         content,
+        key: storagekey,
         contentType,
-        session,
-        db,
-        storage,
-      }),
-      findOrCreateDocFile({
-        filename,
-        content,
-        contentType,
-        session,
-        db,
-        storage,
-      }),
-    ]);
+      });
+
+      // create docfile
+      const [docFile] = await db
+        .insert(DocFiles)
+        .values({
+          // use hash as uuid so same content will have same uuid
+          uuid: hash,
+          filename,
+          platformId: session!.platform.id,
+          uploaderId: session!.user.id,
+          storagekey,
+        })
+        .returning()
+        .execute();
+
+      if (!docFile) throw new Error("Failed to create docFile record");
+
+      if (contentType === "application/pdf") {
+        const keyPairs = await saveImagesToStorage(content, storage);
+        await Promise.all(keyPairs.map((keyPair) => insertImageRecords(db, docFile.id, keyPair)));
+      } else {
+        await insertImageRecords(db, docFile.id, {
+          imageKey: storagekey,
+          thumbnailKey: "",
+          page: 1,
+        });
+      }
+      return docFile;
+    };
+
+    await Promise.all([docExtraction.createExtraction({ uuid, filename, content }), findOrCreateDocFile()]);
 
     return { uuid, fileContentBase64: content.toString("base64") };
   } catch (err) {
@@ -218,62 +244,33 @@ export const processFileDocUploadReq = async ({
   }
 };
 
-export const processFileDocReUpload = async ({
-  filename,
-  contentType,
-  body,
-  session,
-  db,
-  storage,
-}: {
-  filename: string;
-  contentType: string;
-  body: ReadableStream<Uint8Array> | null;
-  session: Session | null;
-  db: DatabaseType;
-  storage: StorageServiceType;
-}): Promise<{ docFileId: bigint }> => {
-  if (!body) throw new Error("ReadableStream is null");
-
-  try {
-    const content = await readRequestBodyToBuffer(body);
-    const docFile = await findOrCreateDocFile({
-      filename,
-      content,
-      contentType,
-      session,
-      db,
-      storage,
-    });
-
-    return { docFileId: docFile.id };
-  } catch (err) {
-    getLogger().error(err);
-    throw err;
-  }
-};
-
-const insertImageRecords = async (tx: TransactionType, docFileId: bigint, keyPair: KeyPairType) => {
-  const imgs = await Promise.all([
-    keyPair.imageKey &&
-      tx.docImage.create({
-        data: {
-          docFileId,
-          page: keyPair.page,
-          storagekey: keyPair.imageKey,
-        },
-      }),
-    keyPair.thumbnailKey &&
-      tx.docImage.create({
-        data: {
-          docFileId,
-          page: keyPair.page,
-          thumbnail: true,
-          storagekey: keyPair.thumbnailKey,
-        },
-      }),
+const insertImageRecords = async (tx: DatabaseType, docFileId: bigint, keyPair: KeyPairType) => {
+  const [[img1], [img2]] = await Promise.all([
+    !keyPair.imageKey
+      ? []
+      : tx
+          .insert(DocImages)
+          .values({
+            docFileId,
+            page: keyPair.page,
+            storagekey: keyPair.imageKey,
+          })
+          .returning()
+          .execute(),
+    !keyPair.thumbnailKey
+      ? []
+      : tx
+          .insert(DocImages)
+          .values({
+            docFileId,
+            page: keyPair.page,
+            thumbnail: true,
+            storagekey: keyPair.thumbnailKey,
+          })
+          .returning()
+          .execute(),
   ]);
 
-  getLogger().debug(`Page images inserted: ${imgs[0] && imgs[0].id}, ${imgs[1] && imgs[1].id}`);
+  getLogger().debug(`Page images inserted: ${img1?.id}, ${img2?.id}`);
   return true;
 };
