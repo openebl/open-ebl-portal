@@ -43,7 +43,7 @@ export default async function Page({ params }: { params: { uuid: string } }) {
         headers: {
           'accept': 'application/octet-stream',
           'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          'X-Business-Unit-ID': String(session?.platform.platformId),
+          // 'X-Business-Unit-ID': String(session?.platform.platformId),
         },
       })
       // generate docFile record in db
