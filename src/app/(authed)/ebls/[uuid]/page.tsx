@@ -59,8 +59,6 @@ const Content = async ({ uuid }: { uuid: string }) => {
     }
     const images = await api.docImage.getUrls.query({ docFileId })
 
-    block = <MainSection ebl={ebl} images={images} />;
-
     return <MainSection ebl={ebl} images={images} />;
   } catch (err) {
     getLogger().error(err);

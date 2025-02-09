@@ -71,9 +71,11 @@ const findOrCreateDocFile = async ({
   if (!fileHash) throw new Error("Failed to hash file content");
 
   // find docFile with the hash
-  const existingDocFile = await db.docFile.findFirst({
-    where: { uuid: fileHash },
-  });
+  const [existingDocFile] = await db
+    .select()
+    .from(DocFiles)
+    .limit(1)
+    .where(eq(DocFiles.uuid, fileHash));
 
   if (existingDocFile) return existingDocFile;
 
@@ -87,16 +89,17 @@ const findOrCreateDocFile = async ({
   });
 
   // create docfile
-  const docFile = await db.docFile.create({
-    data: {
+  const [docFile] = await db
+    .insert(DocFiles)
+    .values({
       // use hash as uuid so same content will have same uuid
       uuid: fileHash,
       filename,
       platformId: session!.platform.id,
       uploaderId: session!.user.id,
       storagekey,
-    },
-  });
+    })
+    .returning();
   if (!docFile) throw new Error("Failed to create docFile record");
 
   if (contentType === "application/pdf") {
@@ -189,27 +192,31 @@ export const processFileDocReUpload = async ({
 };
 
 
-const insertImageRecords = async (
-  tx: TransactionType,
-  docFileId: bigint,
-  keyPair: KeyPairType,
-) => {
-  const imgs = await Promise.all([
-    keyPair.imageKey && tx.docImage.create({
-      data: {
-        docFileId,
-        page: keyPair.page,
-        storagekey: keyPair.imageKey,
-      },
-    }),
-    keyPair.thumbnailKey && tx.docImage.create({
-      data: {
-        docFileId,
-        page: keyPair.page,
-        thumbnail: true,
-        storagekey: keyPair.thumbnailKey,
-      },
-    }),
+const insertImageRecords = async (tx: DatabaseType, docFileId: bigint, keyPair: KeyPairType) => {
+  const [[img1], [img2]] = await Promise.all([
+    !keyPair.imageKey
+      ? []
+      : tx
+          .insert(DocImages)
+          .values({
+            docFileId,
+            page: keyPair.page,
+            storagekey: keyPair.imageKey,
+          })
+          .returning()
+          .execute(),
+    !keyPair.thumbnailKey
+      ? []
+      : tx
+          .insert(DocImages)
+          .values({
+            docFileId,
+            page: keyPair.page,
+            thumbnail: true,
+            storagekey: keyPair.thumbnailKey,
+          })
+          .returning()
+          .execute(),
   ]);
 
   getLogger().debug(`Page images inserted: ${img1?.id}, ${img2?.id}`);
