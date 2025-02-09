@@ -2,10 +2,9 @@
 // This is NOT a production implementation.
 // This is a demo for Panama Demo
 //
-import React from "react";
 import { Column, Row, Text } from "@react-email/components";
 
-import { ActionButton, NoteSection } from "./components";
+import { ActionButton } from "./components";
 import { NotificationTemplate } from "./notification-template";
 import { type CommonEmailProps } from "./types";
 
@@ -47,7 +46,10 @@ export default function PaymentMadeNotification(props: CommonEmailProps) {
         </Text>
       </Row>
       <Row>
-        <Column align="center" style={{ margin: "0" }}>
+        <Column
+          align="center"
+          style={{ margin: "0" }}
+        >
           <ActionButton href={props.viewEblLink}>View eBL</ActionButton>
         </Column>
       </Row>

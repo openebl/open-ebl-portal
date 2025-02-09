@@ -200,14 +200,28 @@ const MainSection = ({ eblForm, eblRecord }: { eblForm: EBlFormType; eblRecord: 
 
       <div className="mt-[1.875rem] flex h-[53.5rem] flex-col justify-between rounded-lg border border-solid border-border-light bg-white shadow-lg">
         <div className="flex h-[48.125rem] items-stretch">
-          <PreviewPanel docId={eblRecord?.bl?.id ?? ""} form={form} updateFormDataByNewEBl={updateFormDataByNewEBl} />
-          <DetailPanel form={form} isAmendMode={isAmendMode} />
+          <PreviewPanel
+            docId={eblRecord?.bl?.id ?? ""}
+            form={form}
+            updateFormDataByNewEBl={updateFormDataByNewEBl}
+          />
+          <DetailPanel
+            form={form}
+            isAmendMode={isAmendMode}
+          />
         </div>
 
         <div className="flex h-[5.25rem] w-full items-center justify-between border-t-[1px] border-[#D9D9D9] px-[1.875rem]">
           <div className="flex gap-4">
-            <Link href="/ebls" tabIndex={-1}>
-              <Button variant="outline" size="lg" className="w-[11.25rem]">
+            <Link
+              href="/ebls"
+              tabIndex={-1}
+            >
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-[11.25rem]"
+              >
                 Cancel
               </Button>
             </Link>
@@ -224,7 +238,12 @@ const MainSection = ({ eblForm, eblRecord }: { eblForm: EBlFormType; eblRecord: 
           </div>
           <div className="flex gap-2.5">
             {isNewEbl && (
-              <Button variant="outline" size="lg" className="w-[11.25rem]" onClick={saveDraft}>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-[11.25rem]"
+                onClick={saveDraft}
+              >
                 Save as Draft
               </Button>
             )}

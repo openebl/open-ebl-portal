@@ -8,15 +8,9 @@ import { type EBlFormType } from "@/types/ebl";
 import { TRPCClientError } from "@trpc/client";
 import { isEmpty } from "remeda";
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams?: Record<string, string | string[] | undefined>;
-}) {
+export default async function Page({ searchParams }: { searchParams?: Record<string, string | string[] | undefined> }) {
   const execution = async () => {
-    const uuid = Array.isArray(searchParams?.uuid)
-      ? searchParams?.uuid[0]
-      : searchParams?.uuid;
+    const uuid = Array.isArray(searchParams?.uuid) ? searchParams?.uuid[0] : searchParams?.uuid;
 
     if (isEmpty(uuid)) {
       throw new TRPCClientError("NOT_FOUND");
@@ -33,30 +27,35 @@ export default async function Page({
       docFile.contentUrl ? fetch(docFile.contentUrl) : Promise.resolve(null),
     ]);
 
-    if (!extraction) {
+    if (!extraction?.ebl) {
       throw new TRPCClientError("extraction NOT_FOUND");
     }
 
     const contentType = contentResult?.headers.get("content-type");
-    const content = await readRequestBodyToBuffer(contentResult?.body)
-    const contentBase64 = Buffer.from(content).toString('base64');
+    const content = await readRequestBodyToBuffer(contentResult?.body);
+    const contentBase64 = Buffer.from(content).toString("base64");
 
     const eblForm: EBlFormType = {
-      ...extraction,
+      ...extraction.ebl,
       metadata: {
         username: "",
         docHash: hash!,
       },
       file: {
         name: docFile.filename ?? "(unknown)",
-        type: contentType ?? 'binary/octet-stream',
-        content: contentBase64 // be used to upload to bu server but not for download file
+        type: contentType ?? "binary/octet-stream",
+        content: contentBase64, // be used to upload to bu server but not for download file
       },
       note: "",
       draft: true,
     };
 
-    return <MainSection eblForm={eblForm} eblRecord={undefined} />;
+    return (
+      <MainSection
+        eblForm={eblForm}
+        eblRecord={undefined}
+      />
+    );
   };
 
   return execution().catch((err) => {

@@ -69,10 +69,22 @@ const createExtraction = async (args: { uuid: string; filename: string; content:
   }
 };
 
-const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (uuid: string) => {
+const getExtraction: (uuid: string) => Promise<{ status: string; ebl?: EBlFormType; error?: string } | null> = async (
+  uuid: string,
+) => {
   const [extraction] = await db.select().from(DocExtractions).limit(1).where(eq(DocExtractions.id, uuid));
   if (!extraction) return null;
-  if (!extraction.result) return null;
+  if (extraction.status !== "completed")
+    return {
+      status: extraction.status ?? "processing",
+      error: extraction.error ?? undefined,
+    };
+
+  if (!extraction.result)
+    return {
+      status: "failed",
+      error: "Missing extraction result",
+    };
 
   const res = docExtractResponseSchema.safeParse(extraction.result);
   if (!res.success) {
@@ -81,7 +93,9 @@ const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (uuid
     return null;
   }
 
-  return await mapDocInfoToEBlForm(res.data);
+  const ebl = await mapDocInfoToEBlForm(res.data);
+
+  return { status: extraction.status, ebl };
 };
 
 const extractDocument = async (uuid: string, content: Buffer) => {
@@ -187,7 +201,7 @@ const extractDocument = async (uuid: string, content: Buffer) => {
     );
 };
 
-const mapDocInfoToEBlForm: (info: DocExtractResponseSchema) => Promise<EBlFormType | null> = async (
+const mapDocInfoToEBlForm: (info: DocExtractResponseSchema) => Promise<EBlFormType> = async (
   info: DocExtractResponseSchema,
 ) => {
   const polCode = lookupPort(info.PortOfLoading);

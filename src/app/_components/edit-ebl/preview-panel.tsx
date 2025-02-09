@@ -77,10 +77,10 @@ const PreviewPanel = ({
   );
 
   useEffect(() => {
-    if (extraction) {
-      extraction.file = fileInfo;
-      extraction.metadata.docHash = fileHash;
-      updateFormDataByNewEBl(extraction);
+    if (extraction?.ebl) {
+      extraction.ebl.file = fileInfo;
+      extraction.ebl.metadata.docHash = fileHash;
+      updateFormDataByNewEBl(extraction.ebl);
       setStatus("done");
     }
   }, [extraction, fileInfo, fileHash, updateFormDataByNewEBl]);

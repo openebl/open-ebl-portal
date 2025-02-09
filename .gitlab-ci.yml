@@ -55,6 +55,8 @@ include:
     PORTAL_URL: "http://localhost:3000"
     BLUEXPAY_URL: "http://localhost:3000"
     BU_INFO_LIST_URL: https://example.com/business-info-list.json
+    MAOS_CORE_URL: "http://localhost:5001"
+    MAOS_API_KEY: "ma-xxxxyyyyzzz"
   before_script:
     - ln -fs /usr/share/zoneinfo/Asia/Taipei /etc/localtime
     - npm install -g pnpm && pnpm install --frozen-lockfile
@@ -63,13 +65,13 @@ include:
 #   rules:
 #     - !reference [ .default_rules, rules ]
 
-# eslint:
-#   extends: .testing_template
-#   stage: test
-#   script:
-#     - pnpm run lint
-#   rules:
-#     - !reference [.default_rules, rules]
+eslint:
+  extends: .testing_template
+  stage: test
+  script:
+    - pnpm run lint
+  rules:
+    - !reference [.default_rules, rules]
 
 # unittest:
 #   extends: .testing_template

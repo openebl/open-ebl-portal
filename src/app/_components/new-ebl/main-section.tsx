@@ -30,8 +30,12 @@ const MainSection = () => {
   );
 
   useEffect(() => {
-    if (extraction) {
+    if (extraction?.ebl) {
       router.push(`/ebls/new/edit?uuid=${fileUuid}`);
+    }
+    if (extraction?.status === "failed") {
+      setLastError(extraction?.error ?? "Unknown error");
+      setStatus("error");
     }
   }, [extraction, router, fileUuid]);
 
@@ -56,17 +60,12 @@ const MainSection = () => {
 
     if (res) {
       if (res?.ok) {
-        const result = await res.json() as EBlFileProcessResultType;
+        const result = (await res.json()) as EBlFileProcessResultType;
         const { uuid } = result;
         setFileUuid(uuid);
         setStatus("processing");
       } else {
-        console.error(
-          "Failed to upload file",
-          res.status,
-          res.statusText,
-          await res.text(),
-        );
+        console.error("Failed to upload file", res.status, res.statusText, await res.text());
         setLastError(res.statusText ?? "Unknown error");
         setStatus("error");
       }
@@ -83,8 +82,15 @@ const MainSection = () => {
         {status === "processing" && <ProcessingView />}
         {status === "error" && <ErrorView message={lastError} />}
         <div className="flex h-[5.25rem] w-full items-center justify-between border-t-[1px] border-[#D9D9D9] px-[1.875rem]">
-          <Link href="/ebls" tabIndex={-1}>
-            <Button variant="outline" size="lg" className="w-[11.25rem]">
+          <Link
+            href="/ebls"
+            tabIndex={-1}
+          >
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-[11.25rem]"
+            >
               Cancel
             </Button>
           </Link>

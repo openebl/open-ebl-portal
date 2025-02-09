@@ -1,9 +1,5 @@
 import { env } from "@/env";
-import {
-  GetObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fromEnv } from "@aws-sdk/credential-providers";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -27,6 +23,7 @@ const putObject = async ({ content, key, contentType }: PutObjectProps) => {
     Body: content,
     ContentType: contentType,
   });
+  console.log("!!!!!!!!!!!", env.S3_BUCKET, key, contentType);
   await s3.send(cmd);
 };
 

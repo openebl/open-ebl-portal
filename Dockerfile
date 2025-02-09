@@ -26,6 +26,8 @@ ENV PORTAL_URL="http://localhost:3000"
 ENV BLUEXPAY_URL="http://localhost:3000"
 ENV SYSADMIN_EMAIL=admin@example.com
 ENV BU_INFO_LIST_URL=https://example.com/business-info-list.json
+ENV MAOS_CORE_URL="http://localhost:5001"
+ENV MAOS_API_KEY="ma-xxxxyyyyzzz"
 
 # Build next.js app
 ADD . /app

@@ -27,10 +27,10 @@ export default async function Page({ params }: { params: { uuid: string } }) {
       throw new TRPCClientError("EBl NOT_FOUND");
     }
 
-    const eblId = ebl.bl?.id ?? ""
-    const filename = eblEvent?.file?.name ?? ""
-    const contentType = eblEvent?.file?.file_type ?? ""
-    const hash = String(eblEvent?.metadata?.docHash)
+    const eblId = ebl.bl?.id ?? "";
+    const filename = eblEvent?.file?.name ?? "";
+    const contentType = eblEvent?.file?.file_type ?? "";
+    const hash = String(eblEvent?.metadata?.docHash);
     const docFile = await api.docFile.findByUuid.query(hash);
     if (!docFile) {
       // If not found docFile, download from bu server and generate docFile record
@@ -39,13 +39,13 @@ export default async function Page({ params }: { params: { uuid: string } }) {
 
       // download from bu server
       const response = await fetch(`${env.BU_SERVER_URL}/ebl/${eblId}/document`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'accept': 'application/octet-stream',
-          'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-          // 'X-Business-Unit-ID': String(session?.platform.platformId),
+          accept: "application/octet-stream",
+          Authorization: `Bearer ${env.BU_SERVER_API_KEY}`,
+          "X-Business-Unit-ID": session?.businessUnitId,
         },
-      })
+      });
       // generate docFile record in db
       await processFileDocReUpload({
         filename,
@@ -87,7 +87,12 @@ export default async function Page({ params }: { params: { uuid: string } }) {
       note: eblEvent?.note,
       draft: false,
     };
-    return <MainSection eblForm={eblForm} eblRecord={ebl} />;
+    return (
+      <MainSection
+        eblForm={eblForm}
+        eblRecord={ebl}
+      />
+    );
   };
 
   return execution().catch((err) => {
