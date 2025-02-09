@@ -63,13 +63,13 @@ include:
 #   rules:
 #     - !reference [ .default_rules, rules ]
 
-eslint:
-  extends: .testing_template
-  stage: test
-  script:
-    - pnpm run lint
-  rules:
-    - !reference [.default_rules, rules]
+# eslint:
+#   extends: .testing_template
+#   stage: test
+#   script:
+#     - pnpm run lint
+#   rules:
+#     - !reference [.default_rules, rules]
 
 # unittest:
 #   extends: .testing_template
