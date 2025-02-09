@@ -4,6 +4,7 @@ import { useTestDocExtraction } from "@/test/integration/helpers/test-doc-extrac
 import { useTestStorageService } from "@/test/integration/helpers/test-storage";
 import { useTestEmailService } from "./test-email";
 import { type Session } from "next-auth";
+import { useTestAgreementManifestService } from "./test-agreement-manifest";
 
 const useCaller = ({
   db,
@@ -15,6 +16,7 @@ const useCaller = ({
   const { emailService, watcher: emailWatcher } = useTestEmailService();
   const { storageService, watcher: storageWatch } = useTestStorageService();
   const { docExtraction } = useTestDocExtraction();
+  const { agreementManifest } = useTestAgreementManifestService();
   const caller = appRouter.createCaller({
     headers: new Headers(),
     session,
@@ -22,6 +24,7 @@ const useCaller = ({
     emailService,
     storageService,
     docExtraction,
+    agreementManifest,
   });
   return { caller, session, db, storageService, storageWatch, emailWatcher };
 };

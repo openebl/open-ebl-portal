@@ -1,19 +1,25 @@
 import { sortBy } from "remeda";
 
-import { type DatabaseType } from "@/server/db";
+import { DocImages } from "@/drizzle/schema";
 import { type StorageServiceType } from "@/server/services/storage-service";
-import { type DocImage } from "@prisma/client";
+import { eq, type InferSelectModel, sql } from "drizzle-orm";
+import type { DatabaseType } from "../db";
 
 export const getDocImagesByDocFileUuid = async (
   db: DatabaseType,
   storage: StorageServiceType,
   uuid: string,
 ) => {
-  const images = await db.docImage.findMany({ where: { docFile: { uuid } } });
+  const images = await db
+    .select()
+    .from(DocImages)
+    .where(sql`"docFileId" = (SELECT id FROM "DocFiles" WHERE uuid = ${uuid})`);
+
   const n = groupImagesByPage(images).map(async (image) => {
     const [imageUrl, thumbnailUrl] = await Promise.all([
       image.imageKey && storage.getPresignedUrl({ key: image.imageKey }),
-      image.thumbnailKey && storage.getPresignedUrl({ key: image.thumbnailKey }),
+      image.thumbnailKey &&
+        storage.getPresignedUrl({ key: image.thumbnailKey }),
     ]);
     return {
       page: image.page,
@@ -29,11 +35,14 @@ export const getDocImagesByDocFileId = async (
   storage: StorageServiceType,
   docFileId: bigint,
 ) => {
-  const images = await db.docImage.findMany({ where: { docFileId } });
+  const images = await db.query.DocImages.findMany({
+    where: eq(DocImages.docFileId, docFileId),
+  });
   const n = groupImagesByPage(images).map(async (image) => {
     const [imageUrl, thumbnailUrl] = await Promise.all([
       image.imageKey && storage.getPresignedUrl({ key: image.imageKey }),
-      image.thumbnailKey && storage.getPresignedUrl({ key: image.thumbnailKey }),
+      image.thumbnailKey &&
+        storage.getPresignedUrl({ key: image.thumbnailKey }),
     ]);
     return {
       page: image.page,
@@ -44,7 +53,9 @@ export const getDocImagesByDocFileId = async (
   return Promise.all(n);
 };
 
-const groupImagesByPage = (images: DocImage[]) => {
+type DocImageType = InferSelectModel<typeof DocImages>;
+
+const groupImagesByPage = (images: DocImageType[]) => {
   const result = {} as Record<
     number,
     { page: number; imageKey?: string | null; thumbnailKey?: string | null }

@@ -10,7 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { type Platform } from "@prisma/client";
+import type { Platforms } from "@/drizzle/schema";
+
+type Platform = typeof Platforms.$inferSelect;
 
 const PlatformList = ({ platforms }: { platforms: Platform[] }) => {
   const router = useRouter();

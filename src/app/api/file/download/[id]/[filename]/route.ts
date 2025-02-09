@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string, 
     headers: {
       'accept': 'application/octet-stream',
       'Authorization': `Bearer ${env.BU_SERVER_API_KEY}`,
-      'X-Business-Unit-ID': String(session.platform.platformId),
+      'X-Business-Unit-ID': String(session.businessUnitId),
     },
   })
 
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string, 
     return new NextResponse(response.body, {
       headers: {
         ...response.headers, // copy the previous headers
-        "content-disposition": `attachment; filename="${filename}"`,
+        "content-disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
       },
     });
   } else {

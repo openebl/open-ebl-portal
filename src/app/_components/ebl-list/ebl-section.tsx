@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import EmptyFolderIcon from "@/app/_icons/empty-folder-icon";
+import EmptyFolderIcon from "@/app/_icons/empty-folder-icon.svg";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { EBlFilter, type EBlRecordListType } from "@/types/ebl";
@@ -17,7 +17,10 @@ const FilterGroupItem = ({
   value: string;
 }) => {
   return (
-    <Link prefetch={false} href={`/ebls?filter=${value}`}>
+    <Link
+      prefetch={false}
+      href={`/ebls?filter=${value}`}
+    >
       <ToggleGroupItem
         value={value}
         className={cn(
@@ -33,12 +36,10 @@ const FilterGroupItem = ({
 
 const FilterList = ({
   filter,
-  stats
-
+  stats,
 }: {
   filter?: string | null;
-  stats: { action_needed: number, upcoming: number, sent: number, archive: number };
-
+  stats: { action_needed: number; upcoming: number; sent: number; archive: number };
 }) => {
   const currentFilter = filter ?? "action_needed";
   return (
@@ -69,7 +70,10 @@ const FilterList = ({
           </span>
         )}
       </FilterGroupItem>
-      <FilterGroupItem value="sent" className="borde-t rounded-none border-b">
+      <FilterGroupItem
+        value="sent"
+        className="borde-t rounded-none border-b"
+      >
         Sent
         {stats.sent > 0 && (
           <span className="flex h-[18px] items-center justify-center rounded-[10px] bg-secondary1 px-2.5 py-px text-xs font-semibold text-white">
@@ -94,24 +98,14 @@ const FilterList = ({
 
 const emptyMessgaes: Record<string, string[]> = {
   action_needed: ["There are no drafts or eB/Ls pending action."] as const,
-  upcoming: [
-    "There are no upcoming eB/Ls.",
-    "You currently have no eB/Ls assigned to you.",
-  ] as const,
-  sent: [
-    "There are no sent eB/Ls.",
-    "You have not endorsed or transferred any eB/Ls yet.",
-  ] as const,
-  archive: [
-    "No eB/Ls in Archive.",
-    "There are currently no accomplished or printed eB/Ls in your archive.",
-  ] as const,
+  upcoming: ["There are no upcoming eB/Ls.", "You currently have no eB/Ls assigned to you."] as const,
+  sent: ["There are no sent eB/Ls.", "You have not endorsed or transferred any eB/Ls yet."] as const,
+  archive: ["No eB/Ls in Archive.", "There are currently no accomplished or printed eB/Ls in your archive."] as const,
   default: ["No eB/Ls found."] as const,
 };
 
 const EmptyList = ({ filter }: { filter: EBlFilter | null | undefined }) => {
-  const message =
-    emptyMessgaes[filter ?? EBlFilter.ACTION_NEEDED] ?? emptyMessgaes.default;
+  const message = emptyMessgaes[filter ?? EBlFilter.ACTION_NEEDED] ?? emptyMessgaes.default;
   return (
     <div className="flex min-h-[28rem] w-full flex-col justify-center">
       <div className="text-content flex w-full flex-col items-center justify-start text-main">
@@ -119,12 +113,8 @@ const EmptyList = ({ filter }: { filter: EBlFilter | null | undefined }) => {
           <EmptyFolderIcon />
         </div>
         <div className="flex flex-col items-center justify-start gap-2.5">
-          <div className="self-stretch text-center text-base font-semibold leading-normal">
-            {message![0]}
-          </div>
-          <div className="self-stretch text-center text-xs font-normal leading-[1.125rem]">
-            {message![1]}
-          </div>
+          <div className="self-stretch text-center text-base font-semibold leading-normal">{message![0]}</div>
+          <div className="self-stretch text-center text-xs font-normal leading-[1.125rem]">{message![1]}</div>
         </div>
       </div>
     </div>
@@ -144,7 +134,12 @@ const EblTable = async ({
   return (
     <div className="text-content flex min-h-[28rem] w-full flex-col justify-start">
       {recordList.records?.map((row, index) => (
-        <TableRow key={index} row={row} filter={filter} buList={buList} />
+        <TableRow
+          key={index}
+          row={row}
+          filter={filter}
+          buList={buList}
+        />
       ))}
     </div>
   );
@@ -157,7 +152,7 @@ const EblSection = ({
 }: {
   recordList: EBlRecordListType;
   filter: EBlFilter | null | undefined;
-  stats: { action_needed: number, upcoming: number, sent: number, archive: number };
+  stats: { action_needed: number; upcoming: number; sent: number; archive: number };
 }) => {
   return (
     <div className="w-full rounded-lg border border-zinc-200 bg-white shadow-xl">
@@ -167,7 +162,10 @@ const EblSection = ({
           stats={stats}
         />
       </div>
-      <EblTable recordList={recordList} filter={filter} />
+      <EblTable
+        recordList={recordList}
+        filter={filter}
+      />
     </div>
   );
 };

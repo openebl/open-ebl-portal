@@ -8,13 +8,8 @@ export const env = createEnv({
    */
   server: {
     DATABASE_URL: z.string().url(),
-    NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
-    NEXTAUTH_SECRET:
-      process.env.NODE_ENV === "production"
-        ? z.string()
-        : z.string().optional(),
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    NEXTAUTH_SECRET: process.env.NODE_ENV === "production" ? z.string() : z.string().optional(),
     NEXTAUTH_URL: z.preprocess(
       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
       // Since NextAuth.js automatically uses the VERCEL_URL if present.
@@ -32,6 +27,9 @@ export const env = createEnv({
     PORTAL_URL: z.string().min(1),
     SIGNIN_EMAIL_MAXAGE_IN_SEC: z.coerce.number().default(15 * 60),
     BU_INFO_LIST_URL: z.string().url(),
+    AGREEMENT_MANIFEST_URL: z.string().url().default("https://www.bluextrade.com/agreements-manifest.json"),
+    PANAMA_DEMO: z.boolean().default(false), // If true, the app will enable all the Panama demo feature
+    BLUEXPAY_URL: z.string().url(),
   },
 
   /**
@@ -40,7 +38,7 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    // NEXT_PUBLIC_BLUEXPAY_URL2: z.string().url(),
   },
 
   /**
@@ -61,6 +59,9 @@ export const env = createEnv({
     PORTAL_URL: process.env.PORTAL_URL,
     SIGNIN_EMAIL_MAXAGE_IN_SEC: process.env.SIGNIN_EMAIL_MAXAGE_IN_SEC,
     BU_INFO_LIST_URL: process.env.BU_INFO_LIST_URL,
+    AGREEMENT_MANIFEST_URL: process.env.AGREEMENT_MANIFEST_URL,
+    PANAMA_DEMO: process.env.PANAMA_DEMO === "true", // If true, the app will enable all the Panama demo feature
+    BLUEXPAY_URL: process.env.BLUEXPAY_URL, // If true, the app will enable all the Panama demo feature
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

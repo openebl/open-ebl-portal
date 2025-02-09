@@ -1,5 +1,7 @@
+import { DocImages } from "@/drizzle/schema";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import {getDocImagesByDocFileId} from "@/server/fx/doc-image";
+import { getDocImagesByDocFileId } from "@/server/fx/doc-image";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const docImageRouter = createTRPCRouter({
@@ -12,12 +14,17 @@ export const docImageRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const image = await ctx.db.docImage.findFirst({
-        where: { ...input },
+      const { docFileId, page, thumbnail } = input;
+      const image = await ctx.db.query.DocImages.findFirst({
+        where: and(
+          eq(DocImages.docFileId, docFileId),
+          eq(DocImages.page, page),
+          thumbnail ? eq(DocImages.thumbnail, true) : undefined,
+        ),
       });
       if (!image?.storagekey) return null;
 
-      return ctx.storageService.getPresignedUrl({ key: image.storagekey! });
+      return ctx.storageService.getPresignedUrl({ key: image.storagekey });
     }),
 
   getUrls: protectedProcedure

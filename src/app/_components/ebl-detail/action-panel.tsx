@@ -6,11 +6,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { isEmpty } from "remeda";
 
-import AmendIcon from "@/app/_icons/amend-icon";
-import PrinterIcon from "@/app/_icons/printer-icon";
-import ReturnIcon from "@/app/_icons/return-icon";
-import SendIcon from "@/app/_icons/send-icon";
-import AccomplishIcon from "@/app/_icons/accomplish-icon";
+import AmendIcon from "@/app/_icons/amend-icon.svg";
+import PrinterIcon from "@/app/_icons/printer-icon.svg";
+import ReturnIcon from "@/app/_icons/return-icon.svg";
+import SendIcon from "@/app/_icons/send-icon.svg";
+import AccomplishIcon from "@/app/_icons/accomplish-icon.svg";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,16 +25,13 @@ import { type DialogState } from "@/app/_components/dialogs/confirmation-dialog"
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type AppRouter } from "@/server/api/root";
 import { type DialogActionType, EBlConfirmationDialog } from "../dialogs/ebl-confirmation-dialog";
-import PrinterWhiteIcon from "@/app/_icons/printer-white-icon";
+import PrinterWhiteIcon from "@/app/_icons/printer-white-icon.svg";
 import { getNextPartyIDByAction } from "@/lib/ebl";
 
-const ActionPanel = ({
-  ebl,
-}: {
-  ebl: EBlRecordType;
-}) => {
-  const defaultActionList: EBlAllowAction[] = ['TRANSFER', 'SURRENDER', 'ACCOMPLISH']
-  const defaultAction = defaultActionList.find(action => ebl.allow_actions?.includes(action)) ?? ebl.allow_actions?.[0];
+const ActionPanel = ({ ebl }: { ebl: EBlRecordType }) => {
+  const defaultActionList: EBlAllowAction[] = ["TRANSFER", "SURRENDER", "ACCOMPLISH"];
+  const defaultAction =
+    defaultActionList.find((action) => ebl.allow_actions?.includes(action)) ?? ebl.allow_actions?.[0];
   const [action, setAction] = useState<EBlAllowAction | undefined>(defaultAction);
   const [note, setNote] = useState<string>("");
 
@@ -43,8 +40,8 @@ const ActionPanel = ({
   const [isLoading, setLoading] = useState(false);
   const router = useRouter();
 
-  const nextPartyID = getNextPartyIDByAction(ebl, action!) ?? ""
-  const { data: nextPartyName } = api.buinfo.legalBusinessName.useQuery(nextPartyID, { staleTime: 1000 * 60 * 10 })
+  const nextPartyID = getNextPartyIDByAction(ebl, action!) ?? "";
+  const { data: nextPartyName } = api.buinfo.legalBusinessName.useQuery(nextPartyID, { staleTime: 1000 * 60 * 10 });
 
   const actionHandlerCallback = (action: EBlAllowAction) => ({
     onSuccess: () => {
@@ -57,7 +54,7 @@ const ActionPanel = ({
       console.error(error);
       toast.error(`Failed to ${action} eBL: ` + error.message);
     },
-  })
+  });
   const requestAmendEBl = api.ebl.amendment_request.useMutation(actionHandlerCallback("REQUEST_AMEND"));
   const printEBl = api.ebl.print_to_paper.useMutation(actionHandlerCallback("PRINT"));
   const transferEBl = api.ebl.transfer.useMutation(actionHandlerCallback("TRANSFER"));
@@ -65,18 +62,21 @@ const ActionPanel = ({
   const surrenderEBl = api.ebl.surrender.useMutation(actionHandlerCallback("SURRENDER"));
   const accomplishEBl = api.ebl.accomplish.useMutation(actionHandlerCallback("ACCOMPLISH"));
 
-  const allowActions: Record<EBlAllowAction, { icon: JSX.Element, label: string, handler: (id: string, note: string) => void }> = {
-    "UPDATE_DRAFT": {
+  const allowActions: Record<
+    EBlAllowAction,
+    { icon: JSX.Element; label: string; handler: (id: string, note: string) => void }
+  > = {
+    UPDATE_DRAFT: {
       icon: <AmendIcon />,
       label: "Update Draft",
       handler: () => null,
     },
-    "AMEND": {
+    AMEND: {
       icon: <AmendIcon />,
       label: "Amend",
       handler: () => null,
     },
-    "REQUEST_AMEND": {
+    REQUEST_AMEND: {
       icon: <AmendIcon />,
       label: "Request Amendment",
       handler: (id: string, note: string) => {
@@ -85,47 +85,47 @@ const ActionPanel = ({
           setDialogOpen(false);
           setLoading(false);
           toast.error("Please leave a note.");
-          return
+          return;
         }
         requestAmendEBl.mutate({ id, note });
       },
     },
-    "PRINT": {
+    PRINT: {
       icon: action === "PRINT" ? <PrinterWhiteIcon /> : <PrinterIcon />,
       label: "Print to Paper",
       handler: (id: string, note: string) => {
         printEBl.mutate({ id, note });
       },
     },
-    "TRANSFER": {
+    TRANSFER: {
       icon: <SendIcon />,
       label: "Transfer",
       handler: (id: string, note: string) => {
         transferEBl.mutate({ id, note });
       },
     },
-    "RETURN": {
+    RETURN: {
       icon: <ReturnIcon />,
       label: "Return eBL to Requestor",
       handler: (id: string, note: string) => {
         returnEBl.mutate({ id, note });
       },
     },
-    "SURRENDER": {
+    SURRENDER: {
       icon: <SendIcon />,
       label: "Surrender",
       handler: (id: string, note: string) => {
         surrenderEBl.mutate({ id, note });
       },
     },
-    "ACCOMPLISH": {
+    ACCOMPLISH: {
       icon: <AccomplishIcon />,
       label: "Accomplish",
       handler: (id: string, note: string) => {
         accomplishEBl.mutate({ id, note });
       },
     },
-    "DELETE": {
+    DELETE: {
       icon: <></>,
       label: "Delete",
       handler: () => null,
@@ -133,8 +133,8 @@ const ActionPanel = ({
   };
 
   const handleDialogCanceled = () => {
-    setDialogOpen(false)
-  }
+    setDialogOpen(false);
+  };
   const handleDialogConfirmed = () => {
     if (dialogState === "confirm") {
       setDialogState("waiting");
@@ -145,14 +145,13 @@ const ActionPanel = ({
       router.push("/ebls", { scroll: true });
       router.refresh();
     }
-  }
+  };
 
   const handleClick = () => {
     if (action === "AMEND") {
       setLoading(true);
       router.push(`/ebls/${ebl.bl?.id}/edit`);
-    }
-    else setDialogOpen(true);
+    } else setDialogOpen(true);
   };
 
   if (isEmpty(ebl.allow_actions ?? [])) return null;
@@ -177,13 +176,14 @@ const ActionPanel = ({
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              className="flex h-[2.75rem] w-[2.5rem] select-none items-center justify-center rounded-none rounded-r-md bg-[#F86919] px-0 py-0 text-white hover:bg-[#FF965C] focus-visible:ring-0 active:bg-[#D24B00] disabled:border-[1px] disabled:border-[#CAD2E0] disabled:bg-[#F1F0F0] disabled:text-disabled"
-            >
+            <Button className="flex h-[2.75rem] w-[2.5rem] select-none items-center justify-center rounded-none rounded-r-md bg-[#F86919] px-0 py-0 text-white hover:bg-[#FF965C] focus-visible:ring-0 active:bg-[#D24B00] disabled:border-[1px] disabled:border-[#CAD2E0] disabled:bg-[#F1F0F0] disabled:text-disabled">
               <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[15rem] font-header" align="end">
+          <DropdownMenuContent
+            className="w-[15rem] font-header"
+            align="end"
+          >
             {ebl.allow_actions?.map((act) => {
               if (act === action) return null;
               const block = allowActions[act];

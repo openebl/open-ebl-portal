@@ -1,12 +1,12 @@
-import { type createDb } from "@/server/db";
 import { test } from 'vitest';
 
 import { spinUpTestPrisma } from '@/test/integration/helpers/test-db';
+import type { DatabaseType } from '@/server/db';
 
-export type TestDbType = ReturnType<typeof createDb>;
+export type TestDbType = DatabaseType;
 
 export interface DBFixtures {
-  db: ReturnType<typeof createDb>
+  db: TestDbType
 }
 
 export const testWithDb = test.extend<DBFixtures>({

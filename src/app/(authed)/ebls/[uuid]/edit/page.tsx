@@ -6,6 +6,7 @@ import { getLogger } from "@/lib/logger";
 import { api } from "@/trpc/server";
 import { TRPCClientError } from "@trpc/client";
 import { type EBlFormType } from "@/types/ebl";
+import { EBlDocType } from "@/types/ebl/common";
 import { eblParties, latestBillOfLadingEvent } from "@/lib/ebl";
 import { env } from "@/env";
 import { getServerAuthSession } from "@/server/auth";
@@ -19,9 +20,9 @@ export default async function Page({ params }: { params: { uuid: string } }) {
     const ebl = await api.ebl.getByID.query(params.uuid);
     getLogger().info(`Got eBL from Server: ${JSON.stringify(ebl)}`);
 
-    const documentParties = eblParties(ebl, false)
-    const eblEvent = latestBillOfLadingEvent(ebl)
-    const eblContent = eblEvent?.bill_of_lading
+    const documentParties = eblParties(ebl, false);
+    const eblEvent = latestBillOfLadingEvent(ebl);
+    const eblContent = eblEvent?.bill_of_lading_v3;
     if (!eblContent) {
       throw new TRPCClientError("EBl NOT_FOUND");
     }
@@ -57,8 +58,8 @@ export default async function Page({ params }: { params: { uuid: string } }) {
     }
 
     // TODO: wait for openAPI documentation to update
-    const polLocation = eblContent?.shipmentLocations?.[0]?.location as { locationName: string, UNLocationCode: string }
-    const podLocation = eblContent?.shipmentLocations?.[1]?.location as { locationName: string, UNLocationCode: string }
+    const polLocation = eblContent?.transports?.portOfLoading as { locationName: string; UNLocationCode: string };
+    const podLocation = eblContent?.transports?.portOfDischarge as { locationName: string; UNLocationCode: string };
     const eblForm: EBlFormType = {
       metadata: {
         username: "",
@@ -70,7 +71,7 @@ export default async function Page({ params }: { params: { uuid: string } }) {
         content: "", // not need to pass current file content to client in edit mode, because if not upload new file, pass "" and bu server will use old file automatically
       },
       bl_number: eblContent?.transportDocumentReference ?? "",
-      bl_doc_type: eblEvent?.doc_type ?? "HouseBillOfLading",
+      bl_doc_type: (eblEvent?.doc_type as EBlDocType) ?? EBlDocType.HouseBillOfLading,
       to_order: false,
       pol: {
         locationName: polLocation?.locationName ?? "",
@@ -85,7 +86,7 @@ export default async function Page({ params }: { params: { uuid: string } }) {
       release_agent: documentParties?.releaser ?? "",
       note: eblEvent?.note,
       draft: false,
-    }
+    };
     return <MainSection eblForm={eblForm} eblRecord={ebl} />;
   };
 

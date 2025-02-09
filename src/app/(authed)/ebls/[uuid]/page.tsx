@@ -2,7 +2,7 @@
 
 import ErrorPage from "@/app/_components/ebl-detail/error-page";
 import MainSection from "@/app/_components/ebl-detail/main-section";
-import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
+import LeftArrowIcon from "@/app/_icons/left-arrow-icon.svg";
 import { latestBillOfLadingEvent } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
 import { api } from "@/trpc/server";
@@ -15,14 +15,13 @@ import { processFileDocReUpload } from "@/server/fx/ebl";
 import { s3StorageService } from "@/server/services/storage-service";
 import { redirect } from "next/navigation";
 
-const Page = async ({ params }: { params: { uuid: string } }) => {
-  let block: JSX.Element | null = null;
+const Content = async ({ uuid }: { uuid: string }) => {
   try {
-    const ebl = await api.ebl.getByID.query(params.uuid);
+    const ebl = await api.ebl.getByID.query(uuid);
     if (!ebl) throw new Error("NOT_FOUND");
 
-    const eblEvent = latestBillOfLadingEvent(ebl)
-    const eblContent = eblEvent?.bill_of_lading
+    const eblEvent = latestBillOfLadingEvent(ebl);
+    const eblContent = eblEvent?.bill_of_lading_v3;
     if (!eblContent) {
       throw new TRPCClientError("EBl NOT_FOUND");
     }
@@ -62,16 +61,19 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
 
     block = <MainSection ebl={ebl} images={images} />;
 
+    return <MainSection ebl={ebl} images={images} />;
   } catch (err) {
     getLogger().error(err);
 
-    block = err instanceof Error && err.message === "NOT_FOUND" ? (
+    return err instanceof Error && err.message === "NOT_FOUND" ? (
       <ErrorPage message="eBL Not Found" />
     ) : (
       <ErrorPage message={`Something went wrong`} />
-    )
+    );
   }
+};
 
+const Page = async ({ params }: { params: { uuid: string } }) => {
   return (
     <div className="px-12 py-10 font-content">
       <Link
@@ -83,8 +85,7 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
         Back
       </Link>
 
-      {block}
-
+      <Content uuid={params.uuid} />
     </div>
   );
 };

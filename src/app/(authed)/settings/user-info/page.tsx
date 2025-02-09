@@ -7,16 +7,10 @@ import { getServerAuthSession } from "@/server/auth";
 export default async function Page() {
   const session = await getServerAuthSession();
   const roles =
-    session?.platformRoles
-      .filter((role) => role.platform.id === session?.platform.id)
-      .map((role) => role.role) ?? [];
+    session?.platformRoles.filter((role) => role.platform.id === session?.platform.id).map((role) => role.role) ?? [];
   return (
     <MainSection tabIndex={0}>
-      <UserInfoPanel
-        name={session?.user.name ?? ""}
-        email={session?.user?.email ?? ""}
-        roles={roles}
-      />
+      <UserInfoPanel name={session?.user.name ?? ""} email={session?.user?.email ?? ""} roles={roles} />
     </MainSection>
   );
 }

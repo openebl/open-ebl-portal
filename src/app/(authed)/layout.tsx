@@ -1,13 +1,9 @@
 import "@/styles/globals.css";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import NextTopLoader from "nextjs-toploader";
 
 import OuterFrame from "@/app/_components/outer-frame";
 import { getServerAuthSession } from "@/server/auth";
-import { TRPCReactProvider } from "@/trpc/react";
-import { Toaster } from "sonner";
 
 export const metadata = {
   title: "BlueX eBL Portal",
@@ -22,17 +18,7 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
     redirect("/api/auth/signin");
   }
 
-  return (
-    <html lang="en" suppressHydrationWarning={true}>
-      <body>
-        <NextTopLoader color="#2292dd" />
-        <TRPCReactProvider cookies={cookies().toString()}>
-          <OuterFrame session={session}>{children}</OuterFrame>
-        </TRPCReactProvider>
-        <Toaster theme='light' position='top-center' richColors={true} />
-      </body>
-    </html>
-  );
+  return <OuterFrame session={session}>{children}</OuterFrame>;
 };
 
 export default RootLayout;

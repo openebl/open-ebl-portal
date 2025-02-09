@@ -5,22 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon.svg";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UserRoleSchema, userRoleMapping } from "@/types/user";
-import { type User } from "@prisma/client";
 
-type UserType = User & {
-  userRoles: {
-    role: string;
-  }[];
+type UserType = {
+  id: bigint;
+  name: string | null;
+  email: string | null;
+  emailVerified: Date | null;
+  roles: string[];
 };
 
 const ResendInvitationLink = ({ userId }: { userId: bigint }) => {
@@ -69,11 +63,7 @@ const UserList = ({ users }: { users: UserType[] }) => {
             onClick={() => router.push(`/settings/users/${user.id}`)}
           >
             <TableCell className="px-[1.875rem]">{user.name}</TableCell>
-            <TableCell>
-              {user.userRoles
-                .map((r) => userRoleMapping[UserRoleSchema.parse(r.role)])
-                .join(" / ")}
-            </TableCell>
+            <TableCell>{user.roles.map((r) => userRoleMapping[UserRoleSchema.parse(r)]).join(" / ")}</TableCell>
             <TableCell>{user.email}</TableCell>
             <TableCell className="max-w-[10rem]">
               {user.emailVerified ? (

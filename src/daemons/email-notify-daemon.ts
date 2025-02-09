@@ -1,13 +1,14 @@
 import dotenv from "dotenv";
+import { type InferSelectModel, sql } from "drizzle-orm";
 import createClient from "openapi-fetch";
 
+import { EBlStashes, type Platforms } from "@/drizzle/schema";
 import { currentStatus } from "@/lib/ebl";
 import { getLogger } from "@/lib/logger";
 import { sleep } from "@/lib/utils";
 import { db } from "@/server/db";
 import { SmtpEmailService } from "@/server/services/email-service";
 import { type components, type paths } from "@/types/bu-scheme";
-import { Prisma, type EBlStash, type Platform } from "@prisma/client";
 import { performEmailNotifiers } from "./email-notifiers";
 
 type EBlRecordType = components["schemas"]["BillOfLadingRecord"];
@@ -68,7 +69,7 @@ async function pollingPlatformEBls({
   serverUrl,
   serverApiKey,
 }: {
-  platform: Platform;
+  platform: InferSelectModel<typeof Platforms>;
   serverUrl: string;
   serverApiKey: string;
 }) {
@@ -99,15 +100,13 @@ async function pollingPlatformEBls({
       );
 
       // create a new stash record
-      const newStash = await db.eBlStash.create({
-        data: {
-          eBlId: rec.bl.id,
-          platformId: platform.id,
-          status,
-          version: rec.bl.version ?? 0,
-          currentOwner: rec.bl.current_owner ?? "",
-        },
-      });
+      const [newStash] = await db.insert(EBlStashes).values({
+        eBlId: rec.bl.id,
+        platformId: platform.id,
+        status,
+        version: rec.bl.version ?? 0,
+        currentOwner: rec.bl.current_owner ?? "",
+      }).returning();
 
       await performEmailNotifiers({
         db,
@@ -115,7 +114,7 @@ async function pollingPlatformEBls({
         platform,
         rec,
         stash,
-        newStash,
+        newStash: newStash!,
       });
     }
   }
@@ -123,51 +122,53 @@ async function pollingPlatformEBls({
 
 async function latestEBlStashesByPlatformAndEBl(
   chunk: EBlRecordType[],
-  platform: Platform,
-) {
+  platform: InferSelectModel<typeof Platforms>,
+): Promise<Record<string, typeof EBlStashes.$inferSelect>> {
   const ids = chunk.map((rec) => rec?.bl?.id).filter((v) => !!v);
-  const query = Prisma.sql`
+  if (ids.length === 0) return {};
+
+  const query = sql`
     SELECT DISTINCT ON ("platformId", "eBlId") *
     FROM "EBlStash"
-    WHERE "platformId" = ${platform.id} AND "eBlId" IN (${Prisma.join(ids)})
+    WHERE "platformId" = ${platform.id} AND "eBlId" IN (${sql.join(ids, sql`,`)})
     ORDER BY "platformId", "eBlId", "createdAt" DESC;
   `;
 
-  const stashes = await db.$queryRaw<EBlStash[]>(query);
+  const stashes = await db.execute<typeof EBlStashes.$inferSelect>(query);
   return stashes.reduce(
     (acc, stash) => {
       acc[stash.eBlId] = stash;
       return acc;
     },
-    {} as Record<string, EBlStash>,
+    {} as Record<string, typeof EBlStashes.$inferSelect>,
   );
 }
 
 async function* fetchPlatforms() {
-  const take = 50;
-  let skip = 0;
+  const limit = 50;
+  let offset = 0;
   while (true) {
-    const platforms = await db.platform.findMany({
-      take,
-      skip,
+    const platforms = await db.query.Platforms.findMany({
+      limit,
+      offset,
     });
 
     for (const platform of platforms) {
       yield platform;
     }
 
-    if (platforms.length < take) {
+    if (platforms.length < limit) {
       break;
     }
 
-    skip += take;
+    offset += limit;
   }
 }
 
 async function* fetchEBlInChunk(args: {
   buUrl: string;
   buKey: string;
-  platform: Platform;
+  platform: InferSelectModel<typeof Platforms>;
 }) {
   let offset = 0;
   const limit = 50;

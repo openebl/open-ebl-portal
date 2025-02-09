@@ -4,6 +4,7 @@ import { MaybeString } from "../common";
 enum EBlDocType {
   MasterBillOfLading = "MasterBillOfLading",
   HouseBillOfLading = "HouseBillOfLading",
+  HouseNegotiableBillOfLading = "HouseNegotiableBillOfLading",
 }
 
 enum EBlFilter {
@@ -17,11 +18,6 @@ const EBlDocTypeSchema = z.enum(Object.keys(EBlDocType) as [keyof typeof EBlDocT
 const EBlMetadataSchema = z.object({
   username: z.string(),
   docHash: MaybeString,
-})
+});
 
-export {
-  EBlDocTypeSchema,
-  EBlMetadataSchema,
-  EBlDocType,
-  EBlFilter,
-};
+export { EBlDocTypeSchema, EBlMetadataSchema, EBlDocType, EBlFilter };

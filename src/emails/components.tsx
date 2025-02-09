@@ -28,3 +28,14 @@ export const ActionButton = ({
     {children}
   </Button>
 );
+
+export const NoteSection = ({ note }: { note: string | null | undefined }) =>
+  note &&
+  note.length > 0 && (
+    <>
+      Note:&nbsp;
+      <strong>{note}</strong>
+      <br />
+      <br />
+    </>
+  );

@@ -20,30 +20,18 @@ import { businessInfoList } from "@/server/fx/buinfo";
 // fileName: name of the document
 // content: content of the document
 // If it fails to create a new document extraction, it throws an error.
-const createExtraction = async ({
-  uuid,
-  filename,
-  content,
-}: {
-  uuid: string;
-  filename: string;
-  content: Buffer;
-}) => {
-  const client = createClient(DocuSumDefinition, getChannel());
-  const req: Partial<ExtractDocumentRequest> = {
-    requestId: uuid,
-    fileName: filename,
-    file: content,
-  };
-  const res = await client.extractDocument(req);
-  if (res.error) {
-    getLogger().error(
-      `Failed to create extraction to DocuSum: (${res.error.code}) ${res.error.message}`,
-    );
-    throw new Error(
-      `Failed to create extraction to DocuSum: (${res.error.code}) ${res.error.message}`,
-    );
-  }
+const createExtraction = async ({ uuid, filename, content }: { uuid: string; filename: string; content: Buffer }) => {
+  // const client = createClient(DocuSumDefinition, getChannel());
+  // const req: Partial<ExtractDocumentRequest> = {
+  //   requestId: uuid,
+  //   fileName: filename,
+  //   file: content,
+  // };
+  // const res = await client.extractDocument(req);
+  // if (res.error) {
+  //   getLogger().error(`Failed to create extraction to DocuSum: (${res.error.code}) ${res.error.message}`);
+  //   throw new Error(`Failed to create extraction to DocuSum: (${res.error.code}) ${res.error.message}`);
+  // }
 };
 
 const InProgressStatusList = [
@@ -56,28 +44,13 @@ const InProgressStatusList = [
 // If the extraction is still in progress, it will return null.
 // If the extraction is not found, it returns null.
 // If it fails to get the extraction, it throws an error.
-const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (
-  uuid: string,
-) => {
-  const docInfo = await getDocInfo(uuid);
-  if (!docInfo || InProgressStatusList.includes(docInfo.status)) return null;
-
-  getLogger().info(`Got docInfo: ${JSON.stringify(docInfo)}`);
-
-  const polCode = lookupPort(
-    docInfo.originEntities.find((e) => e.label === "PortOfLoading")?.value,
-  );
-  const podCode = lookupPort(
-    docInfo.originEntities.find((e) => e.label === "PortOfDischarge")?.value,
-  );
-
+const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (uuid: string) => {
   return {
     metadata: {
       username: "",
       docHash: "",
     },
-    bl_number:
-      docInfo.originEntities.find((e) => e.label === "BlNumber")?.value ?? "",
+    bl_number: "",
     bl_doc_type: EBlDocType.HouseBillOfLading,
     to_order: false,
     draft: true,
@@ -86,27 +59,56 @@ const getExtraction: (uuid: string) => Promise<EBlFormType | null> = async (
       type: "",
       content: "",
     },
-    shipper:
-      (await lookupParty(
-        docInfo.originEntities.find((e) => e.label === "Shipper")?.value,
-      )) ?? "",
-    consignee:
-      (await lookupParty(
-        docInfo.originEntities.find((e) => e.label === "Consignee")?.value,
-      )) ?? "",
-    release_agent:
-      (await lookupParty(
-        docInfo.originEntities.find((e) => e.label === "NotifyParty")?.value,
-      )) ?? "",
+    shipper: "",
+    consignee: "",
+    release_agent: "",
     pol: {
-      UNLocationCode: polCode ?? "",
-      locationName: portName(polCode) ?? "",
+      UNLocationCode: "",
+      locationName: "",
     },
     pod: {
-      UNLocationCode: podCode ?? "",
-      locationName: portName(podCode) ?? "",
+      UNLocationCode: "",
+      locationName: "",
     },
   };
+
+  // const docInfo = await getDocInfo(uuid);
+  // if (!docInfo || InProgressStatusList.includes(docInfo.status)) return null;
+
+  // getLogger().info(`Got docInfo: ${JSON.stringify(docInfo)}`);
+
+  // const polCode = lookupPort(docInfo.originEntities.find((e) => e.label === "PortOfLoading")?.value);
+  // const podCode = lookupPort(docInfo.originEntities.find((e) => e.label === "PortOfDischarge")?.value);
+
+  // return {
+  //   metadata: {
+  //     username: "",
+  //     docHash: "",
+  //   },
+  //   bl_number: docInfo.originEntities.find((e) => e.label === "BlNumber")?.value ?? "",
+  //   bl_doc_type: EBlDocType.HouseBillOfLading,
+  //   to_order: false,
+  //   draft: true,
+  //   file: {
+  //     name: "",
+  //     type: "",
+  //     content: "",
+  //   },
+  //   shipper: (await lookupParty(docInfo.originEntities.find((e) => e.label === "Shipper")?.value)) ?? "",
+  //   consignee: (await lookupParty(docInfo.originEntities.find((e) => e.label === "Consignee")?.value)) ?? "",
+  //   release_agent:
+  //     (await lookupParty(
+  //       docInfo.originEntities.find((e) => e.label === "NotifyParty" || e.label === "DeliveryAgent")?.value,
+  //     )) ?? "",
+  //   pol: {
+  //     UNLocationCode: polCode ?? "",
+  //     locationName: portName(polCode) ?? "",
+  //   },
+  //   pod: {
+  //     UNLocationCode: podCode ?? "",
+  //     locationName: portName(podCode) ?? "",
+  //   },
+  // };
 };
 
 let sChannel: ReturnType<typeof createChannel> | null = null;
@@ -132,8 +134,7 @@ const getDocInfo = async (uuid: string) => {
   const res = client.listDocumentExtraction(req);
   for await (const item of res) {
     if (item.extraction) {
-      const docInfos =
-        item.extraction.reference?.docInfos ?? item.extraction.data?.docInfos;
+      const docInfos = item.extraction.reference?.docInfos ?? item.extraction.data?.docInfos;
       return docInfos?.[0];
     }
   }

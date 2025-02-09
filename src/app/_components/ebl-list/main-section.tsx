@@ -3,20 +3,14 @@
 import Link from "next/link";
 
 import SearchBox from "@/app/_components/common/searchbox";
-import AddIcon from "@/app/_icons/add-icon";
+import AddIcon from "@/app/_icons/add-icon.svg";
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/server";
 import type { EBlFilter } from "@/types/ebl";
 import EblSection from "./ebl-section";
 import PaginatorSection from "./paginator-section";
 
-const MainSection = async ({
-  page,
-  filter,
-}: {
-  page: number;
-  filter: EBlFilter | undefined;
-}) => {
+const MainSection = async ({ page, filter }: { page: number; filter: EBlFilter | undefined }) => {
   const recordList = await api.ebl.list.query({
     filter,
     offset: (page - 1) * 20,
@@ -44,14 +38,10 @@ const MainSection = async ({
             action_needed: recordList.report?.action_needed ?? 0,
             upcoming: recordList.report?.upcoming ?? 0,
             sent: recordList.report?.sent ?? 0,
-            archive: recordList.report?.archive ?? 0
+            archive: recordList.report?.archive ?? 0,
           }}
         />
-        <PaginatorSection
-          total={recordList.total ?? 0}
-          currentPage={page}
-          filter={filter}
-        />
+        <PaginatorSection total={recordList.total ?? 0} currentPage={page} filter={filter} />
       </div>
     </div>
   );

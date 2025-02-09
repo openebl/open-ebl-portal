@@ -1,9 +1,4 @@
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { type EBlRecordType } from "@/types/ebl";
 import ActionPanel from "./action-panel";
@@ -13,16 +8,15 @@ import {
   currentStatus,
   eblParties,
   getNextPartyIDByCurrentStatus,
+  latestBillOfLadingEvent,
 } from "@/lib/ebl";
-import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon";
+import CircleInCheckIcon from "@/app/_icons/check-in-circle-icon.svg";
 
 type TrackerPosition = "first" | "middle" | "last";
 
 const TrackerPositionClipPath = {
-  first:
-    "polygon(0% 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%)",
-  middle:
-    "polygon(0% 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%, 12px 50%)",
+  first: "polygon(0% 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%)",
+  middle: "polygon(0% 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 0% 100%, 12px 50%)",
   last: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 12px 50%)",
 };
 
@@ -50,9 +44,7 @@ const ProgressTracker = ({
           clipPath: TrackerPositionClipPath[position],
         }}
       >
-        <div className="whitespace-nowrap text-xs font-semibold leading-[1.125rem] text-[#86A1BC]">
-          {title}
-        </div>
+        <div className="whitespace-nowrap text-xs font-semibold leading-[1.125rem] text-[#86A1BC]">{title}</div>
         <TooltipTrigger asChild>
           <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-lg font-bold leading-7 text-white">
             {name}
@@ -78,24 +70,25 @@ const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
   const accomplished = "bg-[#039912]";
   const printed = "bg-warning";
 
+  const isToOrder = latestBillOfLadingEvent(ebl)?.bill_of_lading_v3?.isToOrder;
   const documentParties = eblParties(ebl);
   const issuerID = documentParties?.issuer ?? "";
   const shipperID = documentParties?.shipper ?? "";
   const consigneeID = documentParties?.consignee ?? "";
+  const endorseeID = documentParties?.endorsee ?? "";
   const releaseAgentID = documentParties?.releaser ?? "";
-  const [issuerName, shipperName, consigneeName, releaseAgentName] =
-    await Promise.all([
-      getBuLegalBusinessName(issuerID),
-      getBuLegalBusinessName(shipperID),
-      getBuLegalBusinessName(consigneeID),
-      getBuLegalBusinessName(releaseAgentID),
-    ]);
+  const [issuerName, shipperName, consigneeName, endorseeName, releaseAgentName] = await Promise.all([
+    getBuLegalBusinessName(issuerID),
+    getBuLegalBusinessName(shipperID),
+    getBuLegalBusinessName(consigneeID),
+    getBuLegalBusinessName(endorseeID),
+    getBuLegalBusinessName(releaseAgentID),
+  ]);
 
   const getClassName = (ebl: EBlRecordType, partyID: string) => {
     const status = currentStatus(ebl);
     if (status === "PRINT" && ebl.bl?.current_owner === partyID) return printed;
-    if (status === "ACCOMPLISH" && ebl.bl?.current_owner === partyID)
-      return accomplished;
+    if (status === "ACCOMPLISH" && ebl.bl?.current_owner === partyID) return accomplished;
     if (ebl.bl?.current_owner === partyID) return active;
     return inactive;
   };
@@ -120,6 +113,14 @@ const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
         className={getClassName(ebl, consigneeID)}
         position="middle"
       />
+      {isToOrder && (
+        <ProgressTracker
+          title="Endorsee"
+          name={endorseeName}
+          className={getClassName(ebl, endorseeID)}
+          position="middle"
+        />
+      )}
       <ProgressTracker
         title="Release Agent"
         name={releaseAgentName}
@@ -130,20 +131,10 @@ const ProgressTrackerBar = async ({ ebl }: { ebl: EBlRecordType }) => {
   );
 };
 
-const ProgressStatusItem = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
+const ProgressStatusItem = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="flex flex-col items-start justify-start">
-    <div className="whitespace-nowrap text-xs font-normal leading-[1.125rem] text-light">
-      {title}
-    </div>
-    <div className="whitespace-nowrap text-base font-semibold text-main">
-      {children}
-    </div>
+    <div className="whitespace-nowrap text-xs font-normal leading-[1.125rem] text-light">{title}</div>
+    <div className="whitespace-nowrap text-base font-semibold text-main">{children}</div>
   </div>
 );
 
@@ -156,20 +147,12 @@ const ProgressStatusText = ({ status }: { status: EBlStatusType }) => (
       </div>
     )}
     {status === "ACCOMPLISH" && (
-      <div className="flex items-center gap-x-1">
-        Accomplished {<CircleInCheckIcon className="text-[#42BE25]" />}
-      </div>
+      <div className="flex items-center gap-x-1">Accomplished {<CircleInCheckIcon className="text-[#42BE25]" />}</div>
     )}
   </ProgressStatusItem>
 );
 
-const ProgressStatus = async ({
-  ebl,
-  sessionPlatformId,
-}: {
-  ebl: EBlRecordType;
-  sessionPlatformId: string | undefined;
-}) => {
+const ProgressStatus = async ({ ebl, businessUnitId }: { ebl: EBlRecordType; businessUnitId: string | undefined }) => {
   // TODO: try not to get bu list all the time
   const status = currentStatus(ebl);
   const nextPartyID = getNextPartyIDByCurrentStatus(ebl, status);
@@ -183,23 +166,15 @@ const ProgressStatus = async ({
     <div className="flex h-[3.875rem] w-full items-start justify-start gap-[3.75rem] px-[1.875rem]">
       <ProgressStatusItem title="Current Owner">
         {currentOwnerName}
-        {sessionPlatformId === ebl.bl?.current_owner && (
-          <span className="text-xs leading-[1.125rem] text-disabled">
-            {" "}
-            (You)
-          </span>
+        {businessUnitId === ebl.bl?.current_owner && (
+          <span className="text-xs leading-[1.125rem] text-disabled"> (You)</span>
         )}
       </ProgressStatusItem>
 
       {showNextOwner && (
         <ProgressStatusItem title="Next Owner">
           {nextOwnerName}
-          {sessionPlatformId === nextPartyID && (
-            <span className="text-xs leading-[1.125rem] text-disabled">
-              {" "}
-              (You)
-            </span>
-          )}
+          {businessUnitId === nextPartyID && <span className="text-xs leading-[1.125rem] text-disabled"> (You)</span>}
         </ProgressStatusItem>
       )}
 
@@ -208,13 +183,7 @@ const ProgressStatus = async ({
   );
 };
 
-const ShippingProgress = ({
-  ebl,
-  sessionPlatformId,
-}: {
-  ebl: EBlRecordType;
-  sessionPlatformId: string | undefined;
-}) => {
+const ShippingProgress = ({ ebl, businessUnitId }: { ebl: EBlRecordType; businessUnitId: string | undefined }) => {
   return (
     <TooltipProvider>
       <section className="border-bolder-light flex w-full flex-col items-start gap-[1.875rem] rounded-lg border border-solid bg-white py-[1.875rem] shadow-lg">
@@ -224,7 +193,10 @@ const ShippingProgress = ({
 
         <ProgressTrackerBar ebl={ebl} />
 
-        <ProgressStatus ebl={ebl} sessionPlatformId={sessionPlatformId} />
+        <ProgressStatus
+          ebl={ebl}
+          businessUnitId={businessUnitId}
+        />
 
         <ActionPanel ebl={ebl} />
       </section>

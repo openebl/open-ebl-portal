@@ -1,7 +1,7 @@
 "use server";
 
 import UserInviteSection from "@/app/_components/settings/user-invite-section";
-import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
+import LeftArrowIcon from "@/app/_icons/left-arrow-icon.svg";
 import { getServerAuthSession } from "@/server/auth";
 import { hasPermission } from "@/server/permissions";
 import Link from "next/link";
@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 export default async function Page() {
   const session = await getServerAuthSession();
   if (!session) return null;
-  if (!hasPermission('write:settings/users', session.permissions) ) {
+  if (!hasPermission("write:settings/users", session.permissions)) {
     redirect("/settings/user-info");
   }
 

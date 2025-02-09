@@ -1,6 +1,5 @@
 FROM node:18-slim as base
 WORKDIR /app
-COPY package*.json ./
 
 FROM base as builder
 RUN apt-get update && \
@@ -8,7 +7,9 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-RUN npm ci
+COPY package.json pnpm*.yaml ./
+RUN npm install -g pnpm \
+  && pnpm install --frozen-lockfile
 
 # set these only for build
 ENV DATABASE_URL=postgres://localhost:5432/database
@@ -22,15 +23,14 @@ ENV S3_BUCKET=example-bucket
 ENV BU_SERVER_URL="http://localhost:8080"
 ENV BU_SERVER_API_KEY=key
 ENV PORTAL_URL="http://localhost:3000"
+ENV BLUEXPAY_URL="http://localhost:3000"
 ENV SYSADMIN_EMAIL=admin@example.com
 ENV BU_INFO_LIST_URL=https://example.com/business-info-list.json
 
 # Build next.js app
 ADD . /app
-RUN npm run postinstall
-RUN npm run build
-RUN npx tsup prisma/seed.ts src/daemons/email-notify-daemon.ts
-RUN ls -la  /app/dist
+RUN pnpm run build
+RUN npx tsup src/drizzle/seed.ts src/drizzle/migrate.ts src/daemons/email-notify-daemon.ts
 
 # Build the production image
 FROM node:18-slim
@@ -50,15 +50,13 @@ RUN adduser --system --uid 1001 nextjs
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# install prisma for migration
-RUN npm i prisma -g
-
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/dist/prisma/seed.cjs ./seed.cjs
-COPY --from=builder --chown=nextjs:nodejs /app/dist/src/daemons/email-notify-daemon.cjs ./email-notify-daemon.cjs
-ADD ./prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/dist/drizzle/migrate.cjs ./migrate.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/dist/drizzle/seed.cjs ./seed.cjs
+COPY --from=builder --chown=nextjs:nodejs /app/dist/daemons/email-notify-daemon.cjs ./email-notify-daemon.cjs
+ADD ./src/drizzle ./drizzle
 ADD ./bin/launch.sh ./launch.sh
 ADD ./bin/migrate.sh ./migrate.sh
 

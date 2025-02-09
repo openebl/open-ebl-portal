@@ -1,12 +1,12 @@
-import type { Platform, User } from "@prisma/client";
+import type { Platforms, Users } from "@/drizzle/schema";
 import type { Session } from "next-auth";
 
 export const buildTestSession = ({
   user,
   platform,
 }: {
-  user: User;
-  platform: Platform;
+  user: typeof Users.$inferSelect;
+  platform: typeof Platforms.$inferSelect;
 }) =>
   ({
     user: {
@@ -15,7 +15,9 @@ export const buildTestSession = ({
       email: user.email ?? "",
     },
     platform,
+    businessUnitId: platform.platformId,
     authenticationId: '',
+    requesterId: 'test-requester-id',
     expires: "1",
     permissions: [],
     platformRoles: [],

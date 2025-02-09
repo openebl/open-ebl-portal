@@ -1,23 +1,16 @@
-import CalendarIcon from "@/app/_icons/calendar-icon";
+import CalendarIcon from "@/app/_icons/calendar-icon.svg";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { FormControl, FormField } from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import React from "react";
 import type { Control, FieldPath, FieldValues } from "react-hook-form";
 import type { TFormItemBuilder } from "./types";
 import { hFormItemBuilder } from "./h-form";
 
-type DateFormFieldProps<
-  TFieldValues extends FieldValues,
-  TName extends FieldPath<TFieldValues>,
-> = {
+type DateFormFieldProps<TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>> = {
   label: string;
   required?: boolean;
   control: Control<TFieldValues>;
@@ -26,10 +19,7 @@ type DateFormFieldProps<
   className?: string;
 };
 
-const DateFormField = <
-  TFieldValues extends FieldValues,
-  TName extends FieldPath<TFieldValues>,
->({
+const DateFormField = <TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({
   label,
   required,
   control,
@@ -55,11 +45,7 @@ const DateFormField = <
                   ring-offset-border-light hover:bg-background hover:text-main focus-visible:outline-none focus-visible:ring-2
                   focus-visible:ring-[#3C7EFF] focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-[#F1F0F0] ${className}`)}
                 >
-                  {field.value ? (
-                    format(field.value, "MM/dd/yyyy")
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
+                  {field.value ? format(field.value, "MM/dd/yyyy") : <span>Pick a date</span>}
                   <div className="ml-auto flex h-10 w-10 items-center justify-center border-l border-border-dark">
                     <CalendarIcon className="opacity-50" />
                   </div>

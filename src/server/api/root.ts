@@ -7,6 +7,7 @@ import { docImageRouter } from "./routers/doc-image";
 import { eBlRouter } from "./routers/ebl";
 import { portRouter } from "./routers/port";
 import { userRouter } from "./routers/user";
+import { paymentRequestRouter } from "./routers/payment-request";
 
 /**
  * This is the primary router for your server.
@@ -21,6 +22,7 @@ export const appRouter = createTRPCRouter({
   docFile: docFileRouter,
   docImage: docImageRouter,
   user: userRouter,
+  paymentRequest: paymentRequestRouter,
   adminPlatform: adminPlatformRouter,
 });
 

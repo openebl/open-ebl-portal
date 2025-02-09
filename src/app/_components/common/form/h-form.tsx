@@ -1,20 +1,7 @@
-import {
-  FormControl,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
-const HFormItem = ({
-  label,
-  required,
-  children,
-}: {
-  label: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) => (
-  <FormItem className="flex items-start justify-between space-y-0">
+const HFormItem = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
+  <FormItem className="flex items-center justify-between space-y-0">
     <FormLabel className="w-[8.75rem] flex-none bg-transparent text-[0.8125rem] font-semibold leading-10 text-light">
       {label}
       {required && <span className="ml-1 text-warning">*</span>}

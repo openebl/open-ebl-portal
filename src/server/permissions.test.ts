@@ -1,5 +1,4 @@
 import { type UserRoleType } from "@/types/user";
-import { type Platform } from "@prisma/client";
 import { describe, it } from "vitest";
 import { permissions } from "./permissions";
 
@@ -16,7 +15,7 @@ describe.concurrent("permissions", () => {
     businessInfo: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-  } as Platform;
+  };
 
   describe("session platform is admin platform", () => {
     const platform = { ...defaultPlatform, admin: true };

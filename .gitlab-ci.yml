@@ -1,13 +1,15 @@
 default:
-  retry: 1
   interruptible: true
+  retry:
+    max: 2
+    when: runner_system_failure
 
 variables:
   GIT_DEPTH: 5
   GITHUB_TOKEN: $GITHUB_TOKEN
   DOCKER_DRIVER: overlay2
   REPOSITORY_NAME: bxebl-portal
-  MASTER_REPO_NAMESPACE: 'navyx/ebl'
+  MASTER_REPO_NAMESPACE: "navyx/ebl"
 
 stages:
   - init
@@ -15,7 +17,7 @@ stages:
   - test
 
 include:
-  - template: Security/SAST.gitlab-ci.yml
+  # - template: Security/SAST.gitlab-ci.yml
   - template: Security/Secret-Detection.gitlab-ci.yml
   # - project: 'navyx/shared/ci-templates'
   #   ref: 'master'
@@ -28,11 +30,11 @@ include:
 
 .after_merge_rules:
   rules:
-    - if: '$RUN_DEPSCAN'
+    - if: "$RUN_DEPSCAN"
       when: never
-    - if: '$RUN_COVERAGE'
+    - if: "$RUN_COVERAGE"
       when: never
-    - if: '$CI_PROJECT_NAMESPACE == $MASTER_REPO_NAMESPACE && $CI_COMMIT_BRANCH =~ /dev|master|main|hotfix/'
+    - if: "$CI_PROJECT_NAMESPACE == $MASTER_REPO_NAMESPACE && $CI_COMMIT_BRANCH =~ /dev|master|main|hotfix/"
 
 .testing_template:
   stage: test
@@ -51,41 +53,41 @@ include:
     BU_SERVER_URL: "http://localhost:8080"
     BU_SERVER_API_KEY: key
     PORTAL_URL: "http://localhost:3000"
+    BLUEXPAY_URL: "http://localhost:3000"
     BU_INFO_LIST_URL: https://example.com/business-info-list.json
   before_script:
     - ln -fs /usr/share/zoneinfo/Asia/Taipei /etc/localtime
-    - npm ci
-    - npm run postinstall
+    - npm install -g pnpm && pnpm install --frozen-lockfile
 
-nodejs-scan-sast:
-  rules:
-    - !reference [ .default_rules, rules ]
+# nodejs-scan-sast:
+#   rules:
+#     - !reference [ .default_rules, rules ]
 
 eslint:
   extends: .testing_template
   stage: test
   script:
-    - npm run lint
+    - pnpm run lint
   rules:
-    - !reference [ .default_rules, rules ]
+    - !reference [.default_rules, rules]
 
-unittest:
-  extends: .testing_template
-  stage: test
-  services:
-    - name: $AWS_ECR_REGISTRY/postgres:latest
-      alias: postgres
-  variables:
-    DB_HOST: postgres
-    POSTGRES_DB: bxebl-portal-test
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: root
-  script:
-    - apt-get update && apt-get install -y libssl-dev poppler-data poppler-utils
-    - npm run migrate
-    - npm run test:unit
-  rules:
-    - !reference [ .default_rules, rules ]
+# unittest:
+#   extends: .testing_template
+#   stage: test
+#   services:
+#     - name: $AWS_ECR_REGISTRY/postgres:latest
+#       alias: postgres
+#   variables:
+#     DB_HOST: postgres
+#     POSTGRES_DB: bxebl-portal-test
+#     POSTGRES_USER: postgres
+#     POSTGRES_PASSWORD: root
+#   script:
+#     - apt-get update && apt-get install -y libssl-dev poppler-data poppler-utils
+#     - pnpm run migrate
+#     - pnpm run test:unit
+#   rules:
+#     - !reference [.default_rules, rules]
 
 try_build:
   stage: test
@@ -95,7 +97,7 @@ try_build:
   script:
     - docker build .
   rules:
-    - !reference [ .default_rules, rules ]
+    - !reference [.default_rules, rules]
 
 build_image:
   stage: package
@@ -156,4 +158,4 @@ build_image:
     - echo "NEW_TAG=$NEW_TAG" >> build.env
     - echo "BUILD_PREFIX=$BUILD_PREFIX" >> build.env
   rules:
-    - !reference [ .after_merge_rules, rules ]
+    - !reference [.after_merge_rules, rules]

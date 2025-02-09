@@ -35,3 +35,9 @@ export const buListToDropdownOptionList = (buList: BuType[] | null | undefined) 
     value: bu.id,
   }))
 }
+
+export const joinUrls = (baseUrl: string, relativeUrl: string): string => {
+  const base = new URL(baseUrl);
+  const joinedUrl = new URL(relativeUrl, base);
+  return joinedUrl.toString();
+};

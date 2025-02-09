@@ -1,28 +1,22 @@
 "use client";
 
 import ComboboxField from "@/app/_components/common/form/combo-form-field";
+import MultiComboboxField from "@/app/_components/common/form/multi-combo-form-field";
 import { HFormItem } from "@/app/_components/common/form/h-form";
 import SelectFormField from "@/app/_components/common/form/select-form-field";
-import {
-  useFilterBusinessUnits,
-  useGetBusinessUnit,
-} from "@/app/_hooks/business-unit-filter";
+import { useFilterBusinessUnits, useGetBusinessUnit } from "@/app/_hooks/business-unit-filter";
 import { useFilterPorts, useGetPort } from "@/app/_hooks/ports-filter";
 import { Form, FormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { type EBlFormType } from "@/types/ebl";
+import { EBlDocType } from "@/types/ebl/common";
 import { type UseFormReturn } from "react-hook-form";
 
-const DetailPanel = ({
-  form,
-  isAmendMode,
-}: {
-  form: UseFormReturn<EBlFormType>;
-  isAmendMode: boolean;
-}) => {
+const DetailPanel = ({ form, isAmendMode }: { form: UseFormReturn<EBlFormType>; isAmendMode: boolean }) => {
   const blDocTypes = [
     { name: "HBL Non-negotiable", value: "HouseBillOfLading" },
+    { name: "HBL Negotiable (L/C)", value: "HouseNegotiableBillOfLading" },
   ];
   return (
     <div className="flex w-[35rem] flex-none flex-col items-stretch py-[1.875rem] pl-[3.125rem] pr-[1.875rem]">
@@ -33,7 +27,10 @@ const DetailPanel = ({
             control={form.control}
             name="bl_number"
             render={({ field }) => (
-              <HFormItem label="BL No." required={true}>
+              <HFormItem
+                label="BL No."
+                required={true}
+              >
                 <Input
                   className={`h-10 w-[21.25rem] shadow-inner ${form.formState.errors.bl_number && "!border-warning"}`}
                   {...field}
@@ -87,6 +84,29 @@ const DetailPanel = ({
             useGetItem={useGetBusinessUnit}
             className={form.formState.errors.consignee && "!border-warning"}
           />
+          <MultiComboboxField
+            control={form.control}
+            label="Notify Parties"
+            required={false}
+            disabled={isAmendMode}
+            name="notify_parties"
+            addButtonTitle="Add Notify Party"
+            useFilterItems={useFilterBusinessUnits}
+            useGetItem={useGetBusinessUnit}
+            className={form.formState.errors.notify_parties && "!border-warning"}
+          />
+          {form.getValues().bl_doc_type === EBlDocType.HouseNegotiableBillOfLading && (
+            <ComboboxField
+              control={form.control}
+              label="Endorsee"
+              required={true}
+              disabled={isAmendMode}
+              name="endorsee"
+              useFilterItems={useFilterBusinessUnits}
+              useGetItem={useGetBusinessUnit}
+              className={form.formState.errors.endorsee && "!border-warning"}
+            />
+          )}
           <ComboboxField
             control={form.control}
             label="Release Agent"
@@ -101,7 +121,10 @@ const DetailPanel = ({
             control={form.control}
             name="note"
             render={({ field }) => (
-              <HFormItem label="Notes" required={false}>
+              <HFormItem
+                label="Notes"
+                required={isAmendMode}
+              >
                 <Textarea
                   placeholder=""
                   className={`h-[10.625rem] w-[21.25rem] resize-none font-normal ${form.formState.errors.note && "!border-warning"}`}

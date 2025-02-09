@@ -1,88 +1,124 @@
-# Create T3 App
+# BlueX eBL (Electronic Bill of Lading) Portal
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+The BlueX eBL Portal is designed to facilitate the management and processing of electronic Bill of Lading.
 
-## What's next? How do I make an app with this?
+## Table of contents
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- <a href="#tech-stack">Tech Stack</a>
+- <a href="#getting-started">Getting Started</a>
+- <a href="#system-architecture">System Architecture</a>
+- <a href="#prerequisite">Prerequisite Knowledge</a>
+- <a href="#community">Community</a>
+- <a href="#change-log">Change Log</a>
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+<h2 id="tech-stack">Tech stack</h2>
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- [Next.js](https://nextjs.org): Full-stack React framework
+- [NextAuth.js](https://next-auth.js.org): Library for implementing authentication in Next.js applications.
+- [Prisma](https://prisma.io): Database ORM
+- [Tailwind CSS](https://tailwindcss.com): Utility-first CSS framework
+- [tRPC (type-safe RPC)](https://trpc.io): Building type-safe APIs for full-stack framework
 
-## Learn More
+<h2 id="getting-started">Getting Started</h2>
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+#### Download nvm and use node v20
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+```bash
+nvm install 20
+nvm use 20
+```
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
-
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
-
-## Quick start for local development
-
-#### Prerequisite
+#### Download dependency
 
 ```shell
 brew install poppler # for processing pdf files
+npm install pnpm -g
+pnpm install --frozen-lockfile
 ```
 
 [Optional] If you haven't installed postgresql yet
+
 ```shell
 brew install postgresql
-brew services start postgresql # by default, run PostgreSQL service in localhost:5432
+```
+
+Run the PostgreSQL service on localhost:5432
+
+```shell
+brew services start postgresql
+```
+
+#### Create new empty database
+
+[Optional] If you have no any postgresql user
+
+```shell
+createuser [username] --createdb -P # create new db user with createdb permission
 ```
 
 Create new empty database
+
 ```shell
-createuser [username] --createdb -P # create new db user with createdb permission
 createdb [database_name] -O [username]
 ```
 
-#### ENV Files
+#### Create .env file
 
-Reference: https://nextjs.org/docs/app/building-your-application/configuring/environment-variables#default-environment-variables
+Copy the `.env.example` file in the root directory and rename it to `.env`. The file will store sensitive information and should be listed in `.gitignore`
 
-Create a new .env file and follow .env.example schema. The file will store sensitive information and should be listed in .gitignore
+In the `.env` file
 
-In the .env file
+- DATABASE_URL
 
-* DATABASE_URL: sets your [username], [password] and [database_name]
+sets your [username], [password] and [database_name]
 
-* NEXTAUTH_SECRET: use `openssl rand -base64 32` to generate openssl random string. It will be used to hash tokens, sign/encrypt cookies and generate cryptographic keys.
+- NEXTAUTH_SECRET
 
-* S3_BUCKET: bluex-ebl-static-files-dev
+use `openssl rand -base64 32` to generate openssl random string. It will be used to hash tokens, sign/encrypt cookies and generate cryptographic keys.
 
-* EMAIL_SERVER / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY: login to AWS EKS `devbxebl` pod and `cat /vault/secrets/config`, EMAIL_SERVER username is in the pod's environment variable.
+- EMAIL_SERVER / S3_BUCKET / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / BU_SERVER_API_KEY
 
-* BU_SERVER_API_KEY: ask Wesley to provide bu server api key
+login to AWS EKS `devbxebl` pod and `cat /vault/secrets/config`, EMAIL_SERVER username is `echo $SMTP_USERNAME` and S3_BUCKET is `echo $S3_BUCKET`
 
-* DOCU_SUM_ADDR: check below `Local development consideration` part. If kubectl isn't installed on your mac, `brew install kubectl`, and you need to perform [AWS SSO](https://www.notion.so/bluext/AWS-SSO-access-environment-cf3c01b25e894e45bdad677fd2fa3e9c) to access EKS in terminal.
+- PORTAL_URL
 
-* PORTAL_URL: the access URL of the portal. for example: http://localhost:3000 for local development.
+Access URL of the portal. for example: http://localhost:3000 for local development.
 
-* SYSADMIN_EMAIL: initial system administrator's email address. it is used to bootstrap the portal
+- DOCU_SUM_ADDR
 
-* BU_INFO_LIST_URL: Url of a JSON file that contains business unit info list.
+If your local development environment cannot access directly to DocuSum service, you will need to create a tunnel over Kubectl. Here is an example:
 
+```
+kubectl -n devbxebl port-forward svc/devbxebl-portals-docu-sum 5000:5000
+```
+
+then you can set `DOCU_SUM_ADDR` to `localhost:5000`
+
+If kubectl isn't installed on your mac, `brew install kubectl`, and you need to perform [AWS SSO](https://www.notion.so/bluext/AWS-SSO-access-environment-cf3c01b25e894e45bdad677fd2fa3e9c) to access EKS in terminal.
+
+- SYSADMIN_EMAIL
+
+  Initial system administrator's email address. It is used to bootstrap the portal. Fill your email here for local development.
+
+- BU_INFO_LIST_URL
+
+  Url of a JSON file that contains business unit info list.
+
+- PANAMA_DEMO
+
+  Set this to `true` to enable all the Panama demo feature
+
+- BLUEXPAY_URL
+
+  URL of the BlueX Pay Portal
 
 #### Database
 
 Init database with seed data
 
-Edit the prisma/seed.ts and add your email, it will be used to register your email to local database later
-
 ```shell
-npm run migrate-dev # sync database schema
-npm run db:seed # fill seed data to database
+pnpm run migrate # sync database schema
+pnpm run seed # fill seed data to database
 ```
 
 [Optional] DB GUI
@@ -92,16 +128,168 @@ You can download [TablePlus](https://tableplus.com/) to visualize and manipulate
 #### Next.js
 
 ```shell
-npm ci
-npm run dev
+pnpm run dev
 ```
 
-#### Local development consideration
+<h2 id="system-architecture">System Architecture</h2>
 
-If your local development environment cannot access directly to DocuSum service, you will need to create a tunnel over Kubectl. Here is an example:
+The BlueX eBL Portal is built with a modern, type-safe stack:
 
+### Frontend
+- Next.js App Router for server-side rendering and routing
+- React components with TypeScript for type safety
+- Tailwind CSS for responsive and maintainable styling
+- NextAuth.js for secure authentication
+
+### Backend
+- Next.js API routes with tRPC for type-safe API endpoints
+- Prisma ORM for database operations
+- PostgreSQL as the primary database
+- AWS S3 for document storage
+- Email notification system for updates and alerts
+
+### Key Features
+- Electronic Bill of Lading (eBL) management
+- Document viewing and verification
+- Shipping progress tracking
+- Payment request handling
+- User role-based access control
+- Document amendment and transfer workflows
+- Real-time status updates
+
+### eBL ecosystem architecture overview
+
+[Architecture diagram](https://www.notion.so/bluext/Transportation-30d9d67203654817b5dbeaed7c17f1de): eBL portal is on the top level (app / web server block)
+
+#### Portal structure
+
+Below structure is generated by [this VSCode extension](https://marketplace.visualstudio.com/items?itemName=d-koppenhagen.file-tree-to-text-generator) with markdown output format
+
+##### /src
+
+- [add-ons/](./src/add-ons)
+  - [doc-reader/](./src/add-ons/doc-reader)
+  - [README.md](./src/add-ons/README.md)
+- [app/](./src/app)
+  - [(authed)/](<./src/app/(authed)>): Next.js group routing, you can find each page entry here
+  - [\_components/](./src/app/_components): component for each page
+  - [\_hooks/](./src/app/_hooks)
+  - [\_icons/](./src/app/_icons): inline SVG as React component
+  - [api/](./src/app/api): register all [Next.js route handlers](https://nextjs.org/docs/app/building-your-application/routing/route-handlers) here. We use it for handling download and upload request.
+  - [auth/](./src/app/auth): login page entry
+  - [layout.tsx](./src/app/layout.tsx)
+  - [page.tsx](./src/app/page.tsx): whole app entry with [Next.js App Router convention](https://nextjs.org/docs/getting-started/project-structure#app-routing-conventions)
+- [components/](./src/components)
+  - [ui/](./src/components/ui)
+  - [README.md](./src/components/README.md)
+- [daemons/](./src/daemons)
+  - [email-notifiers/](./src/daemons/email-notifiers)
+  - [email-notify-daemon.ts](./src/daemons/email-notify-daemon.ts): workaround before implementing a backend webhook mail service
+- [emails/](./src/emails)
+- [lib/](./src/lib)
+- [server/](./src/server)
+  - [api/](./src/server/api): register all trpc api here
+  - [fx/](./src/server/fx): server-side functions
+  - [services/](./src/server/services)
+  - [auth.ts](./src/server/auth.ts): login session management with NextAuth.js
+  - [db.ts](./src/server/db.ts)
+  - [permissions.test.ts](./src/server/permissions.test.ts)
+  - [permissions.ts](./src/server/permissions.ts)
+- [stories/](./src/stories): storybook
+- [styles/](./src/styles): for Tailwind CSS configuration only
+- [test/](./src/test)
+- [trpc/](./src/trpc)
+  - [react.tsx](./src/trpc/react.tsx): wrapper for using trpc api in client component (i.e. normal React component)
+  - [server.ts](./src/trpc/server.ts): wrapper for using trpc api in server component (i.e. server-side rendering component)
+  - [shared.ts](./src/trpc/shared.ts)
+- [types/](./src/types)
+  - [bu-scheme.d.ts](./types/bu-scheme.d.ts): generate by `pnpm run openapi`
+- [env.js](./src/env.js): wrapper for process.env with zod schema validation
+- [middleware.ts](./src/middleware.ts)
+
+<h2 id="development">Development</h2>
+
+### Prerequisites
+- Node.js v20 (via nvm)
+- PostgreSQL
+- Poppler (for PDF processing)
+- pnpm package manager
+
+### Development Workflow
+1. Set up your development environment using the Getting Started guide
+2. Create feature branches from `main` for new development
+3. Use TypeScript for type safety
+4. Follow the project's ESLint and Prettier configurations
+5. Write tests using Vitest
+6. Submit merge requests for code review
+
+### Testing
+The project uses Vitest for testing. Run tests using:
+```bash
+pnpm test
 ```
-kubectl -n devbxebl port-forward svc/devbxebl-portals-docu-sum 5000:5000
+
+For running tests in watch mode:
+```bash
+pnpm test:watch
 ```
 
-then you can set `DOCU_SUM_ADDR` to `localhost:5000`
+<h2 id="prerequisite">Prerequisite Knowledge</h2>
+
+#### Basics of Next.js framework
+
+[Next.js App Router course](https://nextjs.org/learn/dashboard-app)
+
+[Server vs Client Component](https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns#when-to-use-server-and-client-components): A high-level summary is server component is for server-side rendering and client component is normal React component. Next.js uses server component as default to reduce network traffic and implement [various caching mechanism](https://nextjs.org/docs/app/building-your-application/caching)
+
+#### tRPC (type-safe RPC) usage
+
+We primarily utilize tRPC for managing application-level APIs, with the exception of handling file uploads and downloads for better performance.
+
+#### DB Schema
+
+Check [schema.prisma](./src/drizzle/schema.ts), below are brief explanation:
+
+1. **Account - User**:
+
+   - Each user (User) can have multiple accounts (Account) associated with them.
+
+2. **Session - User**:
+
+   - Each user (User) can have multiple sessions (Session), representing their active sessions within the system.
+
+3. **Platform - User**:
+
+   - Each platform (Platform) can have multiple active users (User).
+
+4. **User - UserRole - Platform**:
+
+   - Each user (User) can one role (UserRole) for each platform (Platform).
+   - Role may be admin / operator / viewonly, see [type definition here](./src/types/user/index.ts).
+
+5. **VerificationToken**:
+
+   - Stores verification tokens used for tasks like email verification or password reset.
+
+6. **DocFile - User - DocImage**:
+
+   - Each user (User) can upload multiple documents (DocFile), each of document may contain multiple images (DocImage).
+
+7. **EBlStash - EBlNotification**:
+   - EBlStash and EBlNotification tables are used as workaround for handling email notifications before implementing a backend webhook mail service.
+   - EBlStash records the status of electronic Bills of Lading (eBLs), while EBlNotification records email notifications sent to users regarding eBL status changes.
+
+<h2 id="community">Community</h2>
+
+**TODO**
+
+For help, discussion about best practices, or any other conversation that would benefit eBL ecosystem
+
+Join our Discord Server
+
+<h2 id="change-log">Change Log</h2>
+
+- 2024.03.31
+  - Initial version of README written by Jordan
+- 2024.08.11
+  - Updated for Panama Demo (Kevin)

@@ -10,9 +10,11 @@ import { pdf2Image } from "@/lib/pdf2image";
 import { tempFolder } from "@/lib/server-utils";
 import { randomId } from "@/lib/utils";
 import { type StorageServiceType } from "@/server/services/storage-service";
-import { type DatabaseType, type TransactionType } from "../db";
+import { type DatabaseType } from "../db";
 import { readRequestBodyToBuffer } from "./streram";
 import type { EBlFileProcessResultType } from "@/types/ebl";
+import { DocFiles, DocImages } from "@/drizzle/schema";
+import { eq } from "drizzle-orm";
 
 type KeyPairType = { imageKey: string; thumbnailKey: string; page: number };
 
@@ -23,10 +25,7 @@ const saveContentToTempFile = async (content: Buffer) => {
   return tmpFilename;
 };
 
-const saveImagesToStorage = async (
-  content: Buffer,
-  storage: StorageServiceType,
-) => {
+const saveImagesToStorage = async (content: Buffer, storage: StorageServiceType) => {
   const filename = await saveContentToTempFile(content);
   const imageKeys: KeyPairType[] = [];
   await pdf2Image({
@@ -213,6 +212,6 @@ const insertImageRecords = async (
     }),
   ]);
 
-  getLogger().debug(`Page images inserted: ${imgs[0] && imgs[0].id}, ${imgs[1] && imgs[1].id}`);
+  getLogger().debug(`Page images inserted: ${img1?.id}, ${img2?.id}`);
   return true;
 };

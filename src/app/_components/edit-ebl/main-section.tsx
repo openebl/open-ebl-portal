@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { api } from "@/trpc/react";
 
 import { type DialogState } from "@/app/_components/dialogs/confirmation-dialog";
-import SendIcon from "@/app/_icons/send-icon";
+import SendIcon from "@/app/_icons/send-icon.svg";
 import { Button } from "@/components/ui/button";
 import {
   type EBlFormType,
@@ -23,45 +23,29 @@ import PreviewPanel from "./preview-panel";
 import { type TRPCClientErrorLike } from "@trpc/client";
 import { type AppRouter } from "@/server/api/root";
 import { portName } from "@/lib/ports";
-import {
-  type DialogActionType,
-  EBlConfirmationDialog,
-} from "../dialogs/ebl-confirmation-dialog";
-import {
-  currentStatus,
-  eblParties,
-  getNextPartyIDByAction,
-  getNextPartyIDByCurrentStatus,
-} from "@/lib/ebl";
+import { type DialogActionType, EBlConfirmationDialog } from "../dialogs/ebl-confirmation-dialog";
+import { currentStatus, eblParties, getNextPartyIDByAction, getNextPartyIDByCurrentStatus } from "@/lib/ebl";
 
-const MainSection = ({
-  eblForm,
-  eblRecord,
-}: {
-  eblForm: EBlFormType;
-  eblRecord: EBlRecordType | undefined;
-}) => {
+const MainSection = ({ eblForm, eblRecord }: { eblForm: EBlFormType; eblRecord: EBlRecordType | undefined }) => {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogState, setDialogState] = useState<DialogState>("confirm");
   const [action, setAction] = useState<DialogActionType>("ISSUE");
-  const form = useForm<EBlFormType>({
-    resolver: zodResolver(EBlFormSchema),
-    defaultValues: {
-      ...eblForm,
-    },
-  });
 
   const isNewEbl = !eblRecord;
   const eblId = eblRecord?.bl?.id ?? "";
   const status = eblRecord && currentStatus(eblRecord);
   const documentParties = eblRecord && eblParties(eblRecord);
   const isAmendMode =
-    status === "REQUEST_AMEND" ||
-    (status === "RETURN" &&
-      eblRecord?.bl?.current_owner === documentParties?.issuer);
-
+    status === "REQUEST_AMEND" || (status === "RETURN" && eblRecord?.bl?.current_owner === documentParties?.issuer);
   const title = isNewEbl ? "New eBL" : isAmendMode ? "Amend eBL" : "Edit eBL";
+
+  const form = useForm<EBlFormType>({
+    resolver: zodResolver(isAmendMode ? EBlFormAmendSchema.omit({ ebl_id: true }) : EBlFormSchema),
+    defaultValues: {
+      ...eblForm,
+    },
+  });
 
   // TODO: do not download whole bu list
   const { data: bulist } = api.buinfo.all.useQuery(undefined, {
@@ -70,11 +54,9 @@ const MainSection = ({
   let nextPartyName = bulist?.[form.getValues().shipper]?.legalBusinessName;
   if (isAmendMode) {
     if (status === "REQUEST_AMEND")
-      nextPartyName =
-        bulist?.[getNextPartyIDByAction(eblRecord!, "AMEND")]?.legalBusinessName;
+      nextPartyName = bulist?.[getNextPartyIDByAction(eblRecord!, "AMEND")]?.legalBusinessName;
     else if (status === "RETURN")
-      nextPartyName =
-        bulist?.[getNextPartyIDByCurrentStatus(eblRecord!, "RETURN")]?.legalBusinessName;
+      nextPartyName = bulist?.[getNextPartyIDByCurrentStatus(eblRecord!, "RETURN")]?.legalBusinessName;
   }
 
   const actionHandlerCallback = () => ({
@@ -100,10 +82,8 @@ const MainSection = ({
 
   const getFormData = () => {
     const formData = form.getValues();
-    formData.pol.locationName =
-      portName(formData.pol.UNLocationCode) ?? formData.pol.locationName;
-    formData.pod.locationName =
-      portName(formData.pod.UNLocationCode) ?? formData.pod.locationName;
+    formData.pol.locationName = portName(formData.pol.UNLocationCode) ?? formData.pol.locationName;
+    formData.pod.locationName = portName(formData.pod.UNLocationCode) ?? formData.pod.locationName;
     return formData;
   };
 
@@ -196,18 +176,23 @@ const MainSection = ({
   };
 
   // useCallback: memo the function reference to prevent re-render
-  const updateFormDataByNewEBl = useCallback((formData: EBlFormType) => {
-    form.setValue("bl_number", formData.bl_number);
-    form.setValue("pol", formData.pol);
-    form.setValue("pod", formData.pod);
-    form.setValue("file", formData.file);
-    form.setValue("metadata.docHash", formData.metadata.docHash);
-    if (!isAmendMode) { // Do not update parties if in amend mode
-      form.setValue("shipper", formData.shipper);
-      form.setValue("consignee", formData.consignee);
-      form.setValue("release_agent", formData.release_agent);
-    }
-  }, [form, isAmendMode])
+  const updateFormDataByNewEBl = useCallback(
+    (formData: EBlFormType) => {
+      form.setValue("bl_number", formData.bl_number);
+      form.setValue("pol", formData.pol);
+      form.setValue("pod", formData.pod);
+      form.setValue("file", formData.file);
+      form.setValue("metadata.docHash", formData.metadata.docHash);
+      if (!isAmendMode) {
+        // Do not update parties if in amend mode
+        form.setValue("shipper", formData.shipper);
+        form.setValue("consignee", formData.consignee);
+        form.setValue("release_agent", formData.release_agent);
+        // form.setValue("notifyParties", formData.notifyParties)
+      }
+    },
+    [form, isAmendMode],
+  );
 
   return (
     <div className="px-12 py-10 font-content">
@@ -239,23 +224,14 @@ const MainSection = ({
           </div>
           <div className="flex gap-2.5">
             {isNewEbl && (
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-[11.25rem]"
-                onClick={saveDraft}
-              >
+              <Button variant="outline" size="lg" className="w-[11.25rem]" onClick={saveDraft}>
                 Save as Draft
               </Button>
             )}
             <Button
               size="lg"
               className="w-[11.25rem]"
-              onClick={
-                !isAmendMode
-                  ? () => openConfirmationDialog("ISSUE")
-                  : () => openConfirmationDialog("AMEND")
-              }
+              onClick={!isAmendMode ? () => openConfirmationDialog("ISSUE") : () => openConfirmationDialog("AMEND")}
             >
               <SendIcon className="mr-1" />
               {isNewEbl ? "Issue eBL" : "Transfer"}

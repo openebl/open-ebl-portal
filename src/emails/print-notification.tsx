@@ -1,7 +1,7 @@
 import React from "react";
 import { Column, Row, Text } from "@react-email/components";
 
-import { ActionButton } from "./components";
+import { ActionButton, NoteSection } from "./components";
 import { NotificationTemplate } from "./notification-template";
 import { type CommonEmailProps } from "./types";
 
@@ -23,10 +23,7 @@ export default function PrintNotification(props: CommonEmailProps) {
           {`, ending this eBL.`}
           <br />
           <br />
-          Note:&nbsp;
-          <strong>{props.note}</strong>
-          <br />
-          <br />
+          <NoteSection {...props} />
           The eBL has been archived and can be accessed via the link below.
         </Text>
       </Row>

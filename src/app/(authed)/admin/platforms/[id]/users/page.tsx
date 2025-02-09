@@ -2,7 +2,7 @@
 
 import EditPlatformUserSection from "@/app/_components/admin/platforms/edit-platform-user-section";
 import PermissionContext from "@/app/_components/permission-context";
-import LeftArrowIcon from "@/app/_icons/left-arrow-icon";
+import LeftArrowIcon from "@/app/_icons/left-arrow-icon.svg";
 import { getServerAuthSession } from "@/server/auth";
 import { api } from "@/trpc/server";
 import Link from "next/link";
