@@ -40,7 +40,12 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
     const filename = eblEvent?.file?.name ?? "";
     const contentType = eblEvent?.file?.file_type ?? "";
     const hash = String(eblEvent?.metadata?.docHash);
+    const eblId = ebl.bl?.id ?? "";
+    const filename = eblEvent?.file?.name ?? "";
+    const contentType = eblEvent?.file?.file_type ?? "";
+    const hash = String(eblEvent?.metadata?.docHash);
     const docFile = await api.docFile.findByUuid.query(hash);
+    let docFileId = docFile?.id ?? 0n;
     let docFileId = docFile?.id ?? 0n;
     // If not found docFile, download from bu server and generate docFile record
     if (!docFileId) {
@@ -50,11 +55,13 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
       // download from bu server
       const response = await fetch(`${env.BU_SERVER_URL}/ebl/${eblId}/document`, {
         method: "GET",
+        method: "GET",
         headers: {
           accept: "application/octet-stream",
           Authorization: `Bearer ${env.BU_SERVER_API_KEY}`,
-          // 'X-Business-Unit-ID': String(session?.platform.platformId),
+          "X-Business-Unit-ID": session?.businessUnitId,
         },
+      });
       });
       // generate docFile record in db
       const result = await processFileDocReUpload({
@@ -68,7 +75,14 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
       docFileId = result.docFileId;
     }
     const images = await api.docImage.getUrls.query({ docFileId });
+    const images = await api.docImage.getUrls.query({ docFileId });
 
+    return (
+      <MainSection
+        ebl={ebl}
+        images={images}
+      />
+    );
     return (
       <MainSection
         ebl={ebl}
