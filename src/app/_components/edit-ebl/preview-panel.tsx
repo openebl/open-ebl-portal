@@ -1,6 +1,9 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
+import Image from "next/image";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { toast } from "sonner";
 
 import type { ImageType } from "@/app/_components/common/props/types";
 import DownloadIcon from "@/app/_icons/download-icon.svg";
@@ -9,13 +12,10 @@ import MinusIcon from "@/app/_icons/minus-icon.svg";
 import PlusIcon from "@/app/_icons/plus-icon.svg";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { hashQueryKey } from "@/lib/hashkey";
 import { api } from "@/trpc/react";
 import type { EBlFileProcessResultType, EBlFormType } from "@/types/ebl";
-import Image from "next/image";
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
-import { toast } from "sonner";
 import JumpingLoader from "../common/jumping-loader";
 
 const PreviewPanel = ({
@@ -70,7 +70,7 @@ const PreviewPanel = ({
     { uuid: fileUuid },
     {
       queryKeyHashFn: hashQueryKey,
-      refetchInterval: 1000,
+      refetchInterval: 500,
       staleTime: Infinity,
       enabled: status === "processing",
     },
@@ -198,7 +198,11 @@ const PreviewPanel = ({
           </div>
 
           <div className="flex items-center gap-2 text-white">
-            <Button variant="flat" onClick={handleZoomOut} className="h-[1.875rem] w-[1.875rem] p-0 text-white">
+            <Button
+              variant="flat"
+              onClick={handleZoomOut}
+              className="h-[1.875rem] w-[1.875rem] p-0 text-white"
+            >
               <MinusIcon />
             </Button>
             <Input
@@ -206,18 +210,30 @@ const PreviewPanel = ({
               value={zoomLevel}
               onChange={handleZoomByInput}
             />
-            <Button variant="flat" onClick={handleZoomIn} className="h-[1.875rem] w-[1.875rem] p-0 text-white">
+            <Button
+              variant="flat"
+              onClick={handleZoomIn}
+              className="h-[1.875rem] w-[1.875rem] p-0 text-white"
+            >
               <PlusIcon />
             </Button>
           </div>
 
-          <Button variant="flat" onClick={handleZoomFullScreen} className="h-[1.875rem] w-[1.875rem] p-0 text-white">
+          <Button
+            variant="flat"
+            onClick={handleZoomFullScreen}
+            className="h-[1.875rem] w-[1.875rem] p-0 text-white"
+          >
             <FitScreenIcon className="text-white" />
           </Button>
         </div>
 
         <div className="flex items-center gap-7">
-          <Button variant="flat" className="text-white" onClick={() => fileInputRef.current?.click()}>
+          <Button
+            variant="flat"
+            className="text-white"
+            onClick={() => fileInputRef.current?.click()}
+          >
             Upload New BL
           </Button>
           <input
@@ -227,7 +243,11 @@ const PreviewPanel = ({
             accept="image/png,image/jpeg,application/pdf"
             onChange={onFilesChange}
           />
-          <Button variant="flat" className="h-[1.875rem] w-[1.875rem] p-0" onClick={downloadDocument}>
+          <Button
+            variant="flat"
+            className="h-[1.875rem] w-[1.875rem] p-0"
+            onClick={downloadDocument}
+          >
             <DownloadIcon className="text-white" />
           </Button>
         </div>
@@ -256,7 +276,10 @@ const PreviewPanel = ({
         </div>
         {/* Document preview */}
         <div className="flex flex-1 bg-[#333639]">
-          <div className="relative h-full w-full overflow-auto" ref={imageContainerRef}>
+          <div
+            className="relative h-full w-full overflow-auto"
+            ref={imageContainerRef}
+          >
             {selectedDocument && (
               <Image
                 src={selectedDocument.imageUrl ?? ""}
@@ -273,7 +296,10 @@ const PreviewPanel = ({
 
       {["uploading", "processing"].includes(status) && (
         <Dialog open={true}>
-          <DialogContent showCloseButton={false} className={"p-0 font-content"}>
+          <DialogContent
+            showCloseButton={false}
+            className={"p-0 font-content"}
+          >
             <div className="flex flex-col items-center justify-center rounded-[4px] bg-white py-[3.125rem] text-main">
               <JumpingLoader className="text-secondary1" />
               <p className="mt-10 text-base font-semibold">Scanning documents...</p>

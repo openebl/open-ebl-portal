@@ -30,6 +30,11 @@ export const env = createEnv({
     AGREEMENT_MANIFEST_URL: z.string().url().default("https://www.bluextrade.com/agreements-manifest.json"),
     PANAMA_DEMO: z.boolean().default(false), // If true, the app will enable all the Panama demo feature
     BLUEXPAY_URL: z.string().url(),
+    MAOS_CORE_URL: z.string().url(),
+    MAOS_API_KEY: z.string().min(1),
+    DOC_SPLITTER_ACTOR_NAME: z.string().min(1).default("llm-doc-splitter"),
+    DOC_TYPE_NORMALIZER_ACTOR_NAME: z.string().min(1).default("llm-doc-type-normalize"),
+    DOC_EXTRACT_ACTOR_NAME: z.string().min(1).default("llm-doc-extract"),
   },
 
   /**
@@ -62,6 +67,11 @@ export const env = createEnv({
     AGREEMENT_MANIFEST_URL: process.env.AGREEMENT_MANIFEST_URL,
     PANAMA_DEMO: process.env.PANAMA_DEMO === "true", // If true, the app will enable all the Panama demo feature
     BLUEXPAY_URL: process.env.BLUEXPAY_URL, // If true, the app will enable all the Panama demo feature
+    MAOS_CORE_URL: process.env.MAOS_CORE_URL,
+    MAOS_API_KEY: process.env.MAOS_API_KEY,
+    DOC_SPLITTER_ACTOR_NAME: process.env.DOC_SPLITTER_ACTOR_NAME,
+    DOC_TYPE_NORMALIZER_ACTOR_NAME: process.env.DOC_TYPE_NORMALIZER_ACTOR_NAME,
+    DOC_EXTRACT_ACTOR_NAME: process.env.DOC_EXTRACT_ACTOR_NAME,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

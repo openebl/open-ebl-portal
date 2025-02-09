@@ -11,6 +11,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -301,6 +302,15 @@ export const PaymentRequestDocs = pgTable("PaymentRequestDoc", {
   fileName: text("fileName").notNull(),
   docId: text("docId"),
   docType: text("docType").notNull(),
+});
+
+export const DocExtractions = pgTable("DocExtraction", {
+  id: text("id").primaryKey().notNull(),
+  status: text("status"),
+  createdAt: timestamp("createdAt", { precision: 3 }).defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt", { precision: 3 }).defaultNow().notNull(),
+  result: jsonb("result").$type<Record<string, unknown>>(),
+  error: text("error"),
 });
 
 //---------------------------------------------------------------------
