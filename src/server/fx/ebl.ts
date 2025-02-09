@@ -72,9 +72,11 @@ const findOrCreateDocFile = async ({
   if (!fileHash) throw new Error("Failed to hash file content");
 
   // find docFile with the hash
-  const existingDocFile = await db.docFile.findFirst({
-    where: { uuid: fileHash },
-  });
+  const [existingDocFile] = await db
+    .select()
+    .from(DocFiles)
+    .limit(1)
+    .where(eq(DocFiles.uuid, fileHash));
 
   if (existingDocFile) return existingDocFile;
 
@@ -88,16 +90,17 @@ const findOrCreateDocFile = async ({
   });
 
   // create docfile
-  const docFile = await db.docFile.create({
-    data: {
+  const [docFile] = await db
+    .insert(DocFiles)
+    .values({
       // use hash as uuid so same content will have same uuid
       uuid: fileHash,
       filename,
       platformId: session!.platform.id,
       uploaderId: session!.user.id,
       storagekey,
-    },
-  });
+    })
+    .returning();
   if (!docFile) throw new Error("Failed to create docFile record");
 
   if (contentType === "application/pdf") {
@@ -130,9 +133,11 @@ const findOrCreateDocFile = async ({
   if (!fileHash) throw new Error("Failed to hash file content");
 
   // find docFile with the hash
-  const existingDocFile = await db.docFile.findFirst({
-    where: { uuid: fileHash },
-  });
+  const [existingDocFile] = await db
+    .select()
+    .from(DocFiles)
+    .limit(1)
+    .where(eq(DocFiles.uuid, fileHash));
 
   if (existingDocFile) return existingDocFile;
 
@@ -146,16 +151,17 @@ const findOrCreateDocFile = async ({
   });
 
   // create docfile
-  const docFile = await db.docFile.create({
-    data: {
+  const [docFile] = await db
+    .insert(DocFiles)
+    .values({
       // use hash as uuid so same content will have same uuid
       uuid: fileHash,
       filename,
       platformId: session!.platform.id,
       uploaderId: session!.user.id,
       storagekey,
-    },
-  });
+    })
+    .returning();
   if (!docFile) throw new Error("Failed to create docFile record");
 
   if (contentType === "application/pdf") {
@@ -166,7 +172,7 @@ const findOrCreateDocFile = async ({
     await insertImageRecords(db, docFile.id, { imageKey: storagekey, thumbnailKey: "", page: 1 });
   }
   return docFile;
-};
+}
 
 export const processFileDocUploadReq = async ({
   req,
@@ -243,6 +249,43 @@ export const processFileDocUploadReq = async ({
     throw err;
   }
 };
+
+export const processFileDocReUpload = async ({
+  filename,
+  contentType,
+  body,
+  session,
+  db,
+  storage,
+}: {
+  filename: string
+  contentType: string
+  body: ReadableStream<Uint8Array> | null
+  session: Session | null;
+  db: DatabaseType;
+  storage: StorageServiceType;
+}): Promise<{ docFileId: bigint }> => {
+  if (!body) throw new Error("ReadableStream is null");
+
+  try {
+    const content = await readRequestBodyToBuffer(body);
+    const docFile = await findOrCreateDocFile({
+      filename,
+      content,
+      contentType,
+      session,
+      db,
+      storage,
+    })
+
+    return { docFileId: docFile.id };
+
+  } catch (err) {
+    getLogger().error(err);
+    throw err;
+  }
+};
+
 
 const insertImageRecords = async (tx: DatabaseType, docFileId: bigint, keyPair: KeyPairType) => {
   const [[img1], [img2]] = await Promise.all([

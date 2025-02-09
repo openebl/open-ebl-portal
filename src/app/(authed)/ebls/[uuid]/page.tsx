@@ -69,7 +69,7 @@ const Page = async ({ params }: { params: { uuid: string } }) => {
     }
     const images = await api.docImage.getUrls.query({ docFileId });
 
-    block = (
+    return (
       <MainSection
         ebl={ebl}
         images={images}
