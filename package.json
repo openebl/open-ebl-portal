@@ -8,6 +8,7 @@
     "build": "next build",
     "migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
     "seed": "npx -y tsx src/drizzle/seed.ts",
     "dev": "next dev | pino-pretty",
     "email:dev": "dotenv run -- email dev -d ./src/emails",
