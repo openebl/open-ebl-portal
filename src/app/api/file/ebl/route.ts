@@ -21,5 +21,5 @@ export async function POST(req: NextRequest) {
     storage: s3StorageService,
     docExtraction: bxDocExtraction,
   });
-  return NextResponse.json(result)
+  return NextResponse.json(result);
 }

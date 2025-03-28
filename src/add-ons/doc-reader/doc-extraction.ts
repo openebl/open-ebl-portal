@@ -15,23 +15,58 @@ import { type EBlFormType } from "@/types/ebl";
 import { EBlDocType } from "@/types/ebl/common";
 import { type DocExtractionType } from "./types";
 
-// Create an Document Extraction.
-// uuid: unique id for the document
-// fileName: name of the document
-// content: content of the document
-// If it fails to create a new document extraction, it throws an error.
-const createExtraction = async ({ uuid, filename, content }: { uuid: string; filename: string; content: Buffer }) => {
-  // const client = createClient(DocuSumDefinition, getChannel());
-  // const req: Partial<ExtractDocumentRequest> = {
-  //   requestId: uuid,
-  //   fileName: filename,
-  //   file: content,
-  // };
-  // const res = await client.extractDocument(req);
-  // if (res.error) {
-  //   getLogger().error(`Failed to create extraction to DocuSum: (${res.error.code}) ${res.error.message}`);
-  //   throw new Error(`Failed to create extraction to DocuSum: (${res.error.code}) ${res.error.message}`);
-  // }
+const logger = getLogger();
+
+const docSplitterResponseSchema = z.object({
+  documents: z.array(
+    z.object({
+      document_type: z.string(),
+      pages: z.array(z.number()).min(1),
+    }),
+  ),
+});
+
+const docTypeNormalizeResponseSchema = z.object({
+  document_type: z.string(),
+});
+
+const docExtractResponseSchema = z.object({
+  BLNumber: z.string(),
+  Consignee: z.string().optional(),
+  DueDate: z.string().optional(),
+  ETA: z.string().optional(),
+  ExportReference: z.string().optional(),
+  InvoiceNumber: z.string().optional(),
+  IssueDate: z.string().optional(),
+  Issuer: z.string().optional(),
+  NotifyParty: z
+    .array(
+      z.object({
+        Name: z.string(),
+      }),
+    )
+    .optional(),
+  PortOfDischarge: z.string().optional(),
+  PortOfLoading: z.string().optional(),
+  ShippedDate: z.string().optional(),
+  Shipper: z.string().optional(),
+});
+type DocExtractResponseSchema = z.infer<typeof docExtractResponseSchema>;
+
+const createExtraction = async (args: { uuid: string; filename: string; content: Buffer }) => {
+  try {
+    await db.insert(DocExtractions).values({
+      id: args.uuid,
+      status: "processing",
+    });
+
+    // do not wait for extraction to complete
+    extractDocument(args.uuid, args.content).catch((e) => {
+      logger.error(`Extract document error: ${e}`);
+    });
+  } catch (e) {
+    logger.error(`Cannot create DocExtraction error: ${String(e)}`);
+  }
 };
 
 const getExtraction: (uuid: string) => Promise<{ status: string; ebl?: EBlFormType; error?: string } | null> = async (
@@ -176,7 +211,7 @@ const mapDocInfoToEBlForm: (info: DocExtractResponseSchema) => Promise<EBlFormTy
       username: "",
       docHash: undefined,
     },
-    bl_number: "",
+    bl_number: info.BLNumber,
     bl_doc_type: EBlDocType.HouseBillOfLading,
     to_order: false,
     draft: true,
@@ -185,90 +220,21 @@ const mapDocInfoToEBlForm: (info: DocExtractResponseSchema) => Promise<EBlFormTy
       type: "",
       content: "",
     },
-    shipper: "",
-    consignee: "",
+    shipper: (await lookupParty(info.Shipper)) ?? "",
+    consignee: (await lookupParty(info.Consignee)) ?? "",
     release_agent: "",
     pol: {
-      UNLocationCode: "",
+      UNLocationCode: polCode ?? "",
       locationName: "",
     },
     pod: {
-      UNLocationCode: "",
+      UNLocationCode: podCode ?? "",
       locationName: "",
     },
     endorsee: null,
     notify_parties: null,
     note: null,
   };
-
-  // const docInfo = await getDocInfo(uuid);
-  // if (!docInfo || InProgressStatusList.includes(docInfo.status)) return null;
-
-  // getLogger().info(`Got docInfo: ${JSON.stringify(docInfo)}`);
-
-  // const polCode = lookupPort(docInfo.originEntities.find((e) => e.label === "PortOfLoading")?.value);
-  // const podCode = lookupPort(docInfo.originEntities.find((e) => e.label === "PortOfDischarge")?.value);
-
-  // return {
-  //   metadata: {
-  //     username: "",
-  //     docHash: "",
-  //   },
-  //   bl_number: docInfo.originEntities.find((e) => e.label === "BlNumber")?.value ?? "",
-  //   bl_doc_type: EBlDocType.HouseBillOfLading,
-  //   to_order: false,
-  //   draft: true,
-  //   file: {
-  //     name: "",
-  //     type: "",
-  //     content: "",
-  //   },
-  //   shipper: (await lookupParty(docInfo.originEntities.find((e) => e.label === "Shipper")?.value)) ?? "",
-  //   consignee: (await lookupParty(docInfo.originEntities.find((e) => e.label === "Consignee")?.value)) ?? "",
-  //   release_agent:
-  //     (await lookupParty(
-  //       docInfo.originEntities.find((e) => e.label === "NotifyParty" || e.label === "DeliveryAgent")?.value,
-  //     )) ?? "",
-  //   pol: {
-  //     UNLocationCode: polCode ?? "",
-  //     locationName: portName(polCode) ?? "",
-  //   },
-  //   pod: {
-  //     UNLocationCode: podCode ?? "",
-  //     locationName: portName(podCode) ?? "",
-  //   },
-  // };
-};
-
-let sChannel: ReturnType<typeof createChannel> | null = null;
-
-const getChannel = () => {
-  if (sChannel) return sChannel;
-
-  const docuSumAddr = process.env.DOCU_SUM_ADDR;
-  if (!docuSumAddr) {
-    throw new Error("DOCU_SUM_ADDR is not set");
-  }
-
-  sChannel = createChannel(docuSumAddr);
-  return sChannel;
-};
-
-const getDocInfo = async (uuid: string) => {
-  const client = createClient(DocuSumDefinition, getChannel());
-  const req: Partial<ListDocumentExtractionRequest> = {
-    requestIds: [uuid],
-    limit: 1,
-  };
-  const res = client.listDocumentExtraction(req);
-  for await (const item of res) {
-    if (item.extraction) {
-      const docInfos = item.extraction.reference?.docInfos ?? item.extraction.data?.docInfos;
-      return docInfos?.[0];
-    }
-  }
-
-  return null;
 };
 
 const portFuseOpts = {
