@@ -43,9 +43,13 @@ export default async function Page({ params }: { params: { uuid: string } }) {
         headers: {
           accept: "application/octet-stream",
           Authorization: `Bearer ${env.BU_SERVER_API_KEY}`,
-          "X-Business-Unit-ID": String(session?.platform.id),
+          "X-Business-Unit-ID": String(session?.businessUnitId),
         },
       });
+      if (!response.ok) {
+        throw new Error(`Failed to download eBL document: ${await response.text()}`);
+      }
+
       // generate docFile record in db
       await processFileDocReUpload({
         filename,

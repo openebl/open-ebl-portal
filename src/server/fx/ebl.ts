@@ -213,6 +213,20 @@ export const processFileDocReUpload = async ({
       storage,
     });
 
+    if (!docFile) throw new Error("Failed to create docFile record");
+
+    // const storagekey = `/ebl/${crypto.randomUUID()}`;
+    // if (contentType === "application/pdf") {
+    //   const keyPairs = await saveImagesToStorage(content, storage);
+    //   await Promise.all(keyPairs.map((keyPair) => insertImageRecords(db, docFile.id, keyPair)));
+    // } else {
+    //   await insertImageRecords(db, docFile.id, {
+    //     imageKey: storagekey,
+    //     thumbnailKey: "",
+    //     page: 1,
+    //   });
+    // }
+
     return { docFileId: docFile.id };
   } catch (err) {
     getLogger().error(err);
